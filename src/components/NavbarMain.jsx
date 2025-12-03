@@ -75,7 +75,7 @@ const NavbarMain = () => {
           to="/"
           className="text-xl md:text-2xl font-medium tracking-wider uppercase"
         >
-          UrbanFungi
+          Shusila-Upvan
         </Link>
 
         {/* Hamburger (mobile) */}
@@ -119,6 +119,7 @@ const NavbarMain = () => {
           >
             Mushrooms
           </NavLink>
+          
 
           {/* Services Dropdown */}
           <div
