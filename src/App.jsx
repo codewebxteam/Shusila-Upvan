@@ -12,6 +12,7 @@ import Events from "./pages/Events";
 import FarmerSupport from "./pages/FarmerSupport";
 import Contact from "./pages/Contact";
 import Knowledge from "./pages/Knowledge";
+import FarmerCommunity from "./pages/FarmerCommunity";
 import Dashboard from "./pages/Dashboard";
 
 // Toaster
@@ -39,6 +40,7 @@ function App() {
           <Route path="/farmer-support" element={<FarmerSupport />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/knowledge" element={<Knowledge />} />
+          <Route path="/community" element={<FarmerCommunity />} />
 
           {/* Protected Route */}
           <Route

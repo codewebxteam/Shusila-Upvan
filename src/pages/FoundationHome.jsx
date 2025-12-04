@@ -152,3 +152,6 @@ export default function FoundationHome() {
     </motion.div>
   );
 }
+
+
+
