@@ -37,7 +37,7 @@ export default function ChatWidget() {
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => setIsOpen((v) => !v)}
-        className="fixed bottom-6 right-6 p-4 rounded-full shadow-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white flex items-center justify-center z-50"
+        className="fixed bottom-6 right-6 p-4 rounded-full shadow-xl bg-gradient-to-r from-green-500 via-lime-400  to-yellow-400 text-white px-6 py-3 flex items-center justify-center z-50"
       >
         {isOpen ? <X className="w-6 h-6" /> : <Bot className="w-6 h-6" />}
       </motion.button>
@@ -51,7 +51,7 @@ export default function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.98 }}
             transition={{ duration: 0.25 }}
-            className="fixed bottom-20 right-6 w-[400px] h-[600px] bg-[#0f0425] border border-pink-500/40 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-50"
+            className="fixed bottom-20 right-6 w-[400px] h-[600px] bg-black border border-pink-500/40 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-50"
             ref={popupRef}
           >
             {/* Header */}
@@ -61,9 +61,9 @@ export default function ChatWidget() {
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="font-semibold">Careerist — AI Mentor</div>
+                  <div className="font-semibold">Shusila Upvan — Your AI </div>
                   <div className="text-xs opacity-90">
-                    Ask about skills, jobs & interviews
+                    Ask Products Availability.
                   </div>
                 </div>
               </div>
