@@ -2,9 +2,9 @@ import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import ChatWidget from "./components/ChatWidget";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Layouts
+// Diary components
 import NavbarMain from "./components/NavbarMain";
-import Footer from "./components/Footer"; // ✅ Fixed import path
+import Footer from "./components/Footer";
 import DiaryNavbar from "./Diarycomponents/DiaryNavbar";
 import Diaryfooter from "./Diarycomponents/Diaryfooter";
 
@@ -18,7 +18,15 @@ import Contact from "./pages/Contact";
 import Knowledge from "./pages/Knowledge";
 import FarmerCommunity from "./pages/FarmerCommunity";
 import Dashboard from "./pages/Dashboard";
+
+// Diary pages
 import DiaryHome from "./Diarypages/DiaryHome";
+import DiaryContacts from "./Diarypages/DiaryContacts";
+import MilkDiary from "./Diarypages/MilkDiary";
+import Diaryknowledge from "./Diarypages/Diaryknowledge";
+import DiarySupport from "./Diarypages/DiarySupport";
+import DiaryEvents from "./Diarypages/DiaryEvents";
+import DiaryCommunity from "./Diarypages/DiaryCommunity"; 
 
 // Toaster
 import { Toaster } from "react-hot-toast";
@@ -53,7 +61,7 @@ function App() {
         {/* Redirect typo /dairy → /diary */}
         <Route path="/dairy" element={<Navigate to="/diary" replace />} />
 
-        {/* Foundation pages */}
+        {/* Main/Foundation pages */}
         <Route element={<MainLayout />}>
           <Route index element={<FoundationHome />} />
           <Route path="home" element={<Home />} />
@@ -76,10 +84,19 @@ function App() {
         {/* Diary pages */}
         <Route path="/diary" element={<DiaryLayout />}>
           <Route index element={<DiaryHome />} />
+          <Route path="diarycontacts" element={<DiaryContacts />} />
+          <Route path="milkdiary" element={<MilkDiary />} />
+          <Route path="diaryknowledge" element={<Diaryknowledge />} />
+          <Route path="diarysupport" element={<DiarySupport />} />
+          <Route path="diaryevents" element={<DiaryEvents />} />
+          <Route path="dairycommunity" element={<DiaryCommunity />} /> 
         </Route>
+
+        {/* Fallback for unknown routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* ChatWidget visible everywhere */}
+      {/* ChatWidget visible on all pages */}
       <ChatWidget />
     </div>
   );

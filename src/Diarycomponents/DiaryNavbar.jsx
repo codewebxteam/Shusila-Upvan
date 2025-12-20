@@ -48,9 +48,6 @@ const NavbarMain = () => {
 
   // --- UPDATED: Logout handler with confirmation ---
   const handleLogout = () => {
-    // Confirmation pop-up (using simple browser confirm)
-    // NOTE: `window.confirm` ka istemaal kiya hai, jaisa pehle tha.
-    // Agar aap custom modal chahte hain, toh uske liye alag se state lagega.
     if (window.confirm("Are you sure you want to log out?")) {
       logout();
       closeMenu();
@@ -75,7 +72,7 @@ const NavbarMain = () => {
           to="/"
           className="text-xl md:text-2xl font-medium tracking-wider uppercase"
         >
-          Shusila Upvan 
+          Shusila Upvan
         </Link>
 
         {/* Hamburger (mobile) */}
@@ -85,20 +82,18 @@ const NavbarMain = () => {
 
         {/* Nav Links */}
         <nav
-          className={`${
-            menuOpen
+          className={`${menuOpen
               ? "flex flex-col items-center gap-4 py-4 absolute top-full left-0 right-0 bg-[#fdfbe9] md:hidden backdrop-blur-md shadow-lg"
               : "hidden md:flex items-center gap-6 lg:gap-8"
-          }`}
+            }`}
         >
           <NavLink
             to="/"
             onClick={closeMenu}
             className={({ isActive }) =>
-              `uppercase text-sm tracking-wide transition-colors ${
-                isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
+              `uppercase text-sm tracking-wide transition-colors ${isActive
+                ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
+                : "text-gray-900 hover:text-[#95e500]"
               }`
             }
           >
@@ -107,13 +102,12 @@ const NavbarMain = () => {
 
           {/* --- FIX: Link ko "/mushrooms" kar diya --- */}
           <NavLink
-            to="/mushrooms"
+            to="/diary/milkdiary" 
             onClick={closeMenu}
             className={({ isActive }) =>
-              `uppercase text-sm tracking-wide transition-colors ${
-                isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
+              `uppercase text-sm tracking-wide transition-colors ${isActive
+                ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
+                : "text-gray-900 hover:text-[#95e500]"
               }`
             }
           >
@@ -130,49 +124,48 @@ const NavbarMain = () => {
               Services
             </button>
             <div
-              className={`absolute top-full left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 mt-2 bg-[#fdfbe9] shadow-lg rounded-md py-2 w-56 md:w-64 transition-all duration-300 transform ${
-                servicesOpen
+              className={`absolute top-full left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 mt-2 bg-[#fdfbe9] shadow-lg rounded-md py-2 w-56 md:w-64 transition-all duration-300 transform ${servicesOpen
                   ? "opacity-100 scale-100"
                   : "opacity-0 scale-95 invisible"
-              }`}
+                }`}
             >
               <Link
-                to="/farmer-support"
+                to="/diary/diarysupport"
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
               >
-                <Sprout size={18} /> Diary Products Support
+                <Sprout size={18} /> Diary Support
               </Link>
               <Link
-                to="/mushrooms"
+                to="/diary/milkdiary"
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
               >
                 <ShoppingBasket size={18} /> Buy Fresh Diary Products
               </Link>
               <Link
-                to="/events"
+                  to="/diary/diaryevents"  
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
               >
                 <Calendar size={18} />Diary Community Events
               </Link>
               <Link
-                to="/knowledge"
+                  to="/diary/diaryknowledge"  
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
               >
                 <BookOpen size={18} /> Diary Knowledge Hub
               </Link>
               <Link
-                to="/community"
+                to="/diary/dairycommunity"  // FIXED: Corrected path
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
               >
                 <Users size={18} /> Diary Community
               </Link>
               <Link
-                to="/contact"
+                to="/diary/diarycontacts"
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
               >
@@ -182,13 +175,12 @@ const NavbarMain = () => {
           </div>
 
           <NavLink
-            to="/farmer-support"
+            to="/diary/diarysupport"
             onClick={closeMenu}
             className={({ isActive }) =>
-              `uppercase text-sm tracking-wide transition-colors ${
-                isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
+              `uppercase text-sm tracking-wide transition-colors ${isActive
+                ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
+                : "text-gray-900 hover:text-[#95e500]"
               }`
             }
           >
@@ -209,13 +201,12 @@ const NavbarMain = () => {
                   {user.displayName
                     ? user.displayName.split(" ")[0]
                     : user.email
-                    ? user.email.split("@")[0]
-                    : "User"}
+                      ? user.email.split("@")[0]
+                      : "User"}
                   <ChevronDown
                     size={16}
-                    className={`${
-                      profileOpen ? "rotate-180" : ""
-                    } transition-transform`}
+                    className={`${profileOpen ? "rotate-180" : ""
+                      } transition-transform`}
                   />
                 </button>
 

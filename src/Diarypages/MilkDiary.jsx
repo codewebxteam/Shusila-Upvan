@@ -28,21 +28,22 @@ import {
 import { Toaster, toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 
-// --- IMAGE IMPORTS from knowledge folder ---
-import heroImage from "../assets/hero.webp";
-import button from "../assets/knowledge/button.webp";
-import oyster from "../assets/knowledge/oyster.webp";
-import shitake from "../assets/knowledge/shitake.webp";
-import milky from "../assets/knowledge/milky.webp";
-import king from "../assets/knowledge/king.webp";
-import enoki from "../assets/knowledge/enoki.webp";
-import cremini from "../assets/knowledge/cremini.webp";
-import protobelo from "../assets/knowledge/protobelo.webp";
+// --- IMAGE IMPORTS for Dairy Products ---
 
-// API Endpoints (Backend URLs)
+import paneer from "../assets/dairy/paneer.jpg";
+import cowmilk from "../assets/dairy/cowmilk.jpg";
+import A2cow from "../assets/dairy/A2cow.jpg";
+import buffalomilk from "../assets/dairy/buffalomilk.jpg";
+import curd from "../assets/dairy/curd.jpg";
+import cheese from "../assets/dairy/cheese.jpg";
+import cowghee from "../assets/dairy/cowghee.jpg";
+import butter from "../assets/dairy/butter.jpg";
+import HeroMilk from "../assets/dairy/HeroMilk.jpg";
+
+// API Endpoints (Backend URLs) - update these to match your backend
 const API_ENDPOINTS = {
-  GET_MUSHROOMS: "https://your-backend-api.com/api/mushrooms",
-  GET_MUSHROOM_DETAIL: "https://your-backend-api.com/api/mushrooms/",
+  GET_PRODUCTS: "https://your-backend-api.com/api/dairy/products",
+  GET_PRODUCT_DETAIL: "https://your-backend-api.com/api/dairy/products/",
   ADD_TO_CART: "https://your-backend-api.com/api/cart/add",
   CREATE_ORDER: "https://your-backend-api.com/api/orders/create",
   GET_TESTIMONIALS: "https://your-backend-api.com/api/testimonials",
@@ -50,178 +51,189 @@ const API_ENDPOINTS = {
   SUBSCRIBE_NEWSLETTER: "https://your-backend-api.com/api/subscribe",
 };
 
-// --- INITIAL DATA (Fallback if API fails) ---
-const initialMushroomData = [
+// --- INITIAL DATA (fallback) for Dairy Products ---
+const initialDairyData = [
   {
     id: 1,
-    slug: "button",
-    name: "Button Mushroom",
-    image: button,
-    category: "Culinary",
-    price: 12.99,
-    stock: 50,
-    rating: 4.5,
-    deliveryTime: "1-2 days",
-    origin: "Local Farm",
+    slug: "cow-milk",
+    name: "Fresh Cow Milk (1L)",
+    image: cowmilk,
+    category: "Milk",
+    price: 60.0,
+    stock: 120,
+    rating: 4.8,
+    deliveryTime: "Same-day delivery",
+    origin: "Local Dairy Farm",
     fullDescription:
-      "Mild flavor, commonly used in soups, curries, pizzas, and salads. Rich in B vitamins, selenium, and low-calorie.",
-    healthBenefits: ["Rich in antioxidants", "Boosts immunity", "Low calorie"],
-    storageTips: "Store in paper bag in refrigerator for up to 1 week",
+      "Pure farm-fresh cow milk, unadulterated and delivered within hours of milking. Rich in essential nutrients and perfect for daily consumption.",
+    healthBenefits: ["Rich in calcium", "Boosts immunity", "Improves bone health"],
+    storageTips: "Refrigerate immediately. Use within 24–36 hours.",
+    size: "1L",
+    fat: "4%",
+    snf: "8.5%",
   },
   {
     id: 2,
-    slug: "oyster",
-    name: "Oyster Mushroom",
-    image: oyster,
-    category: "Gourmet",
-    price: 10.5,
-    stock: 30,
+    slug: "buffalo-milk",
+    name: "Buffalo Milk (1L)",
+    image: buffalomilk,
+    category: "Milk",
+    price: 70.0,
+    stock: 100,
     rating: 4.7,
-    deliveryTime: "1-2 days",
-    origin: "Organic Farm",
+    deliveryTime: "Same-day delivery",
+    origin: "Organic Buffalo Farm",
     fullDescription:
-      "Delicate taste, often used in stir-fries, soups, and as a meat substitute. High in protein and antioxidants.",
-    healthBenefits: ["High protein", "Heart healthy", "Rich in iron"],
-    storageTips: "Keep in original packaging, consume within 3-4 days",
+      "Thick, creamy buffalo milk ideal for making curd, paneer, and desserts.",
+    healthBenefits: ["High protein", "Nutrient-dense", "Builds muscle strength"],
+    storageTips: "Keep refrigerated. Consume within 24 hours.",
+    size: "1L",
+    fat: "6%",
+    snf: "9.0%",
   },
   {
     id: 3,
-    slug: "shiitake",
-    name: "Shiitake Mushroom",
-    image: shitake,
-    category: "Medicinal",
-    price: 18.0,
-    stock: 25,
+    slug: "a2-milk",
+    name: "A2 Desi Cow Milk (1L)",
+    image: A2cow,
+    category: "Premium Milk",
+    price: 120.0,
+    stock: 60,
     rating: 4.9,
-    deliveryTime: "2-3 days",
-    origin: "Mountain Farms",
+    deliveryTime: "Morning delivery",
+    origin: "Gir Cow Farm",
     fullDescription:
-      "Rich, umami flavor. Used in Asian dishes and supplements. Boosts immunity and has medicinal compounds.",
-    healthBenefits: ["Immune booster", "Anti-inflammatory", "Cholesterol control"],
-    storageTips: "Store in breathable container, use within 5 days",
+      "A2 milk from indigenous Gir cows. Easily digestible and great for lactose-sensitive individuals.",
+    healthBenefits: ["Aids digestion", "Anti-inflammatory", "Rich in A2 beta-casein"],
+    storageTips: "Store at 4°C. Best consumed within 24 hours.",
+    size: "1L",
+    fat: "4.2%",
+    snf: "8.6%",
   },
   {
     id: 4,
-    slug: "milky",
-    name: "Milky Mushroom",
-    image: milky,
-    category: "Culinary",
-    price: 8.75,
+    slug: "fresh-paneer",
+    name: "Fresh Paneer (200g)",
+    image: paneer,
+    category: "Paneer & Cheese",
+    price: 320.0,
     stock: 40,
-    rating: 4.3,
-    deliveryTime: "1 day",
-    origin: "Local Farm",
+    rating: 4.8,
+    deliveryTime: "Same-day delivery",
+    origin: "Local Dairy",
     fullDescription:
-      "Soft texture with a slightly sweet taste. Popular in Indian curries and stir-fries. High in dietary fiber and vitamins.",
-    healthBenefits: ["High fiber", "Digestive health", "Vitamin B source"],
-    storageTips: "Wrap in damp cloth, refrigerate",
+      "Soft, fresh, and protein-rich paneer perfect for curries, grilling, and snacking.",
+    healthBenefits: ["High in protein", "Good for muscle growth", "Source of healthy fats"],
+    storageTips: "Refrigerate; consume within 48 hours.",
+    size: "200g",
   },
   {
     id: 5,
-    slug: "king",
-    name: "King Oyster Mushroom",
-    image: king,
-    category: "Gourmet",
-    price: 15.0,
-    stock: 20,
-    rating: 4.8,
-    deliveryTime: "2-3 days",
-    origin: "Specialty Farm",
-    fullDescription:
-      "Meaty, firm texture. Great for grilling, soups, and gourmet dishes. Rich in protein, low in fat.",
-    healthBenefits: ["High protein", "Low fat", "Rich in potassium"],
-    storageTips: "Store in paper bag, avoid plastic",
+    slug: "curd",
+    name: "Natural Curd (500g)",
+    image: curd,
+    category: "Fermented Dairy",
+    price: 90.0,
+    stock: 80,
+    rating: 4.9,
+    deliveryTime: "Same-day delivery",
+    origin: "Organic Dairy Farm",
+    fullDescription: "Thick, creamy homemade-style curd made from fresh cow milk.",
+    healthBenefits: ["Probiotic-rich", "Improves digestion", "Boosts gut health"],
+    storageTips: "Keep refrigerated; lasts 2–3 days.",
+    size: "500g",
   },
   {
     id: 6,
-    slug: "enoki",
-    name: "Enoki Mushroom",
-    image: enoki,
-    category: "Culinary",
-    price: 14.0,
-    stock: 35,
-    rating: 4.4,
-    deliveryTime: "1-2 days",
-    origin: "Controlled Environment",
+    slug: "ghee",
+    name: "Desi Cow Ghee (500g)",
+    image: cowghee,
+    category: "Ghee",
+    price: 900.0,
+    stock: 50,
+    rating: 5.0,
+    deliveryTime: "2–3 days",
+    origin: "Gir Cow Farm",
     fullDescription:
-      "Mild, crunchy mushrooms used in soups, salads, and sushi. Contains antioxidants and supports digestion.",
-    healthBenefits: ["Digestive aid", "Antioxidant rich", "Low calorie"],
-    storageTips: "Keep in original packaging, refrigerate",
+      "Traditional bilona-made A2 desi cow ghee with rich aroma and flavor.",
+    healthBenefits: ["Boosts immunity", "Improves digestion", "Enhances brain health"],
+    storageTips: "Store in a cool dry place. Do not refrigerate.",
+    size: "500g",
   },
   {
     id: 7,
-    slug: "cremini",
-    name: "Cremini Mushroom",
-    image: cremini,
-    category: "Culinary",
-    price: 9.0,
-    stock: 45,
-    rating: 4.2,
-    deliveryTime: "1 day",
-    origin: "Local Farm",
+    slug: "butter",
+    name: "Fresh White Butter (200g)",
+    image: butter,
+    category: "Butter",
+    price: 450.0,
+    stock: 30,
+    rating: 4.6,
+    deliveryTime: "1–2 days",
+    origin: "Hand-Churned",
     fullDescription:
-      "Deeper flavor than button mushrooms. Used in pastas, stews, and curries. Rich in antioxidants.",
-    healthBenefits: ["Antioxidant rich", "Immune support", "Energy boost"],
-    storageTips: "Store in paper bag, keep dry",
+      "Soft, hand-churned makkhhan made from cultured cream. Perfect for parathas and spreads.",
+    healthBenefits: ["Rich in good fats", "Energy booster", "Natural and preservative-free"],
+    storageTips: "Refrigerate; stays fresh for 5–7 days.",
+    size: "200g",
   },
   {
     id: 8,
-    slug: "portobello",
-    name: "Portobello Mushroom",
-    image: protobelo,
-    category: "Gourmet",
-    price: 20.0,
-    stock: 15,
-    rating: 4.9,
-    deliveryTime: "2-3 days",
-    origin: "Organic Farm",
+    slug: "cheese",
+    name: "Fresh Farm Cheese (200g)",
+    image: cheese,
+    category: "Paneer & Cheese",
+    price: 380.0,
+    stock: 25,
+    rating: 4.7,
+    deliveryTime: "2 days",
+    origin: "Local Dairy",
     fullDescription:
-      "Large, meaty mushrooms. Perfect for grilling as burgers or stuffing. Rich in nutrients.",
-    healthBenefits: ["Nutrient dense", "Heart healthy", "Vitamin D source"],
-    storageTips: "Store in cool dry place, use within 4 days",
+      "Soft, mild farm cheese ideal for sandwiches, pizzas, and salads.",
+    healthBenefits: ["High calcium", "Supports bone health", "Good source of protein"],
+    storageTips: "Refrigerate; stays good for 5–6 days.",
+    size: "200g",
   },
 ];
 
+// --- FALLBACK testimonials ---
 const initialTestimonialData = [
   {
     id: 1,
-    name: "Sarah L.",
+    name: "Anita S.",
     stars: 5,
-    quote:
-      "The freshest shiitake I've ever had. Made my stir-fry incredible and the delivery was so fast!",
-    location: "New York",
-    date: "2 weeks ago",
+    quote: "Milk delivered fresh every morning. Paneer quality is top-notch!",
+    location: "Mumbai",
+    date: "3 days ago",
   },
   {
     id: 2,
-    name: "Mike R.",
+    name: "Rohit K.",
     stars: 5,
-    quote:
-      "I tried the Lion's Mane for its health benefits, and I'm amazed. The quality is top-notch.",
-    location: "California",
-    date: "1 month ago",
+    quote: "Love the A2 milk — easier on the stomach and tastes great.",
+    location: "Pune",
+    date: "2 weeks ago",
   },
   {
     id: 3,
-    name: "Jessica Chen",
+    name: "Priya M.",
     stars: 5,
-    quote:
-      "MushroomMart is my go-to for gourmet mushrooms. The Chanterelles were perfect for my risotto.",
-    location: "Chicago",
-    date: "3 days ago",
+    quote: "Ghee aroma is authentic, and butter is absolutely delicious.",
+    location: "Bengaluru",
+    date: "1 month ago",
   },
 ];
 
-// --- BACKEND SERVICE FUNCTIONS ---
-class MushroomService {
-  static async fetchMushrooms() {
+// --- BACKEND SERVICE FUNCTIONS (dairy) ---
+class DairyService {
+  static async fetchProducts() {
     try {
-      const response = await fetch(API_ENDPOINTS.GET_MUSHROOMS);
-      if (!response.ok) throw new Error("Failed to fetch mushrooms");
+      const response = await fetch(API_ENDPOINTS.GET_PRODUCTS);
+      if (!response.ok) throw new Error("Failed to fetch products");
       return await response.json();
     } catch (error) {
-      console.warn("Using fallback data:", error.message);
-      return initialMushroomData;
+      console.warn("Using fallback dairy data:", error.message);
+      return initialDairyData;
     }
   }
 
@@ -288,7 +300,7 @@ const HeroSection = () => {
       toast.error("Please enter your email");
       return;
     }
-    const result = await MushroomService.subscribeNewsletter(email);
+    const result = await DairyService.subscribeNewsletter(email);
     if (result.success) {
       toast.success("Subscribed successfully!");
       setEmail("");
@@ -300,10 +312,10 @@ const HeroSection = () => {
   return (
     <motion.div className="relative w-full h-[60vh] flex items-center justify-center overflow-hidden">
       <motion.img
-        src={heroImage}
-        alt="Exotic Mushrooms Banner"
+        src={HeroMilk}
+        alt="Fresh Dairy Banner"
         className="absolute inset-0 w-full h-full object-cover"
-        initial={{ scale: 1.1, opacity: 0 }}
+        initial={{ scale: 1.05, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1.2 }}
       />
@@ -315,7 +327,7 @@ const HeroSection = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          Discover Nature's Finest Fungi
+          Fresh & Pure Dairy — Farm To Your Table
         </motion.h1>
         <motion.p
           className="text-lg md:text-xl text-white mb-8 drop-shadow max-w-2xl mx-auto"
@@ -323,9 +335,9 @@ const HeroSection = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.7 }}
         >
-          Fresh, Organic, and Delivered to Your Door. Farm to table in 24 hours.
+          Daily milk, handcrafted ghee, paneer and more — delivered fresh every morning.
         </motion.p>
-        
+
         {/* Newsletter Subscription */}
         <motion.div
           className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
@@ -337,12 +349,12 @@ const HeroSection = () => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email for updates"
-            className="flex-1 px-4 py-3 rounded-full border-0 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            placeholder="Enter your email for offers & fresh drops"
+            className="flex-1 px-4 py-3 rounded-full border-0 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
           />
           <button
             onClick={handleSubscribe}
-            className="bg-green-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+            className="bg-yellow-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2"
           >
             <Mail size={20} /> Subscribe
           </button>
@@ -352,13 +364,13 @@ const HeroSection = () => {
   );
 };
 
-// --- ENHANCED MUSHROOM CAROUSEL ---
-const MushroomCarousel = ({ mushrooms, onImageClick }) => {
+// --- DAIRY PRODUCT CAROUSEL ---
+const DairyCarousel = ({ products, onImageClick }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: "start" },
     [Autoplay({ delay: 4000 })]
   );
-  
+
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
@@ -366,47 +378,47 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
     <div className="relative">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex -ml-4">
-          {mushrooms.map((mushroom) => (
+          {products.map((product) => (
             <motion.div
               className="flex-grow-0 flex-shrink-0 basis-full sm:basis-1/2 md:basis-1/3 pl-4 cursor-pointer"
-              key={mushroom.id}
-              onClick={() => onImageClick(mushroom.slug)}
+              key={product.id}
+              onClick={() => onImageClick(product.slug)}
               whileHover={{ scale: 1.02 }}
             >
-              <div className="group relative bg-white rounded-xl p-4 border border-green-300/30 transition-all duration-300 hover:shadow-2xl hover:border-green-400">
+              <div className="group relative bg-white rounded-xl p-4 border border-yellow-300/30 transition-all duration-300 hover:shadow-2xl hover:border-yellow-400">
                 <div className="relative overflow-hidden rounded-lg">
                   <img
-                    src={mushroom.image}
-                    alt={mushroom.name}
+                    src={product.image}
+                    alt={product.name}
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
                   />
-                  {mushroom.stock < 10 && (
+                  {product.stock < 10 && (
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
                       Low Stock
                     </div>
                   )}
-                  {mushroom.rating >= 4.5 && (
+                  {product.rating >= 4.5 && (
                     <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-                      <Star size={10} fill="white" /> {mushroom.rating}
+                      <Star size={10} fill="white" /> {product.rating}
                     </div>
                   )}
                 </div>
                 <div className="p-4">
                   <h3 className="text-xl font-bold text-gray-900 mb-1">
-                    {mushroom.name}
+                    {product.name}
                   </h3>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-bold text-green-600">
-                      ${mushroom.price.toFixed(2)}
+                    <span className="text-lg font-bold text-yellow-600">
+                      ₹{product.price.toFixed(2)}
                     </span>
                     <span className="text-sm text-gray-500">
-                      {mushroom.deliveryTime}
+                      {product.deliveryTime}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin size={14} className="text-gray-400" />
-                    <span className="text-sm text-gray-600">{mushroom.origin}</span>
+                    <span className="text-sm text-gray-600">{product.origin}</span>
                   </div>
                 </div>
               </div>
@@ -416,13 +428,13 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
       </div>
       <button
         onClick={scrollPrev}
-        className="absolute top-1/2 left-0 md:-left-4 transform -translate-y-1/2 bg-white/80 text-gray-900 p-3 rounded-full hover:bg-green-500 hover:text-white transition-colors z-10 shadow-lg"
+        className="absolute top-1/2 left-0 md:-left-4 transform -translate-y-1/2 bg-white/80 text-gray-900 p-3 rounded-full hover:bg-yellow-500 hover:text-white transition-colors z-10 shadow-lg"
       >
         <ChevronLeft size={24} />
       </button>
       <button
         onClick={scrollNext}
-        className="absolute top-1/2 right-0 md:-right-4 transform -translate-y-1/2 bg-white/80 text-gray-900 p-3 rounded-full hover:bg-green-500 hover:text-white transition-colors z-10 shadow-lg"
+        className="absolute top-1/2 right-0 md:-right-4 transform -translate-y-1/2 bg-white/80 text-gray-900 p-3 rounded-full hover:bg-yellow-500 hover:text-white transition-colors z-10 shadow-lg"
       >
         <ChevronRight size={24} />
       </button>
@@ -430,19 +442,19 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
   );
 };
 
-// --- ENHANCED QUANTITY SELECTOR with Backend ---
-const QuantitySelector = ({ mushroom }) => {
+// --- QUANTITY SELECTOR with Backend ---
+const QuantitySelector = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const handleAddToCart = async () => {
     setLoading(true);
-    const result = await MushroomService.addToCart(mushroom.id, quantity);
-    
+    const result = await DairyService.addToCart(product.id, quantity);
+
     if (result.success) {
-      toast.success(`${quantity} x ${mushroom.name} added to cart!`, {
-        style: { background: "#e6f1dd", color: "#065f46" },
-        iconTheme: { primary: "#22c55e", secondary: "#065f46" },
+      toast.success(`${quantity} x ${product.name} added to cart!`, {
+        style: { background: "#fff7ed", color: "#92400e" },
+        iconTheme: { primary: "#f59e0b", secondary: "#92400e" },
         duration: 3000,
       });
     } else {
@@ -454,20 +466,20 @@ const QuantitySelector = ({ mushroom }) => {
   const handleBuyNow = async () => {
     setLoading(true);
     const orderData = {
-      items: [{ id: mushroom.id, quantity }],
-      total: mushroom.price * quantity,
-      customer: { /* customer info from localStorage */ }
+      items: [{ id: product.id, quantity }],
+      total: product.price * quantity,
+      customer: {}, // populate from auth/localStorage as needed
     };
-    
-    const result = await MushroomService.createOrder(orderData);
-    
+
+    const result = await DairyService.createOrder(orderData);
+
     if (result.success) {
       toast.success("Order placed successfully!", {
         style: { background: "#e6f1dd", color: "#065f46" },
         iconTheme: { primary: "#22c55e", secondary: "#065f46" },
         duration: 4000,
       });
-      // Navigate to order confirmation page
+      // navigate to order confirmation if available
     } else {
       toast.error("Order failed. Please try again.");
     }
@@ -476,10 +488,10 @@ const QuantitySelector = ({ mushroom }) => {
 
   return (
     <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
-      <div className="flex items-center gap-2 bg-green-50 rounded-full p-1">
+      <div className="flex items-center gap-2 bg-yellow-50 rounded-full p-1">
         <button
           onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-          className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
+          className="w-10 h-10 rounded-full bg-yellow-100 hover:bg-yellow-200 flex items-center justify-center transition-colors disabled:opacity-50"
           disabled={loading}
         >
           <Minus size={16} />
@@ -489,33 +501,33 @@ const QuantitySelector = ({ mushroom }) => {
         </span>
         <button
           onClick={() => setQuantity((q) => q + 1)}
-          className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
-          disabled={loading || quantity >= mushroom.stock}
+          className="w-10 h-10 rounded-full bg-yellow-100 hover:bg-yellow-200 flex items-center justify-center transition-colors disabled:opacity-50"
+          disabled={loading || quantity >= product.stock}
         >
           <Plus size={16} />
         </button>
       </div>
-      
+
       <div className="flex gap-2 w-full sm:w-auto">
         <button
           onClick={handleAddToCart}
-          disabled={loading || mushroom.stock === 0}
-          className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading || product.stock === 0}
+          className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             "Adding..."
           ) : (
             <>
               <ShoppingCart size={20} />
-              {mushroom.stock === 0 ? "Out of Stock" : "Add to Cart"}
+              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
             </>
           )}
         </button>
-        
+
         <button
           onClick={handleBuyNow}
-          disabled={loading || mushroom.stock === 0}
-          className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading || product.stock === 0}
+          className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Processing..." : <><Zap size={20} /> Buy Now</>}
         </button>
@@ -524,8 +536,8 @@ const QuantitySelector = ({ mushroom }) => {
   );
 };
 
-// --- ENHANCED PRODUCT DETAILS ---
-const ProductDetails = ({ mushroom }) => (
+// --- PRODUCT DETAILS ---
+const ProductDetails = ({ product }) => (
   <div className="space-y-6">
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-1">
@@ -534,46 +546,46 @@ const ProductDetails = ({ mushroom }) => (
             key={i}
             size={20}
             className={`${
-              i < Math.floor(mushroom.rating)
+              i < Math.floor(product.rating)
                 ? "text-yellow-400 fill-current"
                 : "text-gray-300"
             }`}
           />
         ))}
-        <span className="ml-2 text-gray-600">({mushroom.rating})</span>
+        <span className="ml-2 text-gray-600">({product.rating})</span>
       </div>
-      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-        {mushroom.category}
+      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
+        {product.category}
       </span>
     </div>
 
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-        <Package size={20} className="text-green-600" />
+        <Package size={20} className="text-yellow-600" />
         <div>
           <p className="text-sm text-gray-500">Stock</p>
-          <p className="font-bold">{mushroom.stock} units</p>
+          <p className="font-bold">{product.stock} units</p>
         </div>
       </div>
       <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
         <Truck size={20} className="text-blue-600" />
         <div>
           <p className="text-sm text-gray-500">Delivery</p>
-          <p className="font-bold">{mushroom.deliveryTime}</p>
+          <p className="font-bold">{product.deliveryTime}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
         <Shield size={20} className="text-purple-600" />
         <div>
           <p className="text-sm text-gray-500">Quality</p>
-          <p className="font-bold">Organic</p>
+          <p className="font-bold">Farm Fresh</p>
         </div>
       </div>
       <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
         <MapPin size={20} className="text-red-600" />
         <div>
           <p className="text-sm text-gray-500">Origin</p>
-          <p className="font-bold">{mushroom.origin}</p>
+          <p className="font-bold">{product.origin}</p>
         </div>
       </div>
     </div>
@@ -584,10 +596,10 @@ const ProductDetails = ({ mushroom }) => (
         Health Benefits
       </h4>
       <div className="flex flex-wrap gap-2">
-        {mushroom.healthBenefits?.map((benefit, idx) => (
+        {product.healthBenefits?.map((benefit, idx) => (
           <span
             key={idx}
-            className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm"
+            className="px-3 py-1 bg-yellow-50 text-yellow-800 rounded-full text-sm"
           >
             {benefit}
           </span>
@@ -600,19 +612,22 @@ const ProductDetails = ({ mushroom }) => (
         <Clock size={20} className="text-blue-500" />
         Storage Tips
       </h4>
-      <p className="text-gray-700">{mushroom.storageTips}</p>
+      <p className="text-gray-700">{product.storageTips}</p>
+      {product.size && <p className="text-sm text-gray-500 mt-2">Size: {product.size}</p>}
+      {product.fat && <p className="text-sm text-gray-500">Fat: {product.fat}</p>}
+      {product.snf && <p className="text-sm text-gray-500">SNF: {product.snf}</p>}
     </div>
   </div>
 );
 
-// --- ENHANCED PRODUCT LIST SECTION ---
-const ProductListSection = ({ mushrooms, productRefs }) => (
+// --- PRODUCT LIST SECTION ---
+const ProductListSection = ({ products, productRefs }) => (
   <div className="w-full max-w-7xl mx-auto py-16 px-4 space-y-24">
-    {mushrooms.map((mushroom, index) => (
+    {products.map((product, index) => (
       <div
-        key={mushroom.id}
-        id={mushroom.slug}
-        ref={productRefs[mushroom.slug]}
+        key={product.id}
+        id={product.slug}
+        ref={productRefs[product.slug]}
         className={`grid grid-cols-1 lg:grid-cols-2 items-center gap-12`}
       >
         <motion.div
@@ -623,10 +638,10 @@ const ProductListSection = ({ mushrooms, productRefs }) => (
           transition={{ duration: 0.8 }}
         >
           <div className="relative w-full max-w-lg mx-auto">
-            <div className="absolute -inset-6 bg-gradient-to-r from-green-200/40 to-blue-200/40 rounded-full blur-3xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+            <div className="absolute -inset-6 bg-gradient-to-r from-yellow-200/40 to-amber-200/40 rounded-full blur-3xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
             <img
-              src={mushroom.image}
-              alt={mushroom.name}
+              src={product.image}
+              alt={product.name}
               className="relative w-full h-96 object-contain rounded-3xl shadow-2xl"
             />
           </div>
@@ -641,26 +656,26 @@ const ProductListSection = ({ mushrooms, productRefs }) => (
         >
           <div className="mb-6">
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-3">
-              {mushroom.name}
+              {product.name}
             </h2>
             <div className="flex items-center gap-4 mb-4">
-              <p className="text-3xl font-bold text-green-600">
-                ${mushroom.price.toFixed(2)}
+              <p className="text-3xl font-bold text-yellow-600">
+                ₹{product.price.toFixed(2)}
               </p>
-              {mushroom.stock < 5 && (
+              {product.stock < 5 && (
                 <span className="text-sm text-red-600 font-semibold">
-                  ⚠️ Only {mushroom.stock} left!
+                  ⚠️ Only {product.stock} left!
                 </span>
               )}
             </div>
           </div>
 
           <p className="text-gray-800 leading-relaxed mb-6 text-lg">
-            {mushroom.fullDescription}
+            {product.fullDescription}
           </p>
 
-          <ProductDetails mushroom={mushroom} />
-          <QuantitySelector mushroom={mushroom} />
+          <ProductDetails product={product} />
+          <QuantitySelector product={product} />
         </motion.div>
       </div>
     ))}
@@ -669,35 +684,35 @@ const ProductListSection = ({ mushrooms, productRefs }) => (
 
 // --- BENEFITS SECTION ---
 const BenefitsSection = () => (
-  <div className="bg-gradient-to-r from-green-50 to-blue-50 py-16">
+  <div className="bg-gradient-to-r from-yellow-50 to-amber-50 py-16">
     <div className="max-w-7xl mx-auto px-4">
       <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-        Why Choose Us
+        Why Choose Our Dairy
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {[
           {
             icon: <Truck size={32} />,
-            title: "Fast Delivery",
-            description: "24-48 hours delivery across the city",
-            color: "from-green-500 to-emerald-500",
+            title: "Fresh Daily Delivery",
+            description: "Morning deliveries across the city",
+            color: "from-yellow-400 to-amber-500",
           },
           {
             icon: <Shield size={32} />,
-            title: "Quality Guaranteed",
-            description: "100% organic and fresh produce",
+            title: "Farm-to-Home Quality",
+            description: "100% natural, no preservatives",
             color: "from-blue-500 to-cyan-500",
           },
           {
             icon: <TrendingUp size={32} />,
-            title: "Best Prices",
-            description: "Direct from farm, no middlemen",
+            title: "Fair Prices",
+            description: "Direct from farmers, fair for all",
             color: "from-yellow-500 to-orange-500",
           },
           {
             icon: <MessageCircle size={32} />,
-            title: "24/7 Support",
-            description: "Always here to help you",
+            title: "Customer Support",
+            description: "We’re here to help — always",
             color: "from-purple-500 to-pink-500",
           },
         ].map((benefit, idx) => (
@@ -723,7 +738,7 @@ const BenefitsSection = () => (
   </div>
 );
 
-// --- ENHANCED TESTIMONIALS SECTION with API ---
+// --- TESTIMONIALS ---
 const TestimonialsSection = () => {
   const [testimonials, setTestimonials] = useState(initialTestimonialData);
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -733,7 +748,7 @@ const TestimonialsSection = () => {
 
   useEffect(() => {
     const loadTestimonials = async () => {
-      const data = await MushroomService.fetchTestimonials();
+      const data = await DairyService.fetchTestimonials();
       setTestimonials(data);
     };
     loadTestimonials();
@@ -756,14 +771,14 @@ const TestimonialsSection = () => {
                   className="flex-grow-0 flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/3 pl-4"
                   key={testimonial.id}
                 >
-                  <div className="relative h-full bg-gradient-to-br from-green-50 to-blue-50 p-8 rounded-2xl border border-green-200/50 flex flex-col shadow-lg">
+                  <div className="relative h-full bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-2xl border border-green-200/50 flex flex-col shadow-lg">
                     <Quote
                       className="absolute top-4 right-4 text-green-200/50"
                       size={64}
                     />
                     <div className="z-10">
                       <div className="flex items-center mb-6">
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-r from-green-400 to-blue-400 flex items-center justify-center mr-4">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-r from-green-400 to-emerald-400 flex items-center justify-center mr-4">
                           <User className="text-white" size={24} />
                         </div>
                         <div>
@@ -779,7 +794,7 @@ const TestimonialsSection = () => {
                         "{testimonial.quote}"
                       </p>
                     </div>
-                    <div className="flex text-yellow-500 mt-6">
+                    <div className="flex text-green-500 mt-6">
                       {[...Array(testimonial.stars)].map((_, i) => (
                         <Star key={i} size={20} fill="currentColor" />
                       ))}
@@ -807,7 +822,7 @@ const TestimonialsSection = () => {
   );
 };
 
-// --- CONTACT/SUPPORT SECTION ---
+// --- CONTACT / SUPPORT SECTION ---
 const ContactSection = () => {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
@@ -815,7 +830,7 @@ const ContactSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     // Send to backend
     try {
       const response = await fetch(API_ENDPOINTS.CONTACT_US, {
@@ -823,10 +838,12 @@ const ContactSection = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      
+
       if (response.ok) {
         toast.success("Message sent successfully!");
         setFormData({ name: "", email: "", message: "" });
+      } else {
+        toast.error("Failed to send message");
       }
     } catch (error) {
       toast.error("Failed to send message");
@@ -843,7 +860,7 @@ const ContactSection = () => {
               Need Help? Contact Us
             </h2>
             <p className="text-green-100 mb-8 text-lg">
-              Our mushroom experts are here to help you with recipes, cultivation tips, and orders.
+              Our dairy experts are here to help you with orders, subscriptions, and product advice.
             </p>
             <div className="space-y-6">
               <div className="flex items-center gap-4">
@@ -857,19 +874,19 @@ const ContactSection = () => {
                 <Mail className="text-green-300" />
                 <div>
                   <p className="font-bold">Email Us</p>
-                  <p className="text-green-200">support@mushroommart.com</p>
+                  <p className="text-green-200">support@dairybrand.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <Clock className="text-green-300" />
                 <div>
                   <p className="font-bold">Available</p>
-                  <p className="text-green-200">Mon-Sun: 8AM - 10PM</p>
+                  <p className="text-green-200">Mon-Sun: 6AM - 10PM</p>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -877,7 +894,7 @@ const ContactSection = () => {
                   type="text"
                   placeholder="Your Name"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:border-green-300"
                   required
                 />
@@ -887,7 +904,7 @@ const ContactSection = () => {
                   type="email"
                   placeholder="Your Email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:border-green-300"
                   required
                 />
@@ -896,7 +913,7 @@ const ContactSection = () => {
                 <textarea
                   placeholder="Your Message"
                   value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   rows={4}
                   className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:border-green-300 resize-none"
                   required
@@ -918,14 +935,14 @@ const ContactSection = () => {
 };
 
 // --- MAIN PAGE COMPONENT with Backend Integration ---
-export default function MushroomsPage() {
-  const [mushrooms, setMushrooms] = useState(initialMushroomData);
+export default function DairyPage() {
+  const [products, setProducts] = useState(initialDairyData);
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("popular");
-  
-  const categories = ["All", "Culinary", "Gourmet", "Medicinal"];
+
+  const categories = ["All", "Milk", "Paneer & Cheese", "Ghee", "Butter", "Fermented Dairy", "Premium Milk"];
   const sortOptions = [
     { value: "popular", label: "Most Popular" },
     { value: "price-low", label: "Price: Low to High" },
@@ -935,8 +952,8 @@ export default function MushroomsPage() {
   ];
 
   // refs for product scroll
-  const productRefs = initialMushroomData.reduce((acc, mushroom) => {
-    acc[mushroom.slug] = useRef(null);
+  const productRefs = initialDairyData.reduce((acc, product) => {
+    acc[product.slug] = useRef(null);
     return acc;
   }, {});
 
@@ -944,8 +961,8 @@ export default function MushroomsPage() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      const data = await MushroomService.fetchMushrooms();
-      setMushrooms(data);
+      const data = await DairyService.fetchProducts();
+      setProducts(data);
       setLoading(false);
     };
     loadData();
@@ -972,22 +989,22 @@ export default function MushroomsPage() {
     }
   }, [location, productRefs]);
 
-  // Filter and sort mushrooms
-  const filteredAndSortedMushrooms = React.useMemo(() => {
-    let filtered = mushrooms;
-    
+  // Filter and sort products
+  const filteredAndSortedProducts = React.useMemo(() => {
+    let filtered = products;
+
     // Apply category filter
     if (filter !== "All") {
       filtered = filtered.filter((m) => m.category === filter);
     }
-    
+
     // Apply search filter
     if (search) {
       filtered = filtered.filter((m) =>
         m.name.toLowerCase().includes(search.toLowerCase())
       );
     }
-    
+
     // Apply sorting
     switch (sortBy) {
       case "price-low":
@@ -1001,21 +1018,21 @@ export default function MushroomsPage() {
       default:
         return filtered;
     }
-  }, [mushrooms, filter, search, sortBy]);
+  }, [products, filter, search, sortBy]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fdfbe9]">
+      <div className="min-h-screen flex items-center justify-center bg-[#fffaf0]">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading mushrooms...</p>
+          <p className="text-gray-600">Loading dairy products...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#fdfbe9] min-h-screen text-gray-900 font-sans">
+    <div className="bg-[#fffaf0] min-h-screen text-gray-900 font-sans">
       <Toaster position="top-center" />
       <HeroSection />
       <main>
@@ -1028,10 +1045,10 @@ export default function MushroomsPage() {
         >
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Premium Mushroom Collection
+              Premium Dairy Collection
             </h2>
             <p className="text-gray-700 max-w-2xl mx-auto text-lg">
-              Handpicked from the finest farms, delivered fresh to your kitchen
+              Farm-fresh milk, handcrafted ghee, soft paneer and more — selected for quality.
             </p>
           </div>
 
@@ -1044,58 +1061,58 @@ export default function MushroomsPage() {
                   onClick={() => setFilter(cat)}
                   className={`px-4 py-2 rounded-full font-medium transition-all ${
                     filter === cat
-                      ? "bg-green-600 text-white shadow-lg"
-                      : "bg-green-100 text-gray-800 hover:bg-green-200"
+                      ? "bg-emerald-500 text-white shadow-lg"
+                      : "bg-green-100 text-gray-800 hover:bg-emerald-200"
                   }`}
                 >
                   {cat}
                 </button>
               ))}
             </div>
-            
+
             <div className="flex gap-4 items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="Search mushrooms..."
+                  placeholder="Search dairy products..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 />
               </div>
-              
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400"
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </select>n
             </div>
           </div>
 
-          {filteredAndSortedMushrooms.length === 0 ? (
+          {filteredAndSortedProducts.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-gray-500 text-lg">No mushrooms found matching your criteria.</p>
+              <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
             </div>
           ) : (
-            <MushroomCarousel
-              mushrooms={filteredAndSortedMushrooms}
+            <DairyCarousel
+              products={filteredAndSortedProducts}
               onImageClick={handleImageClick}
             />
           )}
         </motion.div>
 
         <ProductListSection
-          mushrooms={filteredAndSortedMushrooms}
+          products={filteredAndSortedProducts}
           productRefs={productRefs}
         />
-        
+
         <BenefitsSection />
         <TestimonialsSection />
         <ContactSection />
