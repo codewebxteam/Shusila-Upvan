@@ -1,6 +1,7 @@
 import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import ChatWidget from "./components/ChatWidget";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useEffect, useState } from "react";
 
 // Diary components
 import NavbarMain from "./components/NavbarMain";
@@ -27,11 +28,8 @@ import Diaryknowledge from "./Diarypages/Diaryknowledge";
 import DiarySupport from "./Diarypages/DiarySupport";
 import DiaryEvents from "./Diarypages/DiaryEvents";
 import DiaryCommunity from "./Diarypages/DiaryCommunity"; 
-
-// Toaster
 import { Toaster } from "react-hot-toast";
 
-// Layouts
 const MainLayout = () => (
   <>
     <NavbarMain />
@@ -53,15 +51,59 @@ const DiaryLayout = () => (
 );
 
 function App() {
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutData, setCheckoutData] = useState(null);
+
+  useEffect(() => {
+    const handleShowAuthModal = (event) => {
+      const { mode, action, product, quantity } = event.detail;
+      
+      if (action && product) {
+        localStorage.setItem('pendingAction', JSON.stringify({
+          action,
+          product,
+          quantity,
+          timestamp: Date.now()
+        }));
+      }
+      
+      window.dispatchEvent(new CustomEvent('triggerAuthModal', { 
+        detail: { mode: mode || 'login' } 
+      }));
+    };
+
+    const handleShowCheckoutModal = (event) => {
+      const { product, quantity } = event.detail;
+      setCheckoutData({ product, quantity });
+      setShowCheckoutModal(true);
+    };
+
+    window.addEventListener('showAuthModal', handleShowAuthModal);
+    window.addEventListener('showCheckoutModal', handleShowCheckoutModal);
+    
+    return () => {
+      window.removeEventListener('showAuthModal', handleShowAuthModal);
+      window.removeEventListener('showCheckoutModal', handleShowCheckoutModal);
+    };
+  }, []);
+
   return (
     <div className="bg-[#0f0425] min-h-screen flex flex-col font-inter">
       <Toaster position="top-center" reverseOrder={false} />
+      
+      {/* Global Checkout Modal */}
+      {showCheckoutModal && (
+        <CheckoutModal
+          isOpen={showCheckoutModal}
+          onClose={() => setShowCheckoutModal(false)}
+          product={checkoutData?.product}
+          quantity={checkoutData?.quantity}
+        />
+      )}
 
       <Routes>
-        {/* Redirect typo /dairy → /diary */}
         <Route path="/dairy" element={<Navigate to="/diary" replace />} />
 
-        {/* Main/Foundation pages */}
         <Route element={<MainLayout />}>
           <Route index element={<FoundationHome />} />
           <Route path="home" element={<Home />} />
@@ -89,14 +131,12 @@ function App() {
           <Route path="diaryknowledge" element={<Diaryknowledge />} />
           <Route path="diarysupport" element={<DiarySupport />} />
           <Route path="diaryevents" element={<DiaryEvents />} />
-          <Route path="dairycommunity" element={<DiaryCommunity />} /> 
+          <Route path="dairycommunity" element={<DiaryCommunity />} />
         </Route>
 
-        {/* Fallback for unknown routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* ChatWidget visible on all pages */}
       <ChatWidget />
     </div>
   );
