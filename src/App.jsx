@@ -1,4 +1,5 @@
-import { Routes, Route, Outlet, Navigate } from "react-router-dom";
+// App.js - Ye version use karein
+import { Routes, Route, Outlet, Navigate, Link } from "react-router-dom";
 import ChatWidget from "./components/ChatWidget";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useEffect, useState } from "react";
@@ -19,6 +20,7 @@ import Contact from "./pages/Contact";
 import Knowledge from "./pages/Knowledge";
 import FarmerCommunity from "./pages/FarmerCommunity";
 import Dashboard from "./pages/Dashboard";
+import Cart from './pages/Cart';
 
 // Diary pages
 import DiaryHome from "./Diarypages/DiaryHome";
@@ -29,6 +31,9 @@ import DiarySupport from "./Diarypages/DiarySupport";
 import DiaryEvents from "./Diarypages/DiaryEvents";
 import DiaryCommunity from "./Diarypages/DiaryCommunity"; 
 import { Toaster } from "react-hot-toast";
+
+// Import CartProvider
+import { CartProvider } from "./context/CartContext";
 
 const MainLayout = () => (
   <>
@@ -88,57 +93,84 @@ function App() {
   }, []);
 
   return (
-    <div className="bg-[#0f0425] min-h-screen flex flex-col font-inter">
-      <Toaster position="top-center" reverseOrder={false} />
-      
-      {/* Global Checkout Modal */}
-      {showCheckoutModal && (
-        <CheckoutModal
-          isOpen={showCheckoutModal}
-          onClose={() => setShowCheckoutModal(false)}
-          product={checkoutData?.product}
-          quantity={checkoutData?.quantity}
-        />
-      )}
+    <CartProvider>
+      <div className="bg-[#0f0425] min-h-screen flex flex-col font-inter">
+        <Toaster position="top-center" reverseOrder={false} />
+        
+        {/* Global Checkout Modal - SIMPLIFIED VERSION */}
+        {showCheckoutModal && checkoutData && (
+          <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-md w-full p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Checkout</h2>
+                <button
+                  onClick={() => setShowCheckoutModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="mb-4">Please use the checkout option from the cart page.</p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowCheckoutModal(false)}
+                  className="px-4 py-2 border rounded"
+                >
+                  Close
+                </button>
+                <Link
+                  to="/cart"
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                  onClick={() => setShowCheckoutModal(false)}
+                >
+                  Go to Cart
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
-      <Routes>
-        <Route path="/dairy" element={<Navigate to="/diary" replace />} />
+        <Routes>
+          <Route path="/dairy" element={<Navigate to="/diary" replace />} />
 
-        <Route element={<MainLayout />}>
-          <Route index element={<FoundationHome />} />
-          <Route path="home" element={<Home />} />
-          <Route path="mushrooms" element={<Mushrooms />} />
-          <Route path="events" element={<Events />} />
-          <Route path="farmer-support" element={<FarmerSupport />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="knowledge" element={<Knowledge />} />
-          <Route path="community" element={<FarmerCommunity />} />
-          <Route
-            path="dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Route>
+          <Route element={<MainLayout />}>
+            <Route index element={<FoundationHome />} />
+            <Route path="home" element={<Home />} />
+            <Route path="mushrooms" element={<Mushrooms />} />
+            <Route path="events" element={<Events />} />
+            <Route path="farmer-support" element={<FarmerSupport />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="knowledge" element={<Knowledge />} />
+            <Route path="community" element={<FarmerCommunity />} />
+            <Route path="/cart" element={<Cart />} />
 
-        {/* Diary pages */}
-        <Route path="/diary" element={<DiaryLayout />}>
-          <Route index element={<DiaryHome />} />
-          <Route path="diarycontacts" element={<DiaryContacts />} />
-          <Route path="milkdiary" element={<MilkDiary />} />
-          <Route path="diaryknowledge" element={<Diaryknowledge />} />
-          <Route path="diarysupport" element={<DiarySupport />} />
-          <Route path="diaryevents" element={<DiaryEvents />} />
-          <Route path="dairycommunity" element={<DiaryCommunity />} />
-        </Route>
+            <Route
+              path="dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Diary pages */}
+          <Route path="/diary" element={<DiaryLayout />}>
+            <Route index element={<DiaryHome />} />
+            <Route path="diarycontacts" element={<DiaryContacts />} />
+            <Route path="milkdiary" element={<MilkDiary />} />
+            <Route path="diaryknowledge" element={<Diaryknowledge />} />
+            <Route path="diarysupport" element={<DiarySupport />} />
+            <Route path="diaryevents" element={<DiaryEvents />} />
+            <Route path="dairycommunity" element={<DiaryCommunity />} />
+          </Route>
 
-      <ChatWidget />
-    </div>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+
+        <ChatWidget />
+      </div>
+    </CartProvider>
   );
 }
 

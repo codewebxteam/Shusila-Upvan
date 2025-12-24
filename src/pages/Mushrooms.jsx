@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import {
@@ -13,7 +13,6 @@ import {
   Plus,
   Minus,
   Search,
-  Filter,
   TrendingUp,
   Package,
   Truck,
@@ -24,9 +23,12 @@ import {
   Phone,
   Mail,
   MessageCircle,
+  X,
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useCart } from '../context/CartContext';
+import DeliveryForm from '../pages/DeliveryForm'; 
 
 // --- IMAGE IMPORTS from knowledge folder ---
 import heroImage from "../assets/hero.webp";
@@ -430,97 +432,184 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
   );
 };
 
-// --- ENHANCED QUANTITY SELECTOR with Backend ---
+// QuantitySelector component - UPDATED
 const QuantitySelector = ({ mushroom }) => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
+  const { addToCart } = useCart();
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const handleAddToCart = async () => {
-    setLoading(true);
-    const result = await MushroomService.addToCart(mushroom.id, quantity);
-    
-    if (result.success) {
-      toast.success(`${quantity} x ${mushroom.name} added to cart!`, {
-        style: { background: "#e6f1dd", color: "#065f46" },
-        iconTheme: { primary: "#22c55e", secondary: "#065f46" },
-        duration: 3000,
+  const handleAddToCart = () => {
+    try {
+      setLoading(true);
+      addToCart({
+        id: mushroom.id,
+        slug: mushroom.slug,
+        name: mushroom.name,
+        price: mushroom.price,
+        image: mushroom.image,
+        quantity: quantity,
+        category: mushroom.category,
+        stock: mushroom.stock,
+        type: 'mushroom'
       });
-    } else {
-      toast.error("Failed to add to cart. Please try again.");
+      toast.success(`${quantity} x ${mushroom.name} added to cart!`);
+    } catch (error) {
+      toast.error("Failed to add to cart.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleBuyNow = async () => {
-    setLoading(true);
-    const orderData = {
-      items: [{ id: mushroom.id, quantity }],
-      total: mushroom.price * quantity,
-      customer: { /* customer info from localStorage */ }
-    };
-    
-    const result = await MushroomService.createOrder(orderData);
-    
-    if (result.success) {
-      toast.success("Order placed successfully!", {
-        style: { background: "#e6f1dd", color: "#065f46" },
-        iconTheme: { primary: "#22c55e", secondary: "#065f46" },
-        duration: 4000,
-      });
-      // Navigate to order confirmation page
-    } else {
-      toast.error("Order failed. Please try again.");
+  // ---------------- BUY NOW ----------------
+  const handleBuyNow = () => {
+    if (mushroom.stock === 0) {
+      toast.error("Product out of stock");
+      return;
     }
-    setLoading(false);
+    setSelectedProduct({
+      ...mushroom,
+      selectedQuantity: quantity
+    });
+    setShowDeliveryForm(true);
+  };
+
+  // ---------------- ORDER SUBMIT ----------------
+  const handleOrderSubmit = (orderData) => {
+    console.log("Order placed:", orderData);
+    toast.success(`Order #${orderData.orderId} placed successfully!`, {
+      duration: 5000,
+    });
+    setShowDeliveryForm(false);
+  };
+
+  // ---------------- MODAL CLOSE ----------------
+  const closeModal = () => {
+    setShowDeliveryForm(false);
+    setSelectedProduct(null);
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
-      <div className="flex items-center gap-2 bg-green-50 rounded-full p-1">
-        <button
-          onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-          className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
-          disabled={loading}
-        >
-          <Minus size={16} />
-        </button>
-        <span className="w-12 text-center text-lg font-bold text-gray-900">
-          {quantity}
-        </span>
-        <button
-          onClick={() => setQuantity((q) => q + 1)}
-          className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
-          disabled={loading || quantity >= mushroom.stock}
-        >
-          <Plus size={16} />
-        </button>
-      </div>
-      
-      <div className="flex gap-2 w-full sm:w-auto">
-        <button
-          onClick={handleAddToCart}
-          disabled={loading || mushroom.stock === 0}
-          className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            "Adding..."
-          ) : (
-            <>
-              <ShoppingCart size={20} />
-              {mushroom.stock === 0 ? "Out of Stock" : "Add to Cart"}
-            </>
-          )}
-        </button>
+    <>
+      <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
+        <div className="flex items-center gap-2 bg-green-50 rounded-full p-1">
+          <button
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
+            disabled={loading}
+          >
+            <Minus size={16} />
+          </button>
+          <span className="w-12 text-center text-lg font-bold text-gray-900">
+            {quantity}
+          </span>
+          <button
+            onClick={() => setQuantity((q) => q + 1)}
+            className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
+            disabled={loading || quantity >= mushroom.stock}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
         
-        <button
-          onClick={handleBuyNow}
-          disabled={loading || mushroom.stock === 0}
-          className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "Processing..." : <><Zap size={20} /> Buy Now</>}
-        </button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button
+            onClick={handleAddToCart}
+            disabled={loading || mushroom.stock === 0}
+            className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              "Adding..."
+            ) : (
+              <>
+                <ShoppingCart size={20} />
+                {mushroom.stock === 0 ? "Out of Stock" : "Add to Cart"}
+              </>
+            )}
+          </button>
+          
+          <button
+            onClick={handleBuyNow}
+            disabled={loading || mushroom.stock === 0}
+            className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Zap size={20} /> Buy Now
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* DELIVERY FORM MODAL */}
+      <AnimatePresence>
+        {showDeliveryForm && selectedProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="sticky top-0 z-10 bg-white border-b p-6 flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+                  <p className="text-gray-600">Complete your purchase for {selectedProduct.name}</p>
+                </div>
+                <button
+                  onClick={closeModal}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+                <div className="p-6">
+                  {/* Product Summary */}
+                  <div className="bg-green-50 rounded-xl p-4 mb-6">
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={selectedProduct.image} 
+                        alt={selectedProduct.name}
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg">{selectedProduct.name}</h3>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-green-600 font-bold">
+                              ${selectedProduct.price.toFixed(2)} × {selectedProduct.selectedQuantity}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Subtotal: <span className="font-bold">
+                                ${(selectedProduct.price * selectedProduct.selectedQuantity).toFixed(2)}
+                              </span>
+                            </p>
+                          </div>
+                          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                            {selectedProduct.category}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Delivery Form Component */}
+                  <DeliveryForm 
+                    product={selectedProduct}
+                    quantity={selectedProduct.selectedQuantity}
+                    onSubmit={handleOrderSubmit}
+                    onCancel={closeModal}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

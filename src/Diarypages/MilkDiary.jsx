@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useCart } from "../context/CartContext";
 import { motion } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
@@ -27,6 +28,8 @@ import {
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+import DeliveryForm from "../pages/DeliveryForm";
+// import { useCart } from '../context/CartContext';
 
 // --- IMAGE IMPORTS for Dairy Products ---
 
@@ -443,96 +446,139 @@ const DairyCarousel = ({ products, onImageClick }) => {
 };
 
 // --- QUANTITY SELECTOR with Backend ---
+
 const QuantitySelector = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false);
 
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
+
+  // ---------------- ADD TO CART ----------------
   const handleAddToCart = async () => {
-    setLoading(true);
-    const result = await DairyService.addToCart(product.id, quantity);
+    try {
+      setLoading(true);
 
-    if (result.success) {
-      toast.success(`${quantity} x ${product.name} added to cart!`, {
+      addToCart(
+        {
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          category: product.category,
+          stock: product.stock,
+          type: "dairy", // ✅ IMPORTANT
+        },
+        quantity
+      );
+
+      toast.success(`Added ${product.name} to cart!`, {
         style: { background: "#fff7ed", color: "#92400e" },
         iconTheme: { primary: "#f59e0b", secondary: "#92400e" },
-        duration: 3000,
       });
-    } else {
-      toast.error("Failed to add to cart. Please try again.");
+
+      setTimeout(() => {
+        navigate("/cart");
+      }, 800);
+    } catch (error) {
+      toast.error("Failed to add to cart");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleBuyNow = async () => {
-    setLoading(true);
-    const orderData = {
-      items: [{ id: product.id, quantity }],
-      total: product.price * quantity,
-      customer: {}, // populate from auth/localStorage as needed
-    };
-
-    const result = await DairyService.createOrder(orderData);
-
-    if (result.success) {
-      toast.success("Order placed successfully!", {
-        style: { background: "#e6f1dd", color: "#065f46" },
-        iconTheme: { primary: "#22c55e", secondary: "#065f46" },
-        duration: 4000,
-      });
-      // navigate to order confirmation if available
-    } else {
-      toast.error("Order failed. Please try again.");
+  // ---------------- BUY NOW ----------------
+  const handleBuyNow = () => {
+    if (!product || product.stock === 0) {
+      toast.error("Product out of stock");
+      return;
     }
-    setLoading(false);
+    setShowDeliveryForm(true);
+  };
+
+  // ---------------- ORDER SUBMIT ----------------
+  const handleOrderSubmit = (orderData) => {
+    console.log("Order placed:", orderData);
+    toast.success(`Order #${orderData.orderId} placed successfully!`, {
+      duration: 5000,
+    });
+    setShowDeliveryForm(false);
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
-      <div className="flex items-center gap-2 bg-yellow-50 rounded-full p-1">
-        <button
-          onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-          className="w-10 h-10 rounded-full bg-yellow-100 hover:bg-yellow-200 flex items-center justify-center transition-colors disabled:opacity-50"
-          disabled={loading}
-        >
-          <Minus size={16} />
-        </button>
-        <span className="w-12 text-center text-lg font-bold text-gray-900">
-          {quantity}
-        </span>
-        <button
-          onClick={() => setQuantity((q) => q + 1)}
-          className="w-10 h-10 rounded-full bg-yellow-100 hover:bg-yellow-200 flex items-center justify-center transition-colors disabled:opacity-50"
-          disabled={loading || quantity >= product.stock}
-        >
-          <Plus size={16} />
-        </button>
+    <>
+      <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
+        {/* Quantity */}
+        <div className="flex items-center gap-2 bg-yellow-50 rounded-full p-1">
+          <button
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            disabled={loading}
+            className="w-10 h-10 rounded-full bg-yellow-100 hover:bg-yellow-200
+                       flex items-center justify-center transition disabled:opacity-50"
+          >
+            <Minus size={16} />
+          </button>
+
+          <span className="w-12 text-center text-lg font-bold text-gray-900">
+            {quantity}
+          </span>
+
+          <button
+            onClick={() =>
+              setQuantity((q) => Math.min(product.stock, q + 1))
+            }
+            disabled={loading || quantity >= product.stock}
+            className="w-10 h-10 rounded-full bg-yellow-100 hover:bg-yellow-200
+                       flex items-center justify-center transition disabled:opacity-50"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button
+            onClick={handleAddToCart}
+            disabled={loading || product.stock === 0}
+            className="flex-1 flex items-center justify-center gap-2
+                       bg-yellow-500 text-white font-bold py-3 px-6 rounded-full
+                       hover:bg-yellow-600 transition disabled:opacity-50"
+          >
+            {loading ? (
+              "Adding..."
+            ) : (
+              <>
+                <ShoppingCart size={20} />
+                {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleBuyNow}
+            disabled={loading || product.stock === 0}
+            className="flex-1 flex items-center justify-center gap-2
+                       bg-green-600 text-white font-bold py-3 px-6 rounded-full
+                       hover:bg-green-700 transition disabled:opacity-50"
+          >
+            {loading ? "Processing..." : <><Zap size={20} /> Buy Now</>}
+          </button>
+        </div>
       </div>
 
-      <div className="flex gap-2 w-full sm:w-auto">
-        <button
-          onClick={handleAddToCart}
-          disabled={loading || product.stock === 0}
-          className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            "Adding..."
-          ) : (
-            <>
-              <ShoppingCart size={20} />
-              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-            </>
-          )}
-        </button>
-
-        <button
-          onClick={handleBuyNow}
-          disabled={loading || product.stock === 0}
-          className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "Processing..." : <><Zap size={20} /> Buy Now</>}
-        </button>
-      </div>
-    </div>
+      {/* Delivery Form Modal */}
+      {showDeliveryForm && (
+        <DeliveryForm
+          product={product}
+          quantity={quantity}
+          onClose={() => setShowDeliveryForm(false)}
+          onSubmit={handleOrderSubmit}
+        />
+      )}
+    </>
   );
 };
 
@@ -545,11 +591,10 @@ const ProductDetails = ({ product }) => (
           <Star
             key={i}
             size={20}
-            className={`${
-              i < Math.floor(product.rating)
-                ? "text-yellow-400 fill-current"
-                : "text-gray-300"
-            }`}
+            className={`${i < Math.floor(product.rating)
+              ? "text-yellow-400 fill-current"
+              : "text-gray-300"
+              }`}
           />
         ))}
         <span className="ml-2 text-gray-600">({product.rating})</span>
@@ -1059,11 +1104,10 @@ export default function DairyPage() {
                 <button
                   key={cat}
                   onClick={() => setFilter(cat)}
-                  className={`px-4 py-2 rounded-full font-medium transition-all ${
-                    filter === cat
-                      ? "bg-emerald-500 text-white shadow-lg"
-                      : "bg-green-100 text-gray-800 hover:bg-emerald-200"
-                  }`}
+                  className={`px-4 py-2 rounded-full font-medium transition-all ${filter === cat
+                    ? "bg-emerald-500 text-white shadow-lg"
+                    : "bg-green-100 text-gray-800 hover:bg-emerald-200"
+                    }`}
                 >
                   {cat}
                 </button>
