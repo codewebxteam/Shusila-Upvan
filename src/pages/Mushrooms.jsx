@@ -28,6 +28,7 @@ import {
 import { Toaster, toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import DeliveryForm from '../pages/DeliveryForm'; 
 
 // --- IMAGE IMPORTS from knowledge folder ---
@@ -433,16 +434,17 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
 };
 
 // QuantitySelector component - UPDATED
+// TEST VERSION - Simple authentication check
 const QuantitySelector = ({ mushroom }) => {
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(false);
   const { addToCart } = useCart();
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  const { user, openAuthModal } = useAuth(); // Use openAuthModal directly
 
   const handleAddToCart = () => {
     try {
-      setLoading(true);
       addToCart({
         id: mushroom.id,
         slug: mushroom.slug,
@@ -454,20 +456,29 @@ const QuantitySelector = ({ mushroom }) => {
         stock: mushroom.stock,
         type: 'mushroom'
       });
-      toast.success(`${quantity} x ${mushroom.name} added to cart!`);
     } catch (error) {
       toast.error("Failed to add to cart.");
-    } finally {
-      setLoading(false);
     }
   };
 
-  // ---------------- BUY NOW ----------------
+  // ---------------- SIMPLE BUY NOW ----------------
   const handleBuyNow = () => {
+    console.log("Buy Now clicked", { user: user?.email, stock: mushroom.stock });
+
     if (mushroom.stock === 0) {
       toast.error("Product out of stock");
       return;
     }
+    
+    // Simple check: if no user, show auth modal
+    if (!user) {
+      console.log("No user found, showing auth modal");
+      openAuthModal('login');
+      return;
+    }
+    
+    // User is authenticated, show delivery form
+    console.log("User authenticated, showing delivery form");
     setSelectedProduct({
       ...mushroom,
       selectedQuantity: quantity
@@ -475,16 +486,12 @@ const QuantitySelector = ({ mushroom }) => {
     setShowDeliveryForm(true);
   };
 
-  // ---------------- ORDER SUBMIT ----------------
   const handleOrderSubmit = (orderData) => {
     console.log("Order placed:", orderData);
-    toast.success(`Order #${orderData.orderId} placed successfully!`, {
-      duration: 5000,
-    });
+    toast.success(`Order #${orderData.orderId} placed successfully!`);
     setShowDeliveryForm(false);
   };
 
-  // ---------------- MODAL CLOSE ----------------
   const closeModal = () => {
     setShowDeliveryForm(false);
     setSelectedProduct(null);
@@ -494,121 +501,56 @@ const QuantitySelector = ({ mushroom }) => {
     <>
       <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
         <div className="flex items-center gap-2 bg-green-50 rounded-full p-1">
-          <button
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
-            disabled={loading}
-          >
+          <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center">
             <Minus size={16} />
           </button>
-          <span className="w-12 text-center text-lg font-bold text-gray-900">
-            {quantity}
-          </span>
-          <button
-            onClick={() => setQuantity((q) => q + 1)}
-            className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors disabled:opacity-50"
-            disabled={loading || quantity >= mushroom.stock}
-          >
+          <span className="w-12 text-center text-lg font-bold">{quantity}</span>
+          <button onClick={() => setQuantity((q) => q + 1)} className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center">
             <Plus size={16} />
           </button>
         </div>
         
         <div className="flex gap-2 w-full sm:w-auto">
-          <button
-            onClick={handleAddToCart}
-            disabled={loading || mushroom.stock === 0}
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              "Adding..."
-            ) : (
-              <>
-                <ShoppingCart size={20} />
-                {mushroom.stock === 0 ? "Out of Stock" : "Add to Cart"}
-              </>
-            )}
+          <button onClick={handleAddToCart} disabled={mushroom.stock === 0} className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700">
+            <ShoppingCart size={20} />
+            {mushroom.stock === 0 ? "Out of Stock" : "Add to Cart"}
           </button>
           
-          <button
-            onClick={handleBuyNow}
-            disabled={loading || mushroom.stock === 0}
-            className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button onClick={handleBuyNow} disabled={mushroom.stock === 0} className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600">
             <Zap size={20} /> Buy Now
           </button>
         </div>
       </div>
 
-      {/* DELIVERY FORM MODAL */}
-      <AnimatePresence>
-        {showDeliveryForm && selectedProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
-            >
-              {/* Modal Header */}
-              <div className="sticky top-0 z-10 bg-white border-b p-6 flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
-                  <p className="text-gray-600">Complete your purchase for {selectedProduct.name}</p>
-                </div>
-                <button
-                  onClick={closeModal}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X size={24} />
-                </button>
-              </div>
+      {/* Simple status display */}
+      <div className="mt-2 text-xs text-gray-500">
+        User: {user ? user.email : 'Not logged in'}
+      </div>
 
-              {/* Modal Content */}
-              <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
-                <div className="p-6">
-                  {/* Product Summary */}
-                  <div className="bg-green-50 rounded-xl p-4 mb-6">
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src={selectedProduct.image} 
-                        alt={selectedProduct.name}
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg">{selectedProduct.name}</h3>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-green-600 font-bold">
-                              ${selectedProduct.price.toFixed(2)} × {selectedProduct.selectedQuantity}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              Subtotal: <span className="font-bold">
-                                ${(selectedProduct.price * selectedProduct.selectedQuantity).toFixed(2)}
-                              </span>
-                            </p>
-                          </div>
-                          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                            {selectedProduct.category}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Delivery Form Component */}
-                  <DeliveryForm 
-                    product={selectedProduct}
-                    quantity={selectedProduct.selectedQuantity}
-                    onSubmit={handleOrderSubmit}
-                    onCancel={closeModal}
-                  />
-                </div>
+      {/* Delivery Form Modal */}
+      {showDeliveryForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="sticky top-0 z-10 bg-white border-b p-6 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">Order Details</h2>
+                <p className="text-gray-600">Complete your purchase for {selectedProduct.name}</p>
               </div>
-            </motion.div>
+              <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-full">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <DeliveryForm 
+                product={selectedProduct}
+                quantity={selectedProduct.selectedQuantity}
+                onSubmit={handleOrderSubmit}
+                onCancel={closeModal}
+              />
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </>
   );
 };

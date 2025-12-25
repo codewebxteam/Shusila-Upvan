@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
@@ -29,10 +30,8 @@ import {
 import { Toaster, toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import DeliveryForm from "../pages/DeliveryForm";
-// import { useCart } from '../context/CartContext';
 
 // --- IMAGE IMPORTS for Dairy Products ---
-
 import paneer from "../assets/dairy/paneer.jpg";
 import cowmilk from "../assets/dairy/cowmilk.jpg";
 import A2cow from "../assets/dairy/A2cow.jpg";
@@ -42,17 +41,6 @@ import cheese from "../assets/dairy/cheese.jpg";
 import cowghee from "../assets/dairy/cowghee.jpg";
 import butter from "../assets/dairy/butter.jpg";
 import HeroMilk from "../assets/dairy/HeroMilk.jpg";
-
-// API Endpoints (Backend URLs) - update these to match your backend
-const API_ENDPOINTS = {
-  GET_PRODUCTS: "https://your-backend-api.com/api/dairy/products",
-  GET_PRODUCT_DETAIL: "https://your-backend-api.com/api/dairy/products/",
-  ADD_TO_CART: "https://your-backend-api.com/api/cart/add",
-  CREATE_ORDER: "https://your-backend-api.com/api/orders/create",
-  GET_TESTIMONIALS: "https://your-backend-api.com/api/testimonials",
-  CONTACT_US: "https://your-backend-api.com/api/contact",
-  SUBSCRIBE_NEWSLETTER: "https://your-backend-api.com/api/subscribe",
-};
 
 // --- INITIAL DATA (fallback) for Dairy Products ---
 const initialDairyData = [
@@ -227,73 +215,6 @@ const initialTestimonialData = [
   },
 ];
 
-// --- BACKEND SERVICE FUNCTIONS (dairy) ---
-class DairyService {
-  static async fetchProducts() {
-    try {
-      const response = await fetch(API_ENDPOINTS.GET_PRODUCTS);
-      if (!response.ok) throw new Error("Failed to fetch products");
-      return await response.json();
-    } catch (error) {
-      console.warn("Using fallback dairy data:", error.message);
-      return initialDairyData;
-    }
-  }
-
-  static async addToCart(itemId, quantity, userId = null) {
-    try {
-      const response = await fetch(API_ENDPOINTS.ADD_TO_CART, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId, quantity, userId }),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error("Cart update failed:", error);
-      return { success: false, message: "Failed to add to cart" };
-    }
-  }
-
-  static async createOrder(orderData) {
-    try {
-      const response = await fetch(API_ENDPOINTS.CREATE_ORDER, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error("Order creation failed:", error);
-      return { success: false, message: "Order failed" };
-    }
-  }
-
-  static async fetchTestimonials() {
-    try {
-      const response = await fetch(API_ENDPOINTS.GET_TESTIMONIALS);
-      if (!response.ok) throw new Error("Failed to fetch testimonials");
-      return await response.json();
-    } catch (error) {
-      console.warn("Using fallback testimonials");
-      return initialTestimonialData;
-    }
-  }
-
-  static async subscribeNewsletter(email) {
-    try {
-      const response = await fetch(API_ENDPOINTS.SUBSCRIBE_NEWSLETTER, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error("Newsletter subscription failed:", error);
-      return { success: false, message: "Subscription failed" };
-    }
-  }
-}
-
 // --- HERO SECTION with Newsletter ---
 const HeroSection = () => {
   const [email, setEmail] = useState("");
@@ -303,13 +224,8 @@ const HeroSection = () => {
       toast.error("Please enter your email");
       return;
     }
-    const result = await DairyService.subscribeNewsletter(email);
-    if (result.success) {
-      toast.success("Subscribed successfully!");
-      setEmail("");
-    } else {
-      toast.error(result.message || "Subscription failed");
-    }
+    toast.success("Subscribed successfully!");
+    setEmail("");
   };
 
   return (
@@ -445,8 +361,7 @@ const DairyCarousel = ({ products, onImageClick }) => {
   );
 };
 
-// --- QUANTITY SELECTOR with Backend ---
-
+// --- QUANTITY SELECTOR ---
 const QuantitySelector = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -454,34 +369,35 @@ const QuantitySelector = ({ product }) => {
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  
+  // Add authentication hook
+  const { user, requireAuth, openAuthModal } = useAuth();
 
   // ---------------- ADD TO CART ----------------
   const handleAddToCart = async () => {
     try {
       setLoading(true);
-
-      addToCart(
-        {
-          id: product.id,
-          slug: product.slug,
-          name: product.name,
-          price: product.price,
-          image: product.image,
-          category: product.category,
-          stock: product.stock,
-          type: "dairy", // ✅ IMPORTANT
-        },
-        quantity
-      );
-
-      toast.success(`Added ${product.name} to cart!`, {
-        style: { background: "#fff7ed", color: "#92400e" },
-        iconTheme: { primary: "#f59e0b", secondary: "#92400e" },
-      });
-
-      setTimeout(() => {
-        navigate("/cart");
-      }, 800);
+      
+      // Direct add to cart without auth check
+      const cartItem = {
+        id: product.id,
+        slug: product.slug,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        category: product.category,
+        stock: product.stock,
+        type: "dairy",
+      };
+      
+      // Use a direct approach to avoid double auth check
+      const success = addToCart(cartItem, quantity);
+      
+      if (success) {
+        setTimeout(() => {
+          navigate("/cart");
+        }, 800);
+      }
     } catch (error) {
       toast.error("Failed to add to cart");
       console.error(error);
@@ -490,12 +406,34 @@ const QuantitySelector = ({ product }) => {
     }
   };
 
-  // ---------------- BUY NOW ----------------
+  // ---------------- BUY NOW with AUTHENTICATION ----------------
   const handleBuyNow = () => {
+    console.log("Buy Now clicked", { user: user?.email, stock: product.stock });
+
     if (!product || product.stock === 0) {
       toast.error("Product out of stock");
       return;
     }
+    
+    // Check if user is authenticated
+    if (!user) {
+      console.log("User not authenticated, showing auth modal");
+      // Use your existing authentication system
+      const isAuthenticated = requireAuth('buyNow', () => {
+        // This callback runs after successful login
+        console.log("Auth successful, showing delivery form");
+        setShowDeliveryForm(true);
+      });
+      
+      // If requireAuth returns false, modal should be shown
+      if (!isAuthenticated) {
+        console.log("Auth modal should be visible now");
+        return;
+      }
+    }
+    
+    // User is authenticated, show delivery form
+    console.log("User authenticated, showing delivery form");
     setShowDeliveryForm(true);
   };
 
@@ -564,9 +502,14 @@ const QuantitySelector = ({ product }) => {
                        bg-green-600 text-white font-bold py-3 px-6 rounded-full
                        hover:bg-green-700 transition disabled:opacity-50"
           >
-            {loading ? "Processing..." : <><Zap size={20} /> Buy Now</>}
+            <Zap size={20} /> Buy Now
           </button>
         </div>
+      </div>
+
+      {/* Show auth status for debugging */}
+      <div className="mt-2 text-xs text-gray-500">
+        User: {user ? user.email : 'Not logged in'}
       </div>
 
       {/* Delivery Form Modal */}
@@ -757,7 +700,7 @@ const BenefitsSection = () => (
           {
             icon: <MessageCircle size={32} />,
             title: "Customer Support",
-            description: "We’re here to help — always",
+            description: "We're here to help — always",
             color: "from-purple-500 to-pink-500",
           },
         ].map((benefit, idx) => (
@@ -792,11 +735,7 @@ const TestimonialsSection = () => {
   );
 
   useEffect(() => {
-    const loadTestimonials = async () => {
-      const data = await DairyService.fetchTestimonials();
-      setTestimonials(data);
-    };
-    loadTestimonials();
+    setTestimonials(initialTestimonialData);
   }, []);
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
@@ -875,24 +814,9 @@ const ContactSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    // Send to backend
-    try {
-      const response = await fetch(API_ENDPOINTS.CONTACT_US, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        toast.success("Message sent successfully!");
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        toast.error("Failed to send message");
-      }
-    } catch (error) {
-      toast.error("Failed to send message");
-    }
+    
+    toast.success("Message sent successfully!");
+    setFormData({ name: "", email: "", message: "" });
     setLoading(false);
   };
 
@@ -979,12 +903,12 @@ const ContactSection = () => {
   );
 };
 
-// --- MAIN PAGE COMPONENT with Backend Integration ---
+// --- MAIN PAGE COMPONENT ---
 export default function DairyPage() {
   const [products, setProducts] = useState(initialDairyData);
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState("popular");
 
   const categories = ["All", "Milk", "Paneer & Cheese", "Ghee", "Butter", "Fermented Dairy", "Premium Milk"];
@@ -996,22 +920,10 @@ export default function DairyPage() {
     { value: "new", label: "Newest" },
   ];
 
-  // refs for product scroll
   const productRefs = initialDairyData.reduce((acc, product) => {
     acc[product.slug] = useRef(null);
     return acc;
   }, {});
-
-  // Load data from backend on mount
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      const data = await DairyService.fetchProducts();
-      setProducts(data);
-      setLoading(false);
-    };
-    loadData();
-  }, []);
 
   const handleImageClick = (slug) => {
     productRefs[slug]?.current?.scrollIntoView({
@@ -1020,7 +932,6 @@ export default function DairyPage() {
     });
   };
 
-  // Auto scroll when page loads with hash
   const location = useLocation();
   useEffect(() => {
     if (location.hash) {
@@ -1034,23 +945,19 @@ export default function DairyPage() {
     }
   }, [location, productRefs]);
 
-  // Filter and sort products
   const filteredAndSortedProducts = React.useMemo(() => {
     let filtered = products;
 
-    // Apply category filter
     if (filter !== "All") {
       filtered = filtered.filter((m) => m.category === filter);
     }
 
-    // Apply search filter
     if (search) {
       filtered = filtered.filter((m) =>
         m.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Apply sorting
     switch (sortBy) {
       case "price-low":
         return [...filtered].sort((a, b) => a.price - b.price);
@@ -1064,17 +971,6 @@ export default function DairyPage() {
         return filtered;
     }
   }, [products, filter, search, sortBy]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fffaf0]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dairy products...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-[#fffaf0] min-h-screen text-gray-900 font-sans">
@@ -1136,7 +1032,7 @@ export default function DairyPage() {
                     {option.label}
                   </option>
                 ))}
-              </select>n
+              </select>
             </div>
           </div>
 
