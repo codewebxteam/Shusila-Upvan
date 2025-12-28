@@ -3,7 +3,6 @@ import ChatWidget from "./components/ChatWidget";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useEffect, useState } from "react";
 
-// ✅ ADD THESE 2 IMPORTS
 import { AuthProvider } from "./context/AuthContext";
 import AuthModal from "./components/AuthModal";
 
@@ -24,6 +23,9 @@ import Knowledge from "./pages/Knowledge";
 import FarmerCommunity from "./pages/FarmerCommunity";
 import Dashboard from "./pages/Dashboard";
 import Cart from './pages/Cart';
+// ✅ FIX IMPORTS - ya to uppercase ya lowercase consistent rakho
+import MyProfile from "./pages/MyProfile"; // Agar file MyProfile.jsx hai
+import MyOrders from "./pages/MyOrders";   // Agar file MyOrders.jsx hai
 
 // Diary pages
 import DiaryHome from "./Diarypages/DiaryHome";
@@ -94,13 +96,11 @@ function App() {
   }, []);
 
   return (
-    // ✅ WRAP EVERYTHING WITH AuthProvider
     <AuthProvider>
       <CartProvider>
         <div className="bg-[#0f0425] min-h-screen flex flex-col font-inter">
           <Toaster position="top-center" reverseOrder={false} />
           
-          {/* ✅ ADD AUTH MODAL HERE */}
           <AuthModal />
           
           {/* Global Checkout Modal - SIMPLIFIED VERSION */}
@@ -158,6 +158,25 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* ✅ USE THE CORRECT VARIABLE NAMES */}
+              <Route
+                path="profile"
+                element={
+                  <ProtectedRoute>
+                    <MyProfile />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="orders"
+                element={
+                  <ProtectedRoute>
+                    <MyOrders />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             {/* Diary pages */}
@@ -177,7 +196,7 @@ function App() {
           <ChatWidget />
         </div>
       </CartProvider>
-    </AuthProvider> // ✅ CLOSE AuthProvider
+    </AuthProvider>
   );
 }
 
