@@ -100,12 +100,9 @@ function App() {
       <CartProvider>
         <div className="bg-[#FDFBE9] flex flex-col font-inter">
           <Toaster position="top-center" reverseOrder={false} />
-<<<<<<< HEAD
     <AuthModal />
-=======
-          
-          <AuthModal />
->>>>>>> 7f31702b90845da25a3aeb89409294e455975f9a
+
+    <AuthModal />
           
           {/* Global Checkout Modal - SIMPLIFIED VERSION */}
           {showCheckoutModal && checkoutData && (
