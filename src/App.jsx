@@ -94,14 +94,11 @@ function App() {
   }, []);
 
   return (
-    // ✅ WRAP EVERYTHING WITH AuthProvider
     <AuthProvider>
       <CartProvider>
-        <div className="bg-[#0f0425] min-h-screen flex flex-col font-inter">
+        <div className="bg-[#FDFBE9] flex flex-col font-inter">
           <Toaster position="top-center" reverseOrder={false} />
-          
-          {/* ✅ ADD AUTH MODAL HERE */}
-          <AuthModal />
+    <AuthModal />
           
           {/* Global Checkout Modal - SIMPLIFIED VERSION */}
           {showCheckoutModal && checkoutData && (

@@ -42,17 +42,6 @@ import enoki from "../assets/knowledge/enoki.webp";
 import cremini from "../assets/knowledge/cremini.webp";
 import protobelo from "../assets/knowledge/protobelo.webp";
 
-// API Endpoints (Backend URLs)
-const API_ENDPOINTS = {
-  GET_MUSHROOMS: "https://your-backend-api.com/api/mushrooms",
-  GET_MUSHROOM_DETAIL: "https://your-backend-api.com/api/mushrooms/",
-  ADD_TO_CART: "https://your-backend-api.com/api/cart/add",
-  CREATE_ORDER: "https://your-backend-api.com/api/orders/create",
-  GET_TESTIMONIALS: "https://your-backend-api.com/api/testimonials",
-  CONTACT_US: "https://your-backend-api.com/api/contact",
-  SUBSCRIBE_NEWSLETTER: "https://your-backend-api.com/api/subscribe",
-};
-
 // --- INITIAL DATA (Fallback if API fails) ---
 const initialMushroomData = [
   {

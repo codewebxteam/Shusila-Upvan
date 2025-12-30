@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import { motion } from "framer-motion";
 import heroImage from "../assets/hero.webp";
 import { Link, useNavigate } from "react-router-dom";

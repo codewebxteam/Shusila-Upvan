@@ -370,15 +370,14 @@ const QuantitySelector = ({ product }) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
   
-  // Add authentication hook
-  const { user, requireAuth, openAuthModal } = useAuth();
+  // Firebase authentication
+  const { user, requireAuth } = useAuth();
 
-  // ---------------- ADD TO CART ----------------
+  // ---------------- ADD TO CART (Firebase-friendly) ----------------
   const handleAddToCart = async () => {
     try {
       setLoading(true);
       
-      // Direct add to cart without auth check
       const cartItem = {
         id: product.id,
         slug: product.slug,
@@ -388,61 +387,63 @@ const QuantitySelector = ({ product }) => {
         category: product.category,
         stock: product.stock,
         type: "dairy",
+        quantity: quantity, // Include quantity here
+        userId: user?.uid || null, // Firebase user ID
+        timestamp: new Date().toISOString(), // Firebase timestamp
       };
       
-      // Use a direct approach to avoid double auth check
-      const success = addToCart(cartItem, quantity);
+      // Add to cart with Firebase user context
+      const success = addToCart(cartItem);
       
       if (success) {
+        toast.success(`${quantity} ${product.name} added to cart!`);
         setTimeout(() => {
           navigate("/cart");
         }, 800);
       }
     } catch (error) {
+      console.error("Firebase cart error:", error);
       toast.error("Failed to add to cart");
-      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- BUY NOW with AUTHENTICATION ----------------
+  // ---------------- BUY NOW (Firebase authentication) ----------------
   const handleBuyNow = () => {
-    console.log("Buy Now clicked", { user: user?.email, stock: product.stock });
-
     if (!product || product.stock === 0) {
       toast.error("Product out of stock");
       return;
     }
     
-    // Check if user is authenticated
-    if (!user) {
-      console.log("User not authenticated, showing auth modal");
-      // Use your existing authentication system
-      const isAuthenticated = requireAuth('buyNow', () => {
-        // This callback runs after successful login
-        console.log("Auth successful, showing delivery form");
-        setShowDeliveryForm(true);
-      });
-      
-      // If requireAuth returns false, modal should be shown
-      if (!isAuthenticated) {
-        console.log("Auth modal should be visible now");
-        return;
-      }
-    }
+    // Firebase authentication check
+    const isAuthenticated = requireAuth('buyNow', () => {
+      // This runs after successful Firebase login
+      setShowDeliveryForm(true);
+    });
     
-    // User is authenticated, show delivery form
-    console.log("User authenticated, showing delivery form");
-    setShowDeliveryForm(true);
+    if (isAuthenticated) {
+      setShowDeliveryForm(true);
+    }
+    // If not authenticated, Firebase auth modal will show automatically
   };
 
-  // ---------------- ORDER SUBMIT ----------------
+  // ---------------- ORDER SUBMIT (Firebase-ready) ----------------
   const handleOrderSubmit = (orderData) => {
-    console.log("Order placed:", orderData);
-    toast.success(`Order #${orderData.orderId} placed successfully!`, {
-      duration: 5000,
-    });
+    console.log("Firebase order data:", orderData);
+    
+    // Add Firebase user info to order
+    const firebaseOrder = {
+      ...orderData,
+      userId: user?.uid,
+      userEmail: user?.email,
+      userName: user?.displayName,
+      timestamp: new Date().toISOString(),
+      status: 'pending',
+    };
+    
+    console.log("Final Firebase order:", firebaseOrder);
+    toast.success(`Order #${orderData.orderId} placed successfully!`);
     setShowDeliveryForm(false);
   };
 
@@ -507,9 +508,9 @@ const QuantitySelector = ({ product }) => {
         </div>
       </div>
 
-      {/* Show auth status for debugging */}
+      {/* Firebase auth status */}
       <div className="mt-2 text-xs text-gray-500">
-        User: {user ? user.email : 'Not logged in'}
+        {user ? `Logged in as: ${user.email}` : 'Not logged in'}
       </div>
 
       {/* Delivery Form Modal */}
