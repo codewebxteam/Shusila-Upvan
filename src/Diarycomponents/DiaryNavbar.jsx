@@ -85,7 +85,7 @@ const DairyNavbar = () => {
             to="/"
             className={({ isActive }) =>
               `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
+                  ? "text-[#95e500] border-b-2 border-[#95e500]"
                   : "text-gray-900 hover:text-[#95e500]"
               }`
             }
@@ -97,7 +97,7 @@ const DairyNavbar = () => {
             to="/diary/milkdiary"
             className={({ isActive }) =>
               `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
+                  ? "text-[#95e500] border-b-2 border-[#95e500]"
                   : "text-gray-900 hover:text-[#95e500]"
               }`
             }
@@ -173,7 +173,7 @@ const DairyNavbar = () => {
             to="/diary/diarysupport"
             className={({ isActive }) =>
               `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
+                  ? "text-[#95e500] border-b-2 border-[#95e500]"
                   : "text-gray-900 hover:text-[#95e500]"
               }`
             }
@@ -192,7 +192,7 @@ const DairyNavbar = () => {
                 to="/cart"
                 className={({ isActive }) =>
                   `relative flex items-center transition-colors ${isActive
-                  ? "text-[#f3cc00]"
+                  ? "text-[#95e500]"
                   : "text-gray-900 hover:text-[#95e500]"
                   }`
                 }

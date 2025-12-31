@@ -36,7 +36,7 @@ export default function Footer() {
             <li>
               <a
                 href="/"
-                className="flex items-center gap-2 hover:text-[#f3cc00] transition-colors"
+                className="flex items-center gap-2 hover:text-[#95e500] transition-colors"
               >
                 <Home size={16} className="text-[#95e500]" />
                 <span>Home</span>
@@ -45,9 +45,9 @@ export default function Footer() {
             <li>
               <a
                 href="/mushrooms"
-                className="flex items-center gap-2 hover:text-[#f3cc00] transition-colors"
+                className="flex items-center gap-2 hover:text-[#95e500] transition-colors"
               >
-                <ShoppingBasket size={16} className="text-[#f3cc00]" />
+                <ShoppingBasket size={16} className="text-[#95e500]" />
                 <span>Mushrooms</span>
               </a>
             </li>
@@ -63,7 +63,7 @@ export default function Footer() {
             <li>
               <a
                 href="/farmer-support"
-                className="flex items-center gap-2 hover:text-[#f3cc00] transition-colors"
+                className="flex items-center gap-2 hover:text-[#95e500] transition-colors"
               >
                 <Sprout size={16} className="text-[#95e500]" />
                 <span>Farmer Support</span>
@@ -72,9 +72,9 @@ export default function Footer() {
             <li>
               <a
                 href="/contact"
-                className="flex items-center gap-2 hover:text-[#f3cc00] transition-colors"
+                className="flex items-center gap-2 hover:text-[#95e500] transition-colors"
               >
-                <Phone size={16} className="text-[#f3cc00]" />
+                <Phone size={16} className="text-[#95e500]" />
                 <span>Contact</span>
               </a>
             </li>
@@ -91,7 +91,7 @@ export default function Footer() {
               <Mail size={18} className="text-[#95e500]" />
               <a
                 href="mailto:info@UrbanFungi.com"
-                className="hover:text-[#f3cc00] transition-colors"
+                className="hover:text-[#95e500] transition-colors"
               >
                 info@Urbanfungi.com
               </a>
@@ -102,7 +102,7 @@ export default function Footer() {
                 href="https://twitter.com/Urbanfungi"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#f3cc00] transition-colors"
+                className="hover:text-[#95e500] transition-colors"
               >
                 @Urbanfungi
               </a>
@@ -113,7 +113,7 @@ export default function Footer() {
                 href="https://linkedin.com/company/Urbanfungi"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#f3cc00] transition-colors"
+                className="hover:text-[#95e500] transition-colors"
               >
                 UrbanFungi
               </a>
@@ -124,9 +124,20 @@ export default function Footer() {
                 href="https://instagram.com/Urbanfungi"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#f3cc00] transition-colors"
+                className="hover:text-[#95e500] transition-colors"
               >
                 @UrbanFungi
+              </a>
+            </li>
+              <li className="flex items-center gap-2">
+              <Twitter size={18} className="text-[#95e500]" />
+              <a
+                href="https://twitter.com/Urbanfungi"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#95e500] transition-colors"
+              >
+                @AdminPanel
               </a>
             </li>
           </ul>
