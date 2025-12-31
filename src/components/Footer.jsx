@@ -25,7 +25,7 @@ export default function Footer() {
           </h2>
           <p className="text-gray-700 text-sm leading-relaxed">
             🍄 Fresh, organic, and exotic mushrooms delivered with care.
-            Supporting farmers and bringing nature’s goodness to your plate.
+            Supporting farmers and bringing nature's goodness to your plate.
           </p>
         </div>
 
