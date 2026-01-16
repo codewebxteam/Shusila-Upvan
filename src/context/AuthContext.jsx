@@ -190,7 +190,6 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ UPDATED LOGOUT FUNCTION
   const logout = () => {
-    // ✅ Clear cart on logout
     localStorage.removeItem('dairyCart');
     toast.success("Logged out successfully. Cart cleared.");
     return signOut(auth);

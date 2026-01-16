@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import {
@@ -20,18 +20,21 @@ import {
   Milk,
   Headphones,
 } from "lucide-react";
-import AuthModal from "../components/AuthModal";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
 const DairyNavbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authType, setAuthType] = useState("login");
   const [profileOpen, setProfileOpen] = useState(false);
   
-  const { user, logout, sendPasswordUpdateLink } = useAuth();
+  const { 
+    user, 
+    logout, 
+    sendPasswordUpdateLink,
+    openAuthModal // ✅ Use this from AuthContext
+  } = useAuth();
+  
   const { cartCount } = useCart();
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -42,14 +45,12 @@ const DairyNavbar = () => {
   };
 
   const handleLoginClick = () => {
-    setAuthType("login");
-    setAuthOpen(true);
+    openAuthModal("login"); // ✅ Use AuthContext function
     closeMenu();
   };
 
   const handleSignupClick = () => {
-    setAuthType("signup");
-    setAuthOpen(true);
+    openAuthModal("signup"); // ✅ Use AuthContext function
     closeMenu();
   };
 
@@ -475,12 +476,6 @@ const DairyNavbar = () => {
           </nav>
         </div>
       )}
-
-      <AuthModal
-        type={authType}
-        isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
-      />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import {
@@ -17,21 +17,24 @@ import {
   ShoppingBag,
   Key,
   Home,
-  Trees, // Mushrooms ki jagah Trees use karo
+  Trees,
   Headphones,
 } from "lucide-react";
-import AuthModal from "./AuthModal";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
 const MushroomNavbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authType, setAuthType] = useState("login");
   const [profileOpen, setProfileOpen] = useState(false);
   
-  const { user, logout, sendPasswordUpdateLink } = useAuth();
+  const { 
+    user, 
+    logout, 
+    sendPasswordUpdateLink,
+    openAuthModal // ✅ Use this from AuthContext
+  } = useAuth();
+  
   const { cartCount } = useCart();
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -42,14 +45,12 @@ const MushroomNavbar = () => {
   };
 
   const handleLoginClick = () => {
-    setAuthType("login");
-    setAuthOpen(true);
+    openAuthModal("login"); // ✅ Use AuthContext function
     closeMenu();
   };
 
   const handleSignupClick = () => {
-    setAuthType("signup");
-    setAuthOpen(true);
+    openAuthModal("signup"); // ✅ Use AuthContext function
     closeMenu();
   };
 
@@ -104,7 +105,7 @@ const MushroomNavbar = () => {
               }`
             }
           >
-            <Trees size={16} /> Mushrooms {/* Trees icon use karo */}
+            <Trees size={16} /> Mushrooms
           </NavLink>
 
           {/* Services Dropdown WITH ICON */}
@@ -332,7 +333,7 @@ const MushroomNavbar = () => {
                 }`
               }
             >
-              <Trees size={16} /> Mushrooms {/* Yahan bhi Trees icon use karo */}
+              <Trees size={16} /> Mushrooms
             </NavLink>
 
             <NavLink
@@ -482,12 +483,6 @@ const MushroomNavbar = () => {
           </nav>
         </div>
       )}
-
-      <AuthModal
-        type={authType}
-        isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
-      />
     </>
   );
 };
