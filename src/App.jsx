@@ -158,8 +158,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
-              {/* ✅ USE THE CORRECT VARIABLE NAMES */}
               <Route
                 path="profile"
                 element={

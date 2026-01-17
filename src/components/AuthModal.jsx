@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Toaster, toast } from "react-hot-toast";
 
-// --- Google Icon SVG Component ---
 const FcGoogle = (props) => (
 <svg
 stroke="currentColor"

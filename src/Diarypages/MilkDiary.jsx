@@ -40,7 +40,6 @@ import cowghee from "../assets/dairy/cowghee.jpg";
 import butter from "../assets/dairy/butter.jpg";
 import HeroMilk from "../assets/dairy/HeroMilk.jpg";
 
-// --- INITIAL DATA (fallback) for Dairy Products ---
 const initialDairyData = [
   {
     id: 1,
@@ -183,7 +182,6 @@ const initialDairyData = [
     storageTips: "Refrigerate; stays good for 5–6 days.",
     size: "200g",
   },
-  // Additional products for pagination
   {
     id: 9,
     slug: "lassi",
