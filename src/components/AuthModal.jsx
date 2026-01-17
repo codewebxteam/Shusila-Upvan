@@ -137,37 +137,40 @@ setLoading(false);
 };
 
 // --- Login handler ---
+// --- Login handler ---
 const handleLogin = async (e) => {
-e.preventDefault();
-setError("");
-setShowResend(false);
-setLoading(true);
+  e.preventDefault();
+  setError("");
+  setShowResend(false);
+  setLoading(true);
 
-try {
-const userCredential = await login(form.email, form.password);
+  try {
+    await login(form.email, form.password);
 
-if (userCredential.user && !userCredential.user.emailVerified) {
-setError(
-  "Your email is not verified. Please check your inbox for the verification link."
-);
-setShowResend(true);
-setLoading(false);
-return;
-}
-
-executePendingAction();
-closeAuthModal();
-navigate("/", { replace: true });
-} catch (err) {
-if (err.code === "auth/invalid-credential") {
-setError("Invalid email or password.");
-} else {
-setError(err.message || "Invalid credentials.");
-}
-} finally {
-setLoading(false);
-}
+    executePendingAction();
+    closeAuthModal();
+    navigate("/", { replace: true });
+  } catch (err) {
+    // 🔥 Email not verified error
+    if (err.message === "Email not verified") {
+      setError(
+        "Your email is not verified. Please check your inbox for the verification link."
+      );
+      setShowResend(true);
+    } 
+    // 🔥 Wrong credentials
+    else if (err.code === "auth/invalid-credential") {
+      setError("Invalid email or password.");
+    } 
+    // 🔥 Other errors
+    else {
+      setError(err.message || "Login failed.");
+    }
+  } finally {
+    setLoading(false);
+  }
 };
+
 
 // Google login handler
 const handleGoogleAuth = async () => {

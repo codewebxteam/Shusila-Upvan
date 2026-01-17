@@ -9,10 +9,11 @@ import {
   signOut,
   updateProfile,
   sendEmailVerification,
-  sendPasswordResetEmail, 
+  sendPasswordResetEmail,
+  deleteUser,
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore"; 
-import toast from "react-hot-toast"; 
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import toast from "react-hot-toast";
 
 const AuthContext = createContext();
 
@@ -20,22 +21,22 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
-  const [showAuthModal, setShowAuthModal] = useState(false); 
-  const [authModalType, setAuthModalType] = useState('login');
-  const [pendingAction, setPendingAction] = useState(null); 
+  const [loading, setLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalType, setAuthModalType] = useState("login");
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false); 
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
   // ✅ ADD THIS FUNCTION
-  const openAuthModal = (type = 'login', action = null) => {
+  const openAuthModal = (type = "login", action = null) => {
     if (action) {
       setPendingAction(action);
     }
@@ -47,11 +48,10 @@ export const AuthProvider = ({ children }) => {
     if (!user) {
       setPendingAction({
         type: actionType,
-        callback: actionCallback
+        callback: actionCallback,
       });
-      setAuthModalType('login');
+      setAuthModalType("login");
       setShowAuthModal(true);
-      // ❌ NO LOADING TOAST HERE
       return false;
     }
     return true;
@@ -60,7 +60,13 @@ export const AuthProvider = ({ children }) => {
   const executePendingAction = () => {
     if (pendingAction && user) {
       pendingAction.callback();
-      toast.success(`${pendingAction.type === 'addToCart' ? 'Added to cart' : 'Purchase'} successful!`);
+      toast.success(
+        `${
+          pendingAction.type === "addToCart"
+            ? "Added to cart"
+            : "Purchase"
+        } successful!`
+      );
       setPendingAction(null);
     }
   };
@@ -74,18 +80,22 @@ export const AuthProvider = ({ children }) => {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  // ✅ FIXED GOOGLE LOGIN
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
         await setDoc(userDocRef, {
+          uid: user.uid,
           name: user.displayName,
           email: user.email,
+          createdAt: serverTimestamp(),
         });
         toast.success("Welcome to Mushroom Mart!");
       } else {
@@ -98,23 +108,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ FIXED SIGNUP (ROLLBACK ADDED)
   const signup = async (name, email, password) => {
+    let userCredential;
     try {
-      const userCredential = await createUserWithEmailAndPassword(
+      userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+
       const firebaseUser = userCredential.user;
 
       await updateProfile(firebaseUser, {
         displayName: name,
       });
+
       const userDocRef = doc(db, "users", firebaseUser.uid);
       await setDoc(userDocRef, {
+        uid: firebaseUser.uid,
         name: name,
         email: email,
+        createdAt: serverTimestamp(),
       });
+
       await sendEmailVerification(firebaseUser);
       await signOut(auth);
 
@@ -124,6 +141,10 @@ export const AuthProvider = ({ children }) => {
 
       return userCredential;
     } catch (error) {
+      // 🔥 rollback auth user if Firestore fails
+      if (userCredential?.user) {
+        await deleteUser(userCredential.user);
+      }
       toast.error(error.message || "Signup failed.");
       throw error;
     }
@@ -190,7 +211,7 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ UPDATED LOGOUT FUNCTION
   const logout = () => {
-    localStorage.removeItem('dairyCart');
+    localStorage.removeItem("dairyCart");
     toast.success("Logged out successfully. Cart cleared.");
     return signOut(auth);
   };
@@ -205,13 +226,13 @@ export const AuthProvider = ({ children }) => {
     forgotPassword,
     resendVerificationEmail,
     sendPasswordUpdateLink,
-    requireAuth,           
-    executePendingAction,  
-    showAuthModal,         
-    authModalType,        
-    openAuthModal,         
-    closeAuthModal,       
-    pendingAction,         
+    requireAuth,
+    executePendingAction,
+    showAuthModal,
+    authModalType,
+    openAuthModal,
+    closeAuthModal,
+    pendingAction,
   };
 
   return (
