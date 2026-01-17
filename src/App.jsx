@@ -23,7 +23,6 @@ import Knowledge from "./pages/Knowledge";
 import FarmerCommunity from "./pages/FarmerCommunity";
 import Dashboard from "./pages/Dashboard";
 import Cart from './pages/Cart';
-// ✅ FIX IMPORTS - ya to uppercase ya lowercase consistent rakho
 import MyProfile from "./pages/MyProfile"; // Agar file MyProfile.jsx hai
 import MyOrders from "./pages/MyOrders";   // Agar file MyOrders.jsx hai
 
