@@ -23,8 +23,8 @@ import Knowledge from "./pages/Knowledge";
 import FarmerCommunity from "./pages/FarmerCommunity";
 import Dashboard from "./pages/Dashboard";
 import Cart from './pages/Cart';
-import MyProfile from "./pages/MyProfile"; // Agar file MyProfile.jsx hai
-import MyOrders from "./pages/MyOrders";   // Agar file MyOrders.jsx hai
+import MyProfile from "./pages/myprofile"; // Agar file MyProfile.jsx hai
+import MyOrders from "./pages/myorders";   // Agar file MyOrders.jsx hai
 
 // Diary pages
 import DiaryHome from "./Diarypages/DiaryHome";
