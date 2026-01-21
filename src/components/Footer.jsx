@@ -1,4 +1,6 @@
- import {
+import { Link } from "react-router-dom";
+import { Shield } from "lucide-react";
+import {
   Twitter,
   Linkedin,
   Mail,
@@ -129,17 +131,18 @@ export default function Footer() {
                 @UrbanFungi
               </a>
             </li>
-              <li className="flex items-center gap-2">
-              <Twitter size={18} className="text-[#95e500]" />
-              <a
-                href="https://twitter.com/Urbanfungi"
-                target="_blank"
-                rel="noopener noreferrer"
+
+            <li className="flex items-center gap-2">
+              <Shield size={18} className="text-[#95e500]" />
+              <Link
+                to="/admin"
                 className="hover:text-[#95e500] transition-colors"
               >
-                @AdminPanel
-              </a>
+                Admin Panel
+              </Link>
             </li>
+
+
           </ul>
         </div>
       </div>

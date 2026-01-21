@@ -183,11 +183,8 @@ const DairyNavbar = () => {
           </NavLink>
         </nav>
 
-        {/* Right Side - Cart & User Profile */}
         <div className="flex items-center gap-4 md:gap-6">
-          {/* Desktop: Cart and Auth Section */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Cart Icon */}
             <div className="relative">
               <NavLink
                 to="/cart"
@@ -207,7 +204,6 @@ const DairyNavbar = () => {
               </NavLink>
             </div>
 
-            {/* User is logged in */}
             {user ? (
               <div className="relative">
                 <button

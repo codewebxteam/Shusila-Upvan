@@ -8,7 +8,10 @@
   Calendar,
   Sprout,
   Phone,
+  Shield
 } from "lucide-react";
+ import { Link } from "react-router-dom";
+
 
 export default function Footer() {
   return (
@@ -129,17 +132,17 @@ export default function Footer() {
                 @shusilaupvan
               </a>
             </li>
-                        <li className="flex items-center gap-2">
-              <Instagram size={18} className="text-[#95e500]" />
-              <a
-                href="https://instagram.com/Urbanfungi"
-                target="_blank"
-                rel="noopener noreferrer"
+           
+            <li className="flex items-center gap-2">
+              <Shield size={18} className="text-[#95e500]" />
+              <Link
+                to="/admin"
                 className="hover:text-[#95e500] transition-colors"
               >
-                @AdminPanel
-              </a>
+                Admin Panel
+              </Link>
             </li>
+         
           </ul>
         </div>
       </div>
