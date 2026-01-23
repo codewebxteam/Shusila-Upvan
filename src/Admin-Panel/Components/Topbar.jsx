@@ -1,5 +1,4 @@
 import { Search, Bell, Mail, User } from 'lucide-react';
-// import "./admin.css";
 
 const Topbar = () => {
   return (
@@ -22,7 +21,7 @@ const Topbar = () => {
         <div className="user-profile">
           <div className="avatar">
             <User size={20} />
-          </div>
+          </div> 
           <div>
             <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Admin User</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Super Admin</div>

@@ -1,7 +1,6 @@
-import { 
-  LayoutDashboard, Box, ShoppingCart, User, CreditCard, Home, Tag, FileText, BarChart2, Settings 
-} from "lucide-react";
+import { LayoutDashboard, Box, ShoppingCart, User, CreditCard, Home, Tag, FileText, BarChart2, Settings } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
+import Topbar from "./Topbar"; 
 import "../admin.css";  
 
 const menuItems = [
@@ -39,7 +38,7 @@ export default function Sidebar() {
               >
                 <Icon size={20} />
                 <span>{item.label}</span>
-              </NavLink>
+              </NavLink> 
             );
           })}
         </div>
@@ -47,7 +46,10 @@ export default function Sidebar() {
 
       {/* Main Content */}
       <div className="main-content">
-        <Outlet />
+        <Topbar />
+        <div className="page-content">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

@@ -266,16 +266,6 @@ const initialTestimonialData = [
   },
 ];
 
-// --- BACKEND SERVICE FUNCTIONS ---
-const API_ENDPOINTS = {
-  GET_MUSHROOMS: 'https://api.example.com/mushrooms',
-  ADD_TO_CART: 'https://api.example.com/cart/add',
-  CREATE_ORDER: 'https://api.example.com/orders',
-  GET_TESTIMONIALS: 'https://api.example.com/testimonials',
-  SUBSCRIBE_NEWSLETTER: 'https://api.example.com/newsletter/subscribe',
-  CONTACT_US: 'https://api.example.com/contact'
-};
-
 class MushroomService {
   static async fetchMushrooms() {
     try {
@@ -416,7 +406,6 @@ const HeroSection = () => {
 };
 
 // --- COMPACT PRODUCT GRID with Pagination & Inline Buttons ---
-// --- COMPACT PRODUCT GRID with Pagination & Inline Buttons ---
 const MushroomCarousel = ({ mushrooms, onImageClick }) => {
   const itemsPerPage = 8;
   const [currentPage, setCurrentPage] = useState(1);
@@ -425,11 +414,10 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
   const { user, openAuthModal } = useAuth();
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = mushrooms.slice(startIndex, endIndex);
-  
+
   const goToPage = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -470,7 +458,6 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
       return;
     }
 
-    // Set selected product and open delivery form
     console.log("Opening delivery form for:", mushroom.name);
     setSelectedProduct({
       ...mushroom,
@@ -479,7 +466,6 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
     setShowDeliveryForm(true);
   };
   
-  // Delivery form submit handler
   const handleOrderSubmit = (orderData) => {
     console.log("Order placed:", orderData);
     toast.success(`Order #${orderData.orderId} placed successfully!`);

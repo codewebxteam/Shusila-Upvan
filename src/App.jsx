@@ -36,10 +36,9 @@ import DiaryEvents from "./Diarypages/DiaryEvents";
 import DiaryCommunity from "./Diarypages/DiaryCommunity";
 import { Toaster } from "react-hot-toast";
 import { CartProvider } from "./context/CartContext";
-import { OrderProvider } from "./context/OrderContext"; // Add this import
+import { OrderProvider } from "./context/OrderContext"; 
 
 // Admin Panel
-import Topbarbar from "./Admin-Panel/Components/Topbar";
 import Sidebar from "./Admin-Panel/Components/Sidebar";
 import CMS from "./Admin-Panel/pages/CMS";
 import Coupons from "./Admin-Panel/pages/Coupons";
@@ -52,7 +51,6 @@ import Products from "./Admin-Panel/pages/Products";
 import Reports from "./Admin-Panel/pages/Reports";
 import Roles from "./Admin-Panel/pages/Roles";
 import Settings from "./Admin-Panel/pages/Settings";
-import Topbar from "./Admin-Panel/Components/Topbar";
 
 const MainLayout = () => (
   <>
@@ -114,11 +112,9 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <OrderProvider> {/* Add OrderProvider wrapper */}
+        <OrderProvider>
           <div className="bg-[#FDFBE9] flex flex-col font-inter">
             <Toaster position="top-center" reverseOrder={false} />
-            <AuthModal />
-
             <AuthModal />
 
             {/* Global Checkout Modal - SIMPLIFIED VERSION */}
@@ -208,22 +204,21 @@ function App() {
 
               <Route path="*" element={<Navigate to="/" replace />} />
 
-              {/* Admin Panel */}
-              <Route path="/admin" element={<Sidebar />}>
-                <Route path="/admin" element={<Topbar />}/>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="cms" element={<CMS />} />
-                  <Route path="coupons" element={<Coupons />} />
-                  <Route path="customers" element={<Customers />} />
-                  <Route path="inventory" element={<Inventory />} />
-                  <Route path="payments" element={<Payments />} />
-                  <Route path="orders" element={<Orders />} />
-                  <Route path="products" element={<Products />} />
-                  <Route path="reports" element={<Reports />} />
-                  <Route path="roles" element={<Roles />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
+              {/* Admin Panel - FIXED ROUTE STRUCTURE */}
+              <Route path="/admin/*" element={<Sidebar />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="cms" element={<CMS />} />
+                <Route path="coupons" element={<Coupons />} />
+                <Route path="customers" element={<Customers />} />
+                <Route path="inventory" element={<Inventory />} />
+                <Route path="payments" element={<Payments />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="products" element={<Products />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="roles" element={<Roles />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
             </Routes>
             <ChatWidget />
           </div>

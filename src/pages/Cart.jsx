@@ -1,4 +1,4 @@
-// CartPage.jsx - Modified version
+// CartPage.jsx - Updated version
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext'; // Add this import
@@ -10,10 +10,7 @@ import {
   ShoppingBag,
   Milk,
   Sprout,
-  Truck,
-  Package, // Add new icon
-  Clock,   // Add new icon
-  CheckCircle // Add new icon
+  Truck
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import DeliveryForm from '../pages/DeliveryForm';
@@ -43,9 +40,6 @@ const CartPage = () => {
 
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [checkoutData, setCheckoutData] = useState(null);
-  const [showOrderHistory, setShowOrderHistory] = useState(false); // Add state for toggling order history
-
-  const recentOrders = getRecentOrders(3); // Get 3 most recent orders
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) {
@@ -72,43 +66,14 @@ const CartPage = () => {
     setShowDeliveryForm(true);
   };
 
-
-const handleOrderSubmit = (orderData) => {
-  console.log('Order placed:', orderData);
-  const newOrder = addOrder(orderData); // Add order to history
-  toast.success(`Order #${newOrder.id} placed successfully!`);
-  setShowDeliveryForm(false);
-};
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const handleOrderSubmit = (orderData) => {
+    console.log('Order placed:', orderData);
+    const newOrder = addOrder(orderData); // Add order to history
+    toast.success(`Order #${newOrder.id} placed successfully!`);
+    setShowDeliveryForm(false);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Processing': return 'bg-yellow-100 text-yellow-800';
-      case 'Shipped': return 'bg-blue-100 text-blue-800';
-      case 'Delivered': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Processing': return <Clock size={16} />;
-      case 'Shipped': return <Truck size={16} />;
-      case 'Delivered': return <CheckCircle size={16} />;
-      default: return <Package size={16} />;
-    }
-  };
-
-  if (cartCount === 0 && recentOrders.length === 0) {
+  if (cartCount === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#fdfbe9] to-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
@@ -155,60 +120,6 @@ const handleOrderSubmit = (orderData) => {
               </span>
             </div>
           </div>
-
-          {/* Recent Orders Section */}
-          {recentOrders.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  <Package size={24} className="text-[#95e500]" />
-                  Recent Orders
-                </h2>
-                <button
-                  onClick={() => setShowOrderHistory(!showOrderHistory)}
-                  className="text-[#95e500] hover:text-[#7bc400] font-medium"
-                >
-                  {showOrderHistory ? 'Hide' : 'View All'} Orders
-                </button>
-              </div>
-              
-              <div className={`grid gap-4 ${showOrderHistory ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="bg-white rounded-xl p-4 shadow-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="font-bold text-gray-900">{order.id}</h3>
-                        <p className="text-sm text-gray-500">{formatDate(order.orderDate)}</p>
-                      </div>
-                      <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        {order.status}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-2 mb-3">
-                      {order.cartItems.slice(0, 2).map((item, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
-                          <img src={item.image} alt={item.name} className="w-8 h-8 object-cover rounded" />
-                          <span className="text-gray-700">{item.name} × {item.quantity}</span>
-                        </div>
-                      ))}
-                      {order.cartItems.length > 2 && (
-                        <p className="text-xs text-gray-500">+{order.cartItems.length - 2} more items</p>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <span className="font-bold text-gray-900">₹{(order.product.price * 1.18).toFixed(2)}</span>
-                      <span className="text-xs text-gray-500">
-                        Est. Delivery: {new Date(order.estimatedDelivery).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
