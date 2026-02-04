@@ -1,19 +1,20 @@
 import { Routes, Route, Outlet, Navigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Toaster } from "react-hot-toast";
+
+/* ================= CONTEXT ================= */
+import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+import { OrderProvider } from "./context/OrderContext";
 import ChatWidget from "./components/ChatWidget";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useEffect, useState } from "react";
-
-import { AuthProvider } from "./context/AuthContext";
 import AuthModal from "./components/AuthModal";
-
-// Diary components
 import NavbarMain from "./components/NavbarMain";
 import Footer from "./components/Footer";
 import DiaryNavbar from "./Diarycomponents/DiaryNavbar";
 import Diaryfooter from "./Diarycomponents/Diaryfooter";
 
-// Pages
-import FoundationHome from "./pages/FoundationHome";
+/* ================= MAIN PAGES ================= */
 import Home from "./pages/Home";
 import Mushrooms from "./pages/Mushrooms";
 import Events from "./pages/Events";
@@ -22,11 +23,11 @@ import Contact from "./pages/Contact";
 import Knowledge from "./pages/Knowledge";
 import FarmerCommunity from "./pages/FarmerCommunity";
 import Dashboard from "./pages/Dashboard";
-import Cart from './pages/Cart';
+import Cart from "./pages/Cart";
 import MyProfile from "./pages/myprofile";
 import MyOrders from "./pages/myorders";
 
-// Diary pages
+/* ================= DIARY PAGES ================= */
 import DiaryHome from "./Diarypages/DiaryHome";
 import DiaryContacts from "./Diarypages/DiaryContacts";
 import MilkDiary from "./Diarypages/MilkDiary";
@@ -34,11 +35,8 @@ import Diaryknowledge from "./Diarypages/Diaryknowledge";
 import DiarySupport from "./Diarypages/DiarySupport";
 import DiaryEvents from "./Diarypages/DiaryEvents";
 import DiaryCommunity from "./Diarypages/DiaryCommunity";
-import { Toaster } from "react-hot-toast";
-import { CartProvider } from "./context/CartContext";
-import { OrderProvider } from "./context/OrderContext"; 
 
-// Admin Panel
+/* ================= ADMIN PANEL ================= */
 import Sidebar from "./Admin-Panel/Components/Sidebar";
 import CMS from "./Admin-Panel/pages/CMS";
 import Coupons from "./Admin-Panel/pages/Coupons";
@@ -51,6 +49,15 @@ import Products from "./Admin-Panel/pages/Products";
 import Reports from "./Admin-Panel/pages/Reports";
 import Roles from "./Admin-Panel/pages/Roles";
 import Settings from "./Admin-Panel/pages/Settings";
+
+/* ================= FOUNDATION PAGES (FIXED) ================= */
+import F_Home from "./Foundationpage/F_Home";
+import About from "./Foundationpage/About";
+import CTA from "./Foundationpage/CTA";
+import Features from "./Foundationpage/Features";
+import Testomonials from "./Foundationpage/Testomonials";
+
+/* ================= LAYOUTS ================= */
 
 const MainLayout = () => (
   <>
@@ -72,40 +79,57 @@ const DiaryLayout = () => (
   </>
 );
 
+const FoundationLayout = () => (
+  <>
+    <NavbarMain />
+    <main className="flex-1 font-serif">
+      <Outlet />
+    </main>
+    <Footer />
+  </>
+);
+
+/* ================= APP ================= */
+
 function App() {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [checkoutData, setCheckoutData] = useState(null);
 
   useEffect(() => {
     const handleShowAuthModal = (event) => {
-      const { mode, action, product, quantity } = event.detail;
+      const { mode, action, product, quantity } = event.detail || {};
 
       if (action && product) {
-        localStorage.setItem('pendingAction', JSON.stringify({
-          action,
-          product,
-          quantity,
-          timestamp: Date.now()
-        }));
+        localStorage.setItem(
+          "pendingAction",
+          JSON.stringify({
+            action,
+            product,
+            quantity,
+            timestamp: Date.now(),
+          })
+        );
       }
 
-      window.dispatchEvent(new CustomEvent('triggerAuthModal', {
-        detail: { mode: mode || 'login' }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("triggerAuthModal", {
+          detail: { mode: mode || "login" },
+        })
+      );
     };
 
     const handleShowCheckoutModal = (event) => {
-      const { product, quantity } = event.detail;
+      const { product, quantity } = event.detail || {};
       setCheckoutData({ product, quantity });
       setShowCheckoutModal(true);
     };
 
-    window.addEventListener('showAuthModal', handleShowAuthModal);
-    window.addEventListener('showCheckoutModal', handleShowCheckoutModal);
+    window.addEventListener("showAuthModal", handleShowAuthModal);
+    window.addEventListener("showCheckoutModal", handleShowCheckoutModal);
 
     return () => {
-      window.removeEventListener('showAuthModal', handleShowAuthModal);
-      window.removeEventListener('showCheckoutModal', handleShowCheckoutModal);
+      window.removeEventListener("showAuthModal", handleShowAuthModal);
+      window.removeEventListener("showCheckoutModal", handleShowCheckoutModal);
     };
   }, []);
 
@@ -113,25 +137,24 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <OrderProvider>
-          <div className="bg-[#FDFBE9] flex flex-col font-inter">
-            <Toaster position="top-center" reverseOrder={false} />
+          <div className="bg-[#FDFBE9] min-h-screen flex flex-col font-inter">
+            <Toaster position="top-center" />
             <AuthModal />
 
-            {/* Global Checkout Modal - SIMPLIFIED VERSION */}
+            {/* ================= CHECKOUT MODAL ================= */}
             {showCheckoutModal && checkoutData && (
               <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
                 <div className="bg-white rounded-lg max-w-md w-full p-6">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold">Checkout</h2>
-                    <button
-                      onClick={() => setShowCheckoutModal(false)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
+                    <button onClick={() => setShowCheckoutModal(false)}>
                       ✕
                     </button>
                   </div>
-                  <p className="mb-4">Please use the checkout option from the cart page.</p>
-                  <div className="mt-6 flex justify-end gap-3">
+                  <p className="mb-4">
+                    Please complete checkout from the cart page.
+                  </p>
+                  <div className="flex justify-end gap-3">
                     <button
                       onClick={() => setShowCheckoutModal(false)}
                       className="px-4 py-2 border rounded"
@@ -150,11 +173,22 @@ function App() {
               </div>
             )}
 
+            {/* ================= ROUTES ================= */}
             <Routes>
-              <Route path="/dairy" element={<Navigate to="/diary" replace />} />
+              {/* FOUNDATION ( / ) */}
+              <Route element={<FoundationLayout />}>
+                <Route index element={<F_Home />} />
+                <Route path="about" element={<About />} />
+                <Route path="programs" element={<Features />} />
+                <Route
+                  path="impact"
+                  element={<Testomonials />}
+                />
+                <Route path="cta" element={<CTA />} />
+              </Route>
 
+              {/* MAIN APP */}
               <Route element={<MainLayout />}>
-                <Route index element={<FoundationHome />} />
                 <Route path="home" element={<Home />} />
                 <Route path="mushrooms" element={<Mushrooms />} />
                 <Route path="events" element={<Events />} />
@@ -162,7 +196,7 @@ function App() {
                 <Route path="contact" element={<Contact />} />
                 <Route path="knowledge" element={<Knowledge />} />
                 <Route path="community" element={<FarmerCommunity />} />
-                <Route path="/cart" element={<Cart />} />
+                <Route path="cart" element={<Cart />} />
 
                 <Route
                   path="dashboard"
@@ -180,7 +214,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-
                 <Route
                   path="orders"
                   element={
@@ -191,8 +224,8 @@ function App() {
                 />
               </Route>
 
-              {/* Diary pages */}
-              <Route path="/diary" element={<DiaryLayout />}>
+              {/* DIARY */}
+              <Route path="diary" element={<DiaryLayout />}>
                 <Route index element={<DiaryHome />} />
                 <Route path="diarycontacts" element={<DiaryContacts />} />
                 <Route path="milkdiary" element={<MilkDiary />} />
@@ -202,10 +235,8 @@ function App() {
                 <Route path="dairycommunity" element={<DiaryCommunity />} />
               </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-
-              {/* Admin Panel - FIXED ROUTE STRUCTURE */}
-              <Route path="/admin/*" element={<Sidebar />}>
+              {/* ADMIN */}
+              <Route path="admin/*" element={<Sidebar />}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="cms" element={<CMS />} />
@@ -219,7 +250,11 @@ function App() {
                 <Route path="roles" element={<Roles />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
+
+              {/* FALLBACK */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+
             <ChatWidget />
           </div>
         </OrderProvider>

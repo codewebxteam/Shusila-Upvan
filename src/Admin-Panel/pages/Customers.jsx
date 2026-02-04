@@ -1,7 +1,58 @@
+import { useEffect, useState } from 'react';
 import { Mail, Phone, Ban } from 'lucide-react';
-import { customers } from '../data/mockData';
+import { db } from '../../firebase';
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  doc
+} from 'firebase/firestore';
 
 const Customers = () => {
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const snap = await getDocs(collection(db, 'customers'));
+        const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCustomers(list);
+      } catch (err) {
+        console.error('Customers fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
+
+  const blockCustomer = async (id) => {
+    if (!window.confirm('Block this customer?')) return;
+    try {
+      await updateDoc(doc(db, 'customers', id), { status: 'Blocked' });
+      setCustomers(prev => prev.map(c => c.id === id ? { ...c, status: 'Blocked' } : c));
+    } catch (err) {
+      console.error('Block customer error:', err);
+    }
+  };
+
+  const stats = {
+    total: customers.length,
+    newThisMonth: customers.filter(c => {
+      const joined = new Date(c.joined);
+      const now = new Date();
+      return joined.getMonth() === now.getMonth() && joined.getFullYear() === now.getFullYear();
+    }).length,
+    vip: customers.filter(c => c.status === 'VIP').length,
+    avgLtv: customers.length
+      ? Math.round(customers.reduce((sum, c) => sum + (c.spent || 0), 0) / customers.length)
+      : 0
+  };
+
+  if (loading) return <div className="page-content">Loading customers...</div>;
+
   return (
     <div className="page-content">
       <div className="page-header">
@@ -13,19 +64,19 @@ const Customers = () => {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-value">892</div>
+          <div className="stat-value">{stats.total}</div>
           <div className="stat-label">Total Customers</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">45</div>
+          <div className="stat-value">{stats.newThisMonth}</div>
           <div className="stat-label">New This Month</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">234</div>
+          <div className="stat-value">{stats.vip}</div>
           <div className="stat-label">VIP Customers</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">₹2.4L</div>
+          <div className="stat-value">₹{stats.avgLtv.toLocaleString()}</div>
           <div className="stat-label">Avg. Lifetime Value</div>
         </div>
       </div>
@@ -54,10 +105,13 @@ const Customers = () => {
                     <td style={{ fontWeight: 600 }}>{customer.name}</td>
                     <td>{customer.email}</td>
                     <td>{customer.orders}</td>
-                    <td>₹{customer.spent.toLocaleString()}</td>
+                    <td>₹{(customer.spent || 0).toLocaleString()}</td>
                     <td>{customer.joined}</td>
                     <td>
-                      <span className={`status-badge ${customer.status === 'VIP' ? 'warning' : 'success'}`}>
+                      <span className={`status-badge ${
+                        customer.status === 'VIP' ? 'warning' :
+                        customer.status === 'Blocked' ? 'danger' : 'success'
+                      }`}>
                         {customer.status}
                       </span>
                     </td>
@@ -69,7 +123,11 @@ const Customers = () => {
                         <button className="icon-btn" title="Call">
                           <Phone size={16} />
                         </button>
-                        <button className="icon-btn" title="Block">
+                        <button
+                          className="icon-btn"
+                          title="Block"
+                          onClick={() => blockCustomer(customer.id)}
+                        >
                           <Ban size={16} />
                         </button>
                       </div>

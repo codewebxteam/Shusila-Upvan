@@ -8,14 +8,14 @@ import {
   Users,
   BookOpen,
   Phone,
+  ArrowRight,
+  Leaf
 } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useCallback } from "react";
 
-
-// -- DAIRY PRODUCTS --
-
+// Dairy Products
 import paneer from "../assets/dairy/paneer.jpg";
 import cowmilk from "../assets/dairy/cowmilk.jpg";
 import A2cow from "../assets/dairy/A2cow.jpg";
@@ -92,7 +92,7 @@ const dairyProducts = [
   },
 ];
 
-// ---- Carousel Component ----
+// Carousel Component
 const DairyCarousel = () => {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: "start" },
@@ -101,23 +101,16 @@ const DairyCarousel = () => {
 
   const navigate = useNavigate();
 
-  const scrollPrev = useCallback(
-    () => emblaApi && emblaApi.scrollPrev(),
-    [emblaApi]
-  );
-  const scrollNext = useCallback(
-    () => emblaApi && emblaApi.scrollNext(),
-    [emblaApi]
-  );
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
-  // Click handler -> navigate to dairy products
   const handleCardClick = (slug) => {
     navigate(`/diary/milkdiary#${slug}`);
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-20 relative">
-      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-8">
+      <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-8">
         Popular Milk Dairy Products
       </h2>
       <div className="overflow-hidden" ref={emblaRef}>
@@ -128,21 +121,19 @@ const DairyCarousel = () => {
               className="flex-grow-0 flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/3 pl-6 cursor-pointer"
               onClick={() => handleCardClick(product.slug)}
             >
-              <div className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-2xl transition-all duration-300 border border-green-200 flex flex-col sm:flex-row items-center gap-6">
-                {/* Left Image */}
+              <div className="bg-white/5 rounded-2xl p-5 border border-white/10 hover:border-yellow-500/30 transition-all duration-300 flex flex-col sm:flex-row items-center gap-6 group">
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-40 h-40 object-cover rounded-xl"
+                  className="w-40 h-40 object-cover rounded-xl group-hover:scale-105 transition-transform"
                 />
-                {/* Right Info */}
                 <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-xl font-bold text-green-800">{product.name}</h3>
-                  <p className="text-gray-700 text-sm">
-                    <span className="font-semibold">Taste:</span> {product.taste}
+                  <h3 className="text-xl font-bold text-yellow-400 mb-2">{product.name}</h3>
+                  <p className="text-gray-400 text-sm mb-1">
+                    <span className="text-gray-300 font-semibold">Taste:</span> {product.taste}
                   </p>
-                  <p className="text-gray-700 text-sm">
-                    <span className="font-semibold">Uses:</span> {product.uses}
+                  <p className="text-gray-400 text-sm">
+                    <span className="text-gray-300 font-semibold">Uses:</span> {product.uses}
                   </p>
                 </div>
               </div>
@@ -151,16 +142,16 @@ const DairyCarousel = () => {
         </div>
       </div>
 
-      {/* Prev/Next Buttons - Centered */}
+      {/* Navigation Buttons */}
       <button
         onClick={scrollPrev}
-        className="absolute top-1/2 left-2 -translate-y-1/2 bg-white p-3 rounded-full shadow hover:bg-green-500 hover:text-white"
+        className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/10 border border-white/20 p-3 rounded-full text-white hover:bg-yellow-500 hover:border-yellow-500 transition-colors"
       >
         ◀
       </button>
       <button
         onClick={scrollNext}
-        className="absolute top-1/2 right-2 -translate-y-1/2 bg-white p-3 rounded-full shadow hover:bg-green-500 hover:text-white"
+        className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/10 border border-white/20 p-3 rounded-full text-white hover:bg-yellow-500 hover:border-yellow-500 transition-colors"
       >
         ▶
       </button>
@@ -171,7 +162,7 @@ const DairyCarousel = () => {
 const Home = () => {
   return (
     <motion.div
-      className="bg-gradient-to-b from-[#fdfbe9] via-[#f4fce3] to-[#e8f8f0] min-h-screen px-6 md:px-12 py-16 flex flex-col items-center"
+      className="min-h-screen bg-[#0a0a0a] px-6 md:px-12 py-16 flex flex-col items-center pt-24"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
@@ -180,146 +171,130 @@ const Home = () => {
       {/* Hero Section */}
       <div className="flex flex-wrap gap-12 justify-between max-w-6xl w-full">
         {/* Left Text */}
-        <div className="flex-1 text-gray-900 min-w-[300px]">
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
+        <div className="flex-1 text-white min-w-[300px]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6"
+          >
+            <Leaf className="text-yellow-400" size={16} />
+            <span className="text-gray-400 text-sm">Premium Dairy Products</span>
+          </motion.div>
+
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
             Milk Dairy <br />
-            <span className="bg-gradient-to-r from-green-600 via-lime-500 to-yellow-500 bg-clip-text text-transparent font-extrabold">
+            <span className="bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-400 bg-clip-text text-transparent">
               Buy, Learn & Build
-            </span>{" "}
-            The Milk Dairy Community
+            </span>
           </h1>
-          <p className="text-gray-700 text-lg mb-6">
+          
+          <p className="text-gray-400 text-lg mb-8 max-w-lg">
             Discover everything about Milk Dairy – from healthy Dairy Products to
             healthy recipes and community events. All in one place 🥛
           </p>
 
           <div className="flex flex-wrap gap-4">
             <Link to="/diary/milkdiary">
-              <button className="bg-gradient-to-r from-green-500 via-lime-400 to-yellow-400 text-white px-6 py-3 rounded-full font-semibold transition-transform duration-300 hover:scale-105 hover:shadow-lg">
-                Explore Dairy Products
-              </button>
+              <motion.button 
+                className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-8 py-4 rounded-full font-semibold flex items-center gap-2 shadow-lg shadow-yellow-500/25"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Explore Products <ArrowRight size={18} />
+              </motion.button>
             </Link>
-            <button className="border-2 border-green-600 text-green-700 px-6 py-3 rounded-full font-semibold transition-transform duration-300 hover:scale-105 hover:bg-green-600 hover:text-white">
+            <motion.button 
+              className="border-2 border-white/20 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/5 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               Request a Demo
-            </button>
+            </motion.button>
           </div>
         </div>
 
         {/* Right Image */}
-        <div className="flex-1 flex justify-center min-w-[300px]">
-          <img
-            src={heroImage}
-            alt="Dairy farm preview"
-            className="max-w-full rounded-xl shadow-2xl border-4 border-yellow-200"
-          />
-        </div>
+        <motion.div 
+          className="flex-1 flex justify-center min-w-[300px]"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-3xl blur-2xl" />
+            <img
+              src={heroImage}
+              alt="Dairy farm preview"
+              className="relative max-w-full rounded-3xl border border-white/10 shadow-2xl"
+            />
+          </div>
+        </motion.div>
       </div>
 
       {/* Middle Heading */}
-      <div className="w-full mt-28 flex justify-center">
-        <div className="text-gray-900 text-2xl md:text-2xl font-semibold bg-gradient-to-r from-green-500 via-lime-400 to-yellow-400 px-6 py-2 rounded-full inline-block shadow-md">
+      <motion.div 
+        className="w-full mt-28 flex justify-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+      >
+        <div className="text-white text-xl md:text-2xl font-semibold bg-white/5 border border-white/10 px-8 py-3 rounded-full inline-block">
           Fresh Dairy Products, Healthy Living, Strong Community.
         </div>
-      </div>
+      </motion.div>
 
-      {/* 🔥 Carousel Section */}
+      {/* Carousel Section */}
       <DairyCarousel />
 
-      {/* ---- What We Offer Section ---- */}
-      <section className="w-full max-w-6xl mt-20 px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">
+      {/* What We Offer Section */}
+      <section className="w-full max-w-6xl mt-24 px-4">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
             What We Offer
           </h2>
-          <p className="text-gray-700 text-lg max-w-2xl mx-auto">
-            Explore our services for Dairy, Dairy Products enthusiasts, and healthy
-            Dairy Products lovers.
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Explore our services for Dairy enthusiasts and healthy living.
           </p>
-        </div>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Dairy Support */}
-          <Link to="/diary/diarysupport">
-            <div className="bg-green-100 p-8 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-gradient-to-r hover:from-green-200 hover:to-yellow-100 cursor-pointer h-full flex flex-col justify-between">
-              <Milk size={48} className="mx-auto text-green-600" />  {/* Fixed: Changed from Sprout to Milk */}
-              <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900">
-               Dairy Support
-              </h3>
-              <p className="text-gray-700">
-                Learn Dairy Products techniques, get expert help, and Make
-                Dairy Products.
-              </p>
-            </div>
-          </Link>
-
-          {/* Buy Fresh Dairy Products */}
-          <Link to="/diary/milkdiary">
-            <div className="bg-green-100 p-8 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-gradient-to-r hover:from-green-200 hover:to-yellow-100 cursor-pointer h-full flex flex-col justify-between">
-              <ShoppingBasket size={48} className="mx-auto text-yellow-500" />
-              <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900">
-                Buy Fresh Dairy Products
-              </h3>
-              <p className="text-gray-700">
-                Order fresh, and exotic Dairy Products directly from trusted
-                Dairy Products.
-              </p>
-            </div>
-          </Link>
-
-          {/* Dairy Community Events */}
-          <Link to="/diary/diaryevents">
-            <div className="bg-green-100 p-8 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-gradient-to-r hover:from-green-200 hover:to-yellow-100 cursor-pointer h-full flex flex-col justify-between">
-              <Calendar size={48} className="mx-auto text-green-600" />
-              <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900">
-                Dairy Community Events
-              </h3>
-              <p className="text-gray-700">
-                Join workshops, Dairy festivals, and Dairy meetups near you.
-              </p>
-            </div>
-          </Link>
-
-          {/* Dairy Knowledge Hub */}
-          <Link to="/diary/diaryknowledge">
-            <div className="bg-green-100 p-8 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-gradient-to-r hover:from-green-200 hover:to-yellow-100 h-full flex flex-col justify-between">
-              <BookOpen size={48} className="mx-auto text-green-700" />
-              <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900">
-                Dairy Knowledge Hub
-              </h3>
-              <p className="text-gray-700">
-                Access guides, recipes, and research to understand Dairy Products
-                better.
-              </p>
-            </div>
-          </Link>
-
-          {/* Dairy Community */}
-          <Link to="/diary/dairycommunity">
-            <div className="bg-green-100 p-8 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-gradient-to-r hover:from-green-200 hover:to-yellow-100 h-full flex flex-col justify-between">
-              <Users size={48} className="mx-auto text-yellow-500" />
-              <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900">
-                Milk Dairy Products Community
-              </h3>
-              <p className="text-gray-700">
-                Connect with fellow Dairy Products and share knowledge &
-                experiences.
-              </p>
-            </div>
-          </Link>
-
-          {/* Contact */}
-          <Link to="/diary/diarycontacts">
-            <div className="bg-green-100 p-8 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-gradient-to-r hover:from-green-200 hover:to-yellow-100 cursor-pointer h-full flex flex-col justify-between">
-              <Phone size={48} className="mx-auto text-green-600" />
-              <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900">
-                Contact Us
-              </h3>
-              <p className="text-gray-700">
-                Have questions? Reach out for support and collaboration.
-              </p>
-            </div>
-          </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            { to: "/diary/diarysupport", icon: Milk, title: "Dairy Support", desc: "Learn Dairy Products techniques, get expert help, and Make Dairy Products." },
+            { to: "/diary/milkdiary", icon: ShoppingBasket, title: "Buy Fresh Dairy Products", desc: "Order fresh, and exotic Dairy Products directly from trusted Dairy Products." },
+            { to: "/diary/diaryevents", icon: Calendar, title: "Dairy Community Events", desc: "Join workshops, Dairy festivals, and Dairy meetups near you." },
+            { to: "/diary/diaryknowledge", icon: BookOpen, title: "Dairy Knowledge Hub", desc: "Access guides, recipes, and research to understand Dairy Products better." },
+            { to: "/diary/dairycommunity", icon: Users, title: "Milk Dairy Products Community", desc: "Connect with fellow Dairy Products and share knowledge & experiences." },
+            { to: "/diary/diarycontacts", icon: Phone, title: "Contact Us", desc: "Have questions? Reach out for support and collaboration." },
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Link to={feature.to}>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 hover:border-yellow-500/30 transition-all duration-300 group h-full">
+                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                    <feature.icon size={32} className="text-yellow-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-white group-hover:text-yellow-400 transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    {feature.desc}
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
         </div>
       </section>
     </motion.div>

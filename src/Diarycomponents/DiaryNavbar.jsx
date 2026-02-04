@@ -10,7 +10,6 @@ import {
   Phone,
   LogOut,
   ChevronDown,
-  LockKeyhole,
   ShoppingCart,
   User,
   Package,
@@ -19,6 +18,7 @@ import {
   Home,
   Milk,
   Headphones,
+  Leaf
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -32,7 +32,7 @@ const DairyNavbar = () => {
     user, 
     logout, 
     sendPasswordUpdateLink,
-    openAuthModal // ✅ Use this from AuthContext
+    openAuthModal
   } = useAuth();
   
   const { cartCount } = useCart();
@@ -45,12 +45,12 @@ const DairyNavbar = () => {
   };
 
   const handleLoginClick = () => {
-    openAuthModal("login"); // ✅ Use AuthContext function
+    openAuthModal("login");
     closeMenu();
   };
 
   const handleSignupClick = () => {
-    openAuthModal("signup"); // ✅ Use AuthContext function
+    openAuthModal("signup");
     closeMenu();
   };
 
@@ -68,247 +68,26 @@ const DairyNavbar = () => {
 
   return (
     <>
-      <header
-        className="flex justify-between items-center px-4 sm:px-8 py-4 sticky top-0 z-50 w-full text-gray-900 backdrop-blur-sm bg-white/90"
-        style={{ fontFamily: "Orbitron, sans-serif" }}
-      >
-        {/* Logo - Left Side */}
-        <Link
-          to="/"
-          className="text-xl md:text-2xl font-medium tracking-wider uppercase flex-shrink-0"
-        >
-          Shusila Dairy
-        </Link>
-
-        {/* Middle Navigation Links - Desktop WITH ICONS */}
-        <nav className="hidden md:flex items-center justify-center gap-6 lg:gap-8 absolute left-1/2 transform -translate-x-1/2">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#95e500] border-b-2 border-[#95e500]"
-                  : "text-gray-900 hover:text-[#95e500]"
-              }`
-            }
-          >
-            <Home size={16} /> Home
-          </NavLink>
-
-          <NavLink
-            to="/diary/milkdiary"
-            className={({ isActive }) =>
-              `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#95e500] border-b-2 border-[#95e500]"
-                  : "text-gray-900 hover:text-[#95e500]"
-              }`
-            }
-          >
-            <Milk size={16} /> Milk Diary
-          </NavLink>
-
-          {/* Services Dropdown WITH ICON */}
-          <div
-            className="relative"
-            onMouseEnter={() => setServicesOpen(true)}
-            onMouseLeave={() => setServicesOpen(false)}
-          >
-            <button className="uppercase text-sm tracking-wide text-gray-900 hover:text-[#95e500] flex items-center gap-2">
-              <Users size={16} /> Services
-              <ChevronDown
-                size={16}
-                className={`transition-transform ${servicesOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-            <div
-              className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white shadow-lg rounded-md py-2 w-56 md:w-64 transition-all duration-300 z-50 ${servicesOpen
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-95 invisible"
-                }`}
-            >
-              <Link
-                to="/diary/diarysupport"
-                onClick={closeMenu}
-                className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
-              >
-                <Sprout size={18} /> Diary Support
-              </Link>
-              <Link
-                to="/diary/milkdiary"
-                onClick={closeMenu}
-                className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
-              >
-                <ShoppingBasket size={18} /> Buy Fresh Dairy Products
-              </Link>
-              <Link
-                to="/diary/diaryevents"
-                onClick={closeMenu}
-                className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
-              >
-                <Calendar size={18} /> Dairy Community Events
-              </Link>
-              <Link
-                to="/diary/diaryknowledge"
-                onClick={closeMenu}
-                className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
-              >
-                <BookOpen size={18} /> Dairy Knowledge Hub
-              </Link>
-              <Link
-                to="/diary/dairycommunity"
-                onClick={closeMenu}
-                className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
-              >
-                <Users size={18} /> Dairy Community
-              </Link>
-              <Link
-                to="/diary/diarycontacts"
-                onClick={closeMenu}
-                className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-900 hover:text-white hover:bg-gradient-to-r hover:from-[#95e500] hover:to-[#f3cc00] rounded-md transition"
-              >
-                <Phone size={18} /> Contact Us
-              </Link>
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          
+          {/* Logo - Matching DairyPage style */}
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-xl flex items-center justify-center">
+              <Leaf className="text-white" size={20} />
             </div>
-          </div>
+            <span className="text-xl font-bold text-white tracking-tight">
+              Shusila <span className="text-yellow-400">Upvan</span>
+            </span>
+          </Link>
 
-          <NavLink
-            to="/diary/diarysupport"
-            className={({ isActive }) =>
-              `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#95e500] border-b-2 border-[#95e500]"
-                  : "text-gray-900 hover:text-[#95e500]"
-              }`
-            }
-          >
-            <Headphones size={16} /> Support
-          </NavLink>
-        </nav>
-
-        <div className="flex items-center gap-4 md:gap-6">
-          <div className="hidden md:flex items-center gap-4">
-            <div className="relative">
-              <NavLink
-                to="/cart"
-                className={({ isActive }) =>
-                  `relative flex items-center transition-colors ${isActive
-                  ? "text-[#95e500]"
-                  : "text-gray-900 hover:text-[#95e500]"
-                  }`
-                }
-              >
-                <ShoppingCart size={24} />
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                    {cartCount > 9 ? "9+" : cartCount}
-                  </span>
-                )}
-              </NavLink>
-            </div>
-
-            {user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="w-9 h-9 rounded-full bg-[#f3cc00] flex items-center justify-center font-bold hover:opacity-90 transition"
-                >
-                  {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
-                </button>
-
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border shadow-lg rounded-md py-2 z-50">
-                    <NavLink 
-                      to="/profile" 
-                      onClick={closeMenu} 
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 text-gray-900"
-                    >
-                      <User size={16} /> My Profile
-                    </NavLink>
-                    <NavLink 
-                      to="/orders" 
-                      onClick={closeMenu} 
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 text-gray-900"
-                    >
-                      <Package size={16} /> My Orders
-                    </NavLink>
-                    <NavLink 
-                      to="/cart" 
-                      onClick={closeMenu} 
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 text-gray-900"
-                    >
-                      <ShoppingBag size={16} /> My Cart
-                    </NavLink>
-                    <button 
-                      onClick={handleUpdatePassword} 
-                      className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-gray-200 text-gray-900"
-                    >
-                      <Key size={16} /> Update Password
-                    </button>
-                    <button 
-                      onClick={handleLogout} 
-                      className="flex items-center gap-3 w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200"
-                    >
-                      <LogOut size={16} /> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              // User is not logged in
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleLoginClick}
-                  className="text-gray-900 px-4 py-2 rounded font-semibold text-sm hover:text-[#95e500] transition"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={handleSignupClick}
-                  className="bg-green-500 text-white px-4 py-2 rounded font-semibold text-sm hover:bg-green-600 transition"
-                >
-                  Sign Up
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile: Hamburger and Cart with Badge */}
-          <div className="flex md:hidden items-center gap-4">
-            <div className="relative">
-              <NavLink
-                to="/cart"
-                className={({ isActive }) =>
-                  `relative flex items-center transition-colors ${isActive
-                  ? "text-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
-                  }`
-                }
-              >
-                <ShoppingCart size={22} />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
-                    {cartCount > 9 ? "9+" : cartCount}
-                  </span>
-                )}
-              </NavLink>
-            </div>
-            
-            <div className="cursor-pointer" onClick={toggleMenu}>
-              {menuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Menu WITH ICONS */}
-      {menuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg z-40 py-4 border-t">
-          <nav className="flex flex-col items-center gap-4">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
             <NavLink
               to="/"
-              onClick={closeMenu}
               className={({ isActive }) =>
-                `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
+                `flex items-center gap-2 text-sm font-medium transition-colors ${
+                  isActive ? "text-yellow-400" : "text-gray-400 hover:text-white"
                 }`
               }
             >
@@ -317,156 +96,200 @@ const DairyNavbar = () => {
 
             <NavLink
               to="/diary/milkdiary"
-              onClick={closeMenu}
               className={({ isActive }) =>
-                `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
+                `flex items-center gap-2 text-sm font-medium transition-colors ${
+                  isActive ? "text-yellow-400" : "text-gray-400 hover:text-white"
                 }`
               }
             >
               <Milk size={16} /> Milk Diary
             </NavLink>
 
-            {/* Mobile Services Dropdown */}
-            <div className="w-full px-4">
-              <button
-                onClick={() => setServicesOpen(!servicesOpen)}
-                className="uppercase text-sm tracking-wide text-gray-900 hover:text-[#95e500] flex items-center gap-2 py-2"
-              >
+            {/* Services Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setServicesOpen(true)}
+              onMouseLeave={() => setServicesOpen(false)}
+            >
+              <button className="flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">
                 <Users size={16} /> Services
-                <ChevronDown size={16} className={`transition-transform ${servicesOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={14} className={`transition-transform ${servicesOpen ? "rotate-180" : ""}`} />
               </button>
               
-              {servicesOpen && (
-                <div className="pl-8 mt-2 space-y-2">
+              <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl py-2 w-56 transition-all duration-300 ${servicesOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 invisible"}`}>
+                {[
+                  { to: "/diary/diarysupport", icon: Sprout, label: "Diary Support" },
+                  { to: "/diary/milkdiary", icon: ShoppingBasket, label: "Buy Fresh Dairy" },
+                  { to: "/diary/diaryevents", icon: Calendar, label: "Community Events" },
+                  { to: "/diary/diaryknowledge", icon: BookOpen, label: "Knowledge Hub" },
+                  { to: "/diary/dairycommunity", icon: Users, label: "Dairy Community" },
+                  { to: "/diary/diarycontacts", icon: Phone, label: "Contact Us" },
+                ].map((item, idx) => (
                   <Link
-                    to="/diary/diarysupport"
+                    key={idx}
+                    to={item.to}
                     onClick={closeMenu}
-                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#95e500]"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
                   >
-                    <Sprout size={16} /> Diary Support
+                    <item.icon size={16} /> {item.label}
                   </Link>
-                  <Link
-                    to="/diary/milkdiary"
-                    onClick={closeMenu}
-                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#95e500]"
-                  >
-                    <ShoppingBasket size={16} /> Buy Fresh Dairy Products
-                  </Link>
-                  <Link
-                    to="/diary/diaryevents"
-                    onClick={closeMenu}
-                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#95e500]"
-                  >
-                    <Calendar size={16} /> Dairy Community Events
-                  </Link>
-                  <Link
-                    to="/diary/diaryknowledge"
-                    onClick={closeMenu}
-                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#95e500]"
-                  >
-                    <BookOpen size={16} /> Dairy Knowledge Hub
-                  </Link>
-                  <Link
-                    to="/diary/dairycommunity"
-                    onClick={closeMenu}
-                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#95e500]"
-                  >
-                    <Users size={16} /> Dairy Community
-                  </Link>
-                  <Link
-                    to="/diary/diarycontacts"
-                    onClick={closeMenu}
-                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#95e500]"
-                  >
-                    <Phone size={16} /> Contact Us
-                  </Link>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
 
             <NavLink
               to="/diary/diarysupport"
-              onClick={closeMenu}
               className={({ isActive }) =>
-                `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#f3cc00] border-b-2 border-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
+                `flex items-center gap-2 text-sm font-medium transition-colors ${
+                  isActive ? "text-yellow-400" : "text-gray-400 hover:text-white"
                 }`
               }
             >
               <Headphones size={16} /> Support
             </NavLink>
+          </nav>
 
-            <NavLink
-              to="/cart"
-              onClick={closeMenu}
-              className={({ isActive }) =>
-                `uppercase text-sm tracking-wide transition-colors flex items-center gap-2 ${isActive
-                  ? "text-[#f3cc00]"
-                  : "text-gray-900 hover:text-[#95e500]"
-                }`
-              }
-            >
-              <ShoppingCart size={18} /> Cart ({cartCount})
+          {/* Right Side */}
+          <div className="flex items-center gap-6">
+            {/* Cart - Yellow badge matching DairyPage */}
+            <NavLink to="/cart" className="relative text-gray-400 hover:text-white transition-colors">
+              <ShoppingCart size={22} />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
             </NavLink>
 
-            {/* Mobile Auth Section WITH ICONS */}
-            <div className="flex flex-col items-center gap-2 mt-4 w-full px-4">
+            {/* Desktop Auth */}
+            <div className="hidden md:flex items-center gap-4">
               {user ? (
-                <>
-                  <div className="text-gray-900 px-4 py-2 text-sm font-semibold">
-                    Hi,{" "}
-                    {user.displayName
-                      ? user.displayName
-                      : user.email?.split("@")[0] || "User"}
-                  </div>
-                  
-                  <div className="w-full">
-                    <NavLink 
-                      to="/profile" 
-                      onClick={closeMenu} 
-                      className="flex items-center justify-center gap-2 w-full py-2 border border-gray-900 rounded text-center mb-2"
-                    >
-                      <User size={16} /> My Profile
-                    </NavLink>
-                    <NavLink 
-                      to="/orders" 
-                      onClick={closeMenu} 
-                      className="flex items-center justify-center gap-2 w-full py-2 border border-gray-900 rounded text-center mb-2"
-                    >
-                      <Package size={16} /> My Orders
-                    </NavLink>
-                    <button
-                      onClick={handleUpdatePassword}
-                      className="flex items-center justify-center gap-2 w-full py-2 border border-gray-900 rounded mb-2"
-                    >
-                      <Key size={16} /> Update Password
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center justify-center gap-2 w-full py-2 bg-red-600 text-white rounded"
-                    >
-                      <LogOut size={16} /> Logout
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
+                <div className="relative">
                   <button
-                    onClick={handleLoginClick}
-                    className="w-full px-6 py-2 border border-gray-900 rounded"
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="w-9 h-9 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 flex items-center justify-center font-bold text-black hover:opacity-90 transition"
                   >
+                    {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
+                  </button>
+
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl py-2 shadow-xl">
+                      <Link to="/profile" onClick={closeMenu} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                        <User size={16} /> My Profile
+                      </Link>
+                      <Link to="/orders" onClick={closeMenu} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                        <Package size={16} /> My Orders
+                      </Link>
+                      <Link to="/cart" onClick={closeMenu} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                        <ShoppingBag size={16} /> My Cart
+                      </Link>
+                      <button onClick={handleUpdatePassword} className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                        <Key size={16} /> Update Password
+                      </button>
+                      <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors text-left">
+                        <LogOut size={16} /> Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <button onClick={handleLoginClick} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">
                     Login
                   </button>
-                  <button
-                    onClick={handleSignupClick}
-                    className="w-full px-6 py-2 bg-green-500 text-white rounded"
-                  >
+                  <button onClick={handleSignupClick} className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition">
                     Sign Up
                   </button>
-                </>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <button onClick={toggleMenu} className="md:hidden text-white">
+              {menuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Menu - Full screen dark overlay */}
+      {menuOpen && (
+        <div className="fixed inset-0 top-[72px] bg-[#0a0a0a]/95 backdrop-blur-xl z-40 md:hidden">
+          <nav className="flex flex-col p-6 gap-4">
+            <NavLink to="/" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 py-3 text-lg font-medium ${isActive ? "text-yellow-400" : "text-gray-400"}`}>
+              <Home size={20} /> Home
+            </NavLink>
+
+            <NavLink to="/diary/milkdiary" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 py-3 text-lg font-medium ${isActive ? "text-yellow-400" : "text-gray-400"}`}>
+              <Milk size={20} /> Milk Diary
+            </NavLink>
+
+            {/* Mobile Services */}
+            <div>
+              <button onClick={() => setServicesOpen(!servicesOpen)} className="flex items-center gap-3 py-3 text-lg font-medium text-gray-400 w-full">
+                <Users size={20} /> Services
+                <ChevronDown size={16} className={`ml-auto transition-transform ${servicesOpen ? "rotate-180" : ""}`} />
+              </button>
+              
+              {servicesOpen && (
+                <div className="pl-8 space-y-2 mt-2">
+                  {[
+                    { to: "/diary/diarysupport", icon: Sprout, label: "Diary Support" },
+                    { to: "/diary/milkdiary", icon: ShoppingBasket, label: "Buy Fresh Dairy" },
+                    { to: "/diary/diaryevents", icon: Calendar, label: "Community Events" },
+                    { to: "/diary/diaryknowledge", icon: BookOpen, label: "Knowledge Hub" },
+                    { to: "/diary/dairycommunity", icon: Users, label: "Dairy Community" },
+                    { to: "/diary/diarycontacts", icon: Phone, label: "Contact Us" },
+                  ].map((item, idx) => (
+                    <Link key={idx} to={item.to} onClick={closeMenu} className="flex items-center gap-3 py-2 text-gray-400 hover:text-white">
+                      <item.icon size={16} /> {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <NavLink to="/diary/diarysupport" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 py-3 text-lg font-medium ${isActive ? "text-yellow-400" : "text-gray-400"}`}>
+              <Headphones size={20} /> Support
+            </NavLink>
+
+            <NavLink to="/cart" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 py-3 text-lg font-medium ${isActive ? "text-yellow-400" : "text-gray-400"}`}>
+              <ShoppingCart size={20} /> Cart ({cartCount})
+            </NavLink>
+
+            {/* Mobile Auth */}
+            <div className="border-t border-white/10 pt-6 mt-4">
+              {user ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-white mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 flex items-center justify-center font-bold text-black">
+                      {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
+                    </div>
+                    <span className="font-medium">{user.displayName || user.email?.split("@")[0]}</span>
+                  </div>
+                  
+                  <Link to="/profile" onClick={closeMenu} className="flex items-center gap-3 py-3 text-gray-400 hover:text-white">
+                    <User size={18} /> My Profile
+                  </Link>
+                  <Link to="/orders" onClick={closeMenu} className="flex items-center gap-3 py-3 text-gray-400 hover:text-white">
+                    <Package size={18} /> My Orders
+                  </Link>
+                  <button onClick={handleUpdatePassword} className="flex items-center gap-3 py-3 text-gray-400 hover:text-white w-full">
+                    <Key size={18} /> Update Password
+                  </button>
+                  <button onClick={handleLogout} className="flex items-center gap-3 py-3 text-red-400 w-full">
+                    <LogOut size={18} /> Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <button onClick={handleLoginClick} className="w-full py-3 border border-white/20 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                    Login
+                  </button>
+                  <button onClick={handleSignupClick} className="w-full py-3 bg-gradient-to-r from-yellow-500 to-amber-600 text-black rounded-xl font-semibold">
+                    Sign Up
+                  </button>
+                </div>
               )}
             </div>
           </nav>

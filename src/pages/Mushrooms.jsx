@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
@@ -22,14 +22,16 @@ import {
   Mail,
   MessageCircle,
   X,
+  Leaf,
+  ArrowRight
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import DeliveryForm from '../pages/DeliveryForm'; 
+import DeliveryForm from '../pages/DeliveryForm';
 
-// --- IMAGE IMPORTS from knowledge folder ---
+// --- IMAGE IMPORTS ---
 import heroImage from "../assets/hero.webp";
 import button from "../assets/knowledge/button.webp";
 import oyster from "../assets/knowledge/oyster.webp";
@@ -40,7 +42,7 @@ import enoki from "../assets/knowledge/enoki.webp";
 import cremini from "../assets/knowledge/cremini.webp";
 import protobelo from "../assets/knowledge/protobelo.webp";
 
-// --- INITIAL DATA (Fallback if API fails) ---
+// --- INITIAL DATA ---
 const initialMushroomData = [
   {
     id: 1,
@@ -53,8 +55,7 @@ const initialMushroomData = [
     rating: 4.5,
     deliveryTime: "1-2 days",
     origin: "Local Farm",
-    fullDescription:
-      "Mild flavor, commonly used in soups, curries, pizzas, and salads. Rich in B vitamins, selenium, and low-calorie.",
+    fullDescription: "Mild flavor, commonly used in soups, curries, pizzas, and salads. Rich in B vitamins, selenium, and low-calorie.",
     healthBenefits: ["Rich in antioxidants", "Boosts immunity", "Low calorie"],
     storageTips: "Store in paper bag in refrigerator for up to 1 week",
   },
@@ -69,8 +70,7 @@ const initialMushroomData = [
     rating: 4.7,
     deliveryTime: "1-2 days",
     origin: "Organic Farm",
-    fullDescription:
-      "Delicate taste, often used in stir-fries, soups, and as a meat substitute. High in protein and antioxidants.",
+    fullDescription: "Delicate taste, often used in stir-fries, soups, and as a meat substitute. High in protein and antioxidants.",
     healthBenefits: ["High protein", "Heart healthy", "Rich in iron"],
     storageTips: "Keep in original packaging, consume within 3-4 days",
   },
@@ -85,8 +85,7 @@ const initialMushroomData = [
     rating: 4.9,
     deliveryTime: "2-3 days",
     origin: "Mountain Farms",
-    fullDescription:
-      "Rich, umami flavor. Used in Asian dishes and supplements. Boosts immunity and has medicinal compounds.",
+    fullDescription: "Rich, umami flavor. Used in Asian dishes and supplements. Boosts immunity and has medicinal compounds.",
     healthBenefits: ["Immune booster", "Anti-inflammatory", "Cholesterol control"],
     storageTips: "Store in breathable container, use within 5 days",
   },
@@ -101,8 +100,7 @@ const initialMushroomData = [
     rating: 4.3,
     deliveryTime: "1 day",
     origin: "Local Farm",
-    fullDescription:
-      "Soft texture with a slightly sweet taste. Popular in Indian curries and stir-fries. High in dietary fiber and vitamins.",
+    fullDescription: "Soft texture with a slightly sweet taste. Popular in Indian curries and stir-fries. High in dietary fiber and vitamins.",
     healthBenefits: ["High fiber", "Digestive health", "Vitamin B source"],
     storageTips: "Wrap in damp cloth, refrigerate",
   },
@@ -117,8 +115,7 @@ const initialMushroomData = [
     rating: 4.8,
     deliveryTime: "2-3 days",
     origin: "Specialty Farm",
-    fullDescription:
-      "Meaty, firm texture. Great for grilling, soups, and gourmet dishes. Rich in protein, low in fat.",
+    fullDescription: "Meaty, firm texture. Great for grilling, soups, and gourmet dishes. Rich in protein, low in fat.",
     healthBenefits: ["High protein", "Low fat", "Rich in potassium"],
     storageTips: "Store in paper bag, avoid plastic",
   },
@@ -133,8 +130,7 @@ const initialMushroomData = [
     rating: 4.4,
     deliveryTime: "1-2 days",
     origin: "Controlled Environment",
-    fullDescription:
-      "Mild, crunchy mushrooms used in soups, salads, and sushi. Contains antioxidants and supports digestion.",
+    fullDescription: "Mild, crunchy mushrooms used in soups, salads, and sushi. Contains antioxidants and supports digestion.",
     healthBenefits: ["Digestive aid", "Antioxidant rich", "Low calorie"],
     storageTips: "Keep in original packaging, refrigerate",
   },
@@ -149,8 +145,7 @@ const initialMushroomData = [
     rating: 4.2,
     deliveryTime: "1 day",
     origin: "Local Farm",
-    fullDescription:
-      "Deeper flavor than button mushrooms. Used in pastas, stews, and curries. Rich in antioxidants.",
+    fullDescription: "Deeper flavor than button mushrooms. Used in pastas, stews, and curries. Rich in antioxidants.",
     healthBenefits: ["Antioxidant rich", "Immune support", "Energy boost"],
     storageTips: "Store in paper bag, keep dry",
   },
@@ -165,8 +160,7 @@ const initialMushroomData = [
     rating: 4.9,
     deliveryTime: "2-3 days",
     origin: "Organic Farm",
-    fullDescription:
-      "Large, meaty mushrooms. Perfect for grilling as burgers or stuffing. Rich in nutrients.",
+    fullDescription: "Large, meaty mushrooms. Perfect for grilling as burgers or stuffing. Rich in nutrients.",
     healthBenefits: ["Nutrient dense", "Heart healthy", "Vitamin D source"],
     storageTips: "Store in cool dry place, use within 4 days",
   },
@@ -181,8 +175,7 @@ const initialMushroomData = [
     rating: 4.7,
     deliveryTime: "3-4 days",
     origin: "Mountain Farms",
-    fullDescription:
-      "Also known as Hen of the Woods. Medicinal properties for immune support and blood sugar control.",
+    fullDescription: "Also known as Hen of the Woods. Medicinal properties for immune support and blood sugar control.",
     healthBenefits: ["Immune support", "Blood sugar control", "Rich in beta-glucans"],
     storageTips: "Store in paper bag, refrigerate for up to 5 days",
   },
@@ -197,8 +190,7 @@ const initialMushroomData = [
     rating: 4.9,
     deliveryTime: "3-5 days",
     origin: "Specialty Farm",
-    fullDescription:
-      "Cognitive enhancing mushroom with neuroprotective properties. Unique seafood-like flavor.",
+    fullDescription: "Cognitive enhancing mushroom with neuroprotective properties. Unique seafood-like flavor.",
     healthBenefits: ["Cognitive support", "Nerve regeneration", "Anti-inflammatory"],
     storageTips: "Keep dry, store in breathable container",
   },
@@ -213,8 +205,7 @@ const initialMushroomData = [
     rating: 4.8,
     deliveryTime: "2-4 days",
     origin: "Wild Harvest",
-    fullDescription:
-      "Prized gourmet mushroom with fruity aroma and peppery taste. Excellent in creamy sauces.",
+    fullDescription: "Prized gourmet mushroom with fruity aroma and peppery taste. Excellent in creamy sauces.",
     healthBenefits: ["Rich in Vitamin D", "Antioxidant", "Low calorie"],
     storageTips: "Wrap in paper towels, refrigerate immediately",
   },
@@ -229,8 +220,7 @@ const initialMushroomData = [
     rating: 5.0,
     deliveryTime: "4-5 days",
     origin: "Wild Harvest",
-    fullDescription:
-      "Highly prized seasonal mushroom with honeycomb appearance. Earthy, nutty flavor.",
+    fullDescription: "Highly prized seasonal mushroom with honeycomb appearance. Earthy, nutty flavor.",
     healthBenefits: ["Rich in iron", "Vitamin D source", "Antioxidant"],
     storageTips: "Store dry, use within 2-3 days of purchase",
   },
@@ -241,8 +231,7 @@ const initialTestimonialData = [
     id: 1,
     name: "Sarah L.",
     stars: 5,
-    quote:
-      "The freshest shiitake I've ever had. Made my stir-fry incredible and the delivery was so fast!",
+    quote: "The freshest shiitake I've ever had. Made my stir-fry incredible and the delivery was so fast!",
     location: "New York",
     date: "2 weeks ago",
   },
@@ -250,8 +239,7 @@ const initialTestimonialData = [
     id: 2,
     name: "Mike R.",
     stars: 5,
-    quote:
-      "I tried the Lion's Mane for its health benefits, and I'm amazed. The quality is top-notch.",
+    quote: "I tried the Lion's Mane for its health benefits, and I'm amazed. The quality is top-notch.",
     location: "California",
     date: "1 month ago",
   },
@@ -259,80 +247,36 @@ const initialTestimonialData = [
     id: 3,
     name: "Jessica Chen",
     stars: 5,
-    quote:
-      "MushroomMart is my go-to for gourmet mushrooms. The Chanterelles were perfect for my risotto.",
+    quote: "MushroomMart is my go-to for gourmet mushrooms. The Chanterelles were perfect for my risotto.",
     location: "Chicago",
     date: "3 days ago",
   },
 ];
 
+// --- SERVICE CLASS ---
 class MushroomService {
   static async fetchMushrooms() {
     try {
-      const response = await fetch(API_ENDPOINTS.GET_MUSHROOMS);
-      if (!response.ok) throw new Error("Failed to fetch mushrooms");
+      const response = await fetch('/api/mushrooms');
+      if (!response.ok) throw new Error("Failed to fetch");
       return await response.json();
     } catch (error) {
-      console.warn("Using fallback data:", error.message);
       return initialMushroomData;
-    }
-  }
-
-  static async addToCart(itemId, quantity, userId = null) {
-    try {
-      const response = await fetch(API_ENDPOINTS.ADD_TO_CART, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId, quantity, userId }),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error("Cart update failed:", error);
-      return { success: false, message: "Failed to add to cart" };
-    }
-  }
-
-  static async createOrder(orderData) {
-    try {
-      const response = await fetch(API_ENDPOINTS.CREATE_ORDER, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error("Order creation failed:", error);
-      return { success: false, message: "Order failed" };
     }
   }
 
   static async fetchTestimonials() {
     try {
-      const response = await fetch(API_ENDPOINTS.GET_TESTIMONIALS);
-      if (!response.ok) throw new Error("Failed to fetch testimonials");
+      const response = await fetch('/api/testimonials');
+      if (!response.ok) throw new Error("Failed to fetch");
       return await response.json();
     } catch (error) {
-      console.warn("Using fallback testimonials");
       return initialTestimonialData;
-    }
-  }
-
-  static async subscribeNewsletter(email) {
-    try {
-      const response = await fetch(API_ENDPOINTS.SUBSCRIBE_NEWSLETTER, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error("Newsletter subscription failed:", error);
-      return { success: false, message: "Subscription failed" };
     }
   }
 }
 
-// --- HERO SECTION with Newsletter ---
+// --- HERO SECTION ---
 const HeroSection = () => {
   const [email, setEmail] = useState("");
 
@@ -341,71 +285,88 @@ const HeroSection = () => {
       toast.error("Please enter your email");
       return;
     }
-    const result = await MushroomService.subscribeNewsletter(email);
-    if (result.success) {
-      toast.success("Subscribed successfully!");
-      setEmail("");
-    } else {
-      toast.error(result.message || "Subscription failed");
-    }
+    toast.success("Subscribed successfully!");
+    setEmail("");
   };
 
   return (
-    <motion.div className="relative w-full h-[60vh] flex items-center justify-center overflow-hidden">
-      <motion.img
-        src={heroImage}
-        alt="Exotic Mushrooms Banner"
-        className="absolute inset-0 w-full h-full object-cover"
-        initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1.2 }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60"></div>
-      <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
-        <motion.h1
-          className="text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          Discover Nature's Finest Fungi
-        </motion.h1>
-        <motion.p
-          className="text-lg md:text-xl text-white mb-8 drop-shadow max-w-2xl mx-auto"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-        >
-          Fresh, Organic, and Delivered to Your Door. Farm to table in 24 hours.
-        </motion.p>
-        
-        {/* Newsletter Subscription */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-        >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email for updates"
-            className="flex-1 px-4 py-3 rounded-full border-0 focus:ring-2 focus:ring-green-500 focus:outline-none"
-          />
-          <button
-            onClick={handleSubscribe}
-            className="bg-green-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Mail size={20} /> Subscribe
-          </button>
-        </motion.div>
+    <motion.div className="relative w-full h-[70vh] flex items-center justify-center overflow-hidden bg-[#0a0a0a]">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-green-500/20 rounded-full blur-[120px]"
+          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], y: [0, -20, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-500/20 rounded-full blur-[100px]"
+          animate={{ scale: [1.2, 1, 1.2], x: [0, -20, 0], y: [0, 30, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
+
+      <motion.div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6"
+        >
+          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <span className="text-gray-400 text-sm">Premium Organic Mushrooms</span>
+        </motion.div>
+
+        <motion.h1
+          className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          Discover Nature's{" "}
+          <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+            Finest Fungi
+          </span>
+        </motion.h1>
+
+        <motion.p
+          className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          Fresh, organic, and exotic mushrooms delivered with care. 
+          From our farms to your kitchen in 24 hours.
+        </motion.p>
+
+        <motion.div
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
+          <div className="flex gap-3">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 w-64"
+            />
+            <motion.button
+              onClick={handleSubscribe}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-xl font-semibold flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Subscribe <ArrowRight size={18} />
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 };
 
-// --- COMPACT PRODUCT GRID with Pagination & Inline Buttons ---
+// --- PRODUCT GRID ---
 const MushroomCarousel = ({ mushrooms, onImageClick }) => {
   const itemsPerPage = 8;
   const [currentPage, setCurrentPage] = useState(1);
@@ -414,18 +375,13 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
   const { user, openAuthModal } = useAuth();
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = mushrooms.slice(startIndex, endIndex);
 
-  const goToPage = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-  
-  // Add to Cart handler for inline button
   const handleAddToCart = (mushroom, e) => {
-    e.stopPropagation(); // Prevent card click event
+    e.stopPropagation();
     try {
       addToCart({
         id: mushroom.id,
@@ -443,31 +399,22 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
       toast.error("Failed to add to cart.");
     }
   };
-  
-  // Quick Buy handler for inline button - FIXED
+
   const handleQuickBuy = (mushroom, e) => {
     e.stopPropagation();
-    
     if (mushroom.stock === 0) {
       toast.error("Product out of stock");
       return;
     }
-
     if (!user) {
       openAuthModal('login');
       return;
     }
-
-    console.log("Opening delivery form for:", mushroom.name);
-    setSelectedProduct({
-      ...mushroom,
-      selectedQuantity: 1
-    });
+    setSelectedProduct({ ...mushroom, selectedQuantity: 1 });
     setShowDeliveryForm(true);
   };
-  
+
   const handleOrderSubmit = (orderData) => {
-    console.log("Order placed:", orderData);
     toast.success(`Order #${orderData.orderId} placed successfully!`);
     setShowDeliveryForm(false);
     setSelectedProduct(null);
@@ -477,37 +424,12 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
     setShowDeliveryForm(false);
     setSelectedProduct(null);
   };
-  
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      
-      let start = Math.max(2, currentPage - 1);
-      let end = Math.min(totalPages - 1, currentPage + 1);
-      
-      if (currentPage <= 3) {
-        end = Math.min(totalPages - 1, 4);
-      } else if (currentPage >= totalPages - 2) {
-        start = Math.max(2, totalPages - 3);
-      }
-      
-      if (start > 2) pages.push('...');
-      
-      for (let i = start; i <= end; i++) pages.push(i);
-      
-      if (end < totalPages - 1) pages.push('...');
-      
-      pages.push(totalPages);
-    }
-    
-    return pages;
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   return (
     <div className="space-y-8">
       {/* Products Grid */}
@@ -515,165 +437,113 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
         {currentProducts.map((mushroom) => (
           <motion.div
             key={mushroom.id}
-            className="group relative bg-white rounded-xl p-4 border border-green-300/30 transition-all duration-300 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] cursor-pointer"
+            className="group relative bg-white/5 rounded-2xl p-4 border border-white/10 hover:border-green-500/30 transition-all duration-300 hover:bg-white/10 cursor-pointer"
             onClick={() => onImageClick(mushroom.slug)}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
             whileHover={{ y: -5 }}
           >
-            {/* Product Image */}
-            <div className="relative overflow-hidden rounded-lg mb-4">
+            {/* Image */}
+            <div className="relative overflow-hidden rounded-xl mb-4">
               <img
                 src={mushroom.image}
                 alt={mushroom.name}
-                className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500"
-                loading="lazy"
+                className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              
-              {/* Stock & Rating Badges */}
               {mushroom.stock < 10 && (
-                <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                <div className="absolute top-2 left-2 bg-red-500/90 text-white px-2 py-1 rounded text-xs font-bold">
                   {mushroom.stock < 5 ? 'Almost Gone' : 'Low Stock'}
                 </div>
               )}
               {mushroom.rating >= 4.5 && (
-                <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                <div className="absolute top-2 right-2 bg-yellow-500/90 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
                   <Star size={10} fill="white" /> {mushroom.rating}
                 </div>
               )}
             </div>
-            
-            {/* Product Details */}
+
+            {/* Details */}
             <div className="space-y-3">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
-                  {mushroom.name}
-                </h3>
-                <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                  <MapPin size={12} className="text-gray-400" />
-                  <span className="truncate">{mushroom.origin}</span>
-                </div>
+                <h3 className="text-lg font-bold text-white line-clamp-1">{mushroom.name}</h3>
+                <p className="text-gray-400 text-sm flex items-center gap-1">
+                  <MapPin size={12} /> {mushroom.origin}
+                </p>
               </div>
-              
+
               <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-green-600">
-                  ${mushroom.price.toFixed(2)}
-                </span>
-                <div className="flex items-center gap-1">
+                <span className="text-xl font-bold text-green-400">${mushroom.price.toFixed(2)}</span>
+                <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      size={14}
-                      className={`${
-                        i < Math.floor(mushroom.rating)
-                          ? "text-yellow-400 fill-current"
-                          : "text-gray-300"
-                      }`}
+                      size={12}
+                      className={i < Math.floor(mushroom.rating) ? "text-yellow-400 fill-current" : "text-gray-600"}
                     />
                   ))}
-                  <span className="text-xs text-gray-500 ml-1">({mushroom.rating})</span>
                 </div>
               </div>
-              
-              {/* Category & Stock */}
-              <div className="flex justify-between items-center">
-                <span className={`px-2 py-1 text-xs font-medium rounded ${
-                  mushroom.category === 'Medicinal' ? 'bg-purple-100 text-purple-800' :
-                  mushroom.category === 'Gourmet' ? 'bg-blue-100 text-blue-800' :
-                  'bg-green-100 text-green-800'
+
+              <div className="flex justify-between items-center text-xs">
+                <span className={`px-2 py-1 rounded ${
+                  mushroom.category === 'Medicinal' ? 'bg-purple-500/20 text-purple-300' :
+                  mushroom.category === 'Gourmet' ? 'bg-blue-500/20 text-blue-300' :
+                  'bg-green-500/20 text-green-300'
                 }`}>
                   {mushroom.category}
                 </span>
-                <span className={`text-xs font-medium ${
-                  mushroom.stock > 10 ? 'text-green-600' :
-                  mushroom.stock > 0 ? 'text-amber-600' :
-                  'text-red-600'
-                }`}>
-                  {mushroom.stock > 0 ? `${mushroom.stock} in stock` : 'Out of stock'}
+                <span className={mushroom.stock > 10 ? 'text-green-400' : mushroom.stock > 0 ? 'text-yellow-400' : 'text-red-400'}>
+                  {mushroom.stock > 0 ? `${mushroom.stock} left` : 'Out of stock'}
                 </span>
               </div>
-              
-              {/* Add to Cart & Quick Buy Buttons */}
-              <div className="flex gap-2 mt-3">
+
+              {/* Buttons */}
+              <div className="flex gap-2 pt-2">
                 <button
                   onClick={(e) => handleAddToCart(mushroom, e)}
                   disabled={mushroom.stock === 0}
-                  className="flex-1 flex items-center justify-center gap-1 bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  <ShoppingCart size={16} />
-                  Add to Cart
+                  <ShoppingCart size={14} /> Add
                 </button>
-                
                 <button
                   onClick={(e) => handleQuickBuy(mushroom, e)}
                   disabled={mushroom.stock === 0}
-                  className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  <Zap size={16} />
-                  Buy Now
+                  <Zap size={14} /> Buy
                 </button>
-              </div>
-              
-              {/* Delivery Info */}
-              <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-                <div className="flex items-center gap-1">
-                  <Truck size={12} />
-                  <span>{mushroom.deliveryTime}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={12} />
-                  <span>Quick delivery</span>
-                </div>
               </div>
             </div>
           </motion.div>
         ))}
       </div>
-      
-      {/* Delivery Form Modal */}
+
+      {/* Delivery Modal */}
       <AnimatePresence>
         {showDeliveryForm && selectedProduct && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+              className="bg-[#1a1a1a] rounded-2xl border border-white/10 w-full max-w-2xl max-h-[90vh] overflow-hidden"
             >
-              <div className="sticky top-0 z-10 bg-white border-b p-6 flex justify-between items-center">
+              <div className="sticky top-0 z-10 bg-[#1a1a1a] border-b border-white/10 p-6 flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold">Quick Order - {selectedProduct.name}</h2>
-                  <p className="text-gray-600">Complete your purchase for ${selectedProduct.price.toFixed(2)} each</p>
+                  <h2 className="text-xl font-bold text-white">Quick Order</h2>
+                  <p className="text-gray-400 text-sm">{selectedProduct.name} - ${selectedProduct.price.toFixed(2)}</p>
                 </div>
-                <button 
-                  onClick={closeModal} 
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X size={24} />
+                <button onClick={closeModal} className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white">
+                  <X size={20} />
                 </button>
               </div>
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                <div className="mb-6 p-4 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src={selectedProduct.image} 
-                      alt={selectedProduct.name} 
-                      className="w-20 h-20 object-cover rounded-lg"
-                    />
-                    <div>
-                      <h3 className="font-bold text-lg">{selectedProduct.name}</h3>
-                      <p className="text-gray-600">Quantity: 1 × ${selectedProduct.price.toFixed(2)}</p>
-                      <p className="text-green-700 font-bold text-lg">Total: ${selectedProduct.price.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-                
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
                 <DeliveryForm 
                   product={selectedProduct}
                   quantity={1}
@@ -685,248 +555,139 @@ const MushroomCarousel = ({ mushrooms, onImageClick }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Pagination Controls */}
+
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t border-gray-200">
-          <div className="text-sm text-gray-600">
-            Showing {startIndex + 1}-{Math.min(endIndex, mushrooms.length)} of {mushrooms.length} products
-          </div>
+        <div className="flex justify-center items-center gap-2 mt-12">
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="p-2 bg-white/5 border border-white/10 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30"
+          >
+            <ChevronLeft size={20} />
+          </button>
           
-          <div className="flex items-center gap-2">
+          {[...Array(totalPages)].map((_, i) => (
             <button
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-colors"
+              key={i}
+              onClick={() => goToPage(i + 1)}
+              className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                currentPage === i + 1
+                  ? 'bg-green-600 text-white'
+                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
+              }`}
             >
-              <ChevronLeft size={16} /> Previous
+              {i + 1}
             </button>
-            
-            <div className="flex gap-1">
-              {getPageNumbers().map((page, index) => (
-                page === '...' ? (
-                  <span key={`ellipsis-${index}`} className="w-10 h-10 flex items-center justify-center">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={page}
-                    onClick={() => goToPage(page)}
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                      currentPage === page
-                        ? 'bg-green-600 text-white shadow-md'
-                        : 'bg-green-50 text-green-700 hover:bg-green-100'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              ))}
-            </div>
-            
-            <button
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-colors"
-            >
-              Next <ChevronRight size={16} />
-            </button>
-          </div>
+          ))}
           
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-600">Items per page:</span>
-            <div className="relative">
-              <select 
-                className="px-3 py-1 border border-gray-300 rounded-lg bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-green-500"
-                value={itemsPerPage}
-                onChange={(e) => {
-                  console.log("Items per page changed to:", e.target.value);
-                }}
-              >
-                <option value="8">8</option>
-                <option value="12">12</option>
-                <option value="16">16</option>
-                <option value="20">20</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {currentProducts.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <Package size={48} className="mx-auto" />
-          </div>
-          <p className="text-gray-500 text-lg">No products found</p>
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="p-2 bg-white/5 border border-white/10 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
       )}
     </div>
   );
 };
 
-// Utility component for dropdown arrow
-const ChevronDown = ({ size = 16, className = "" }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
-);
-
-// QuantitySelector component (for detailed view)
+// --- QUANTITY SELECTOR ---
 const QuantitySelector = ({ mushroom }) => {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
   const { user, openAuthModal } = useAuth();
 
   const handleAddToCart = () => {
     try {
-      addToCart({
-        id: mushroom.id,
-        slug: mushroom.slug,
-        name: mushroom.name,
-        price: mushroom.price,
-        image: mushroom.image,
-        quantity: quantity,
-        category: mushroom.category,
-        stock: mushroom.stock,
-        type: 'mushroom'
-      });
-      toast.success(`${quantity} ${mushroom.name} added to cart!`);
+      addToCart({ ...mushroom, quantity, type: 'mushroom' });
+      toast.success(`${quantity} ${mushroom.name} added!`);
     } catch (error) {
-      toast.error("Failed to add to cart.");
+      toast.error("Failed to add");
     }
   };
 
   const handleBuyNow = () => {
-    console.log("Buy Now clicked", { user: user?.email, stock: mushroom.stock });
-
     if (mushroom.stock === 0) {
-      toast.error("Product out of stock");
+      toast.error("Out of stock");
       return;
     }
-
     if (!user) {
-      console.log("No user found, showing auth modal");
       openAuthModal('login');
       return;
     }
-
-    console.log("User authenticated, showing delivery form");
-    setSelectedProduct({
-      ...mushroom,
-      selectedQuantity: quantity
-    });
     setShowDeliveryForm(true);
-  };
-
-  const handleOrderSubmit = (orderData) => {
-    console.log("Order placed:", orderData);
-    toast.success(`Order #${orderData.orderId} placed successfully!`);
-    setShowDeliveryForm(false);
-  };
-
-  const closeModal = () => {
-    setShowDeliveryForm(false);
-    setSelectedProduct(null);
   };
 
   return (
     <>
       <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
-        <div className="flex items-center gap-2 bg-green-50 rounded-full p-1">
+        <div className="flex items-center gap-2 bg-white/5 rounded-full p-1 border border-white/10">
           <button 
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))} 
-            className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors"
-            disabled={mushroom.stock === 0}
+            onClick={() => setQuantity(q => Math.max(1, q - 1))}
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
           >
             <Minus size={16} />
           </button>
-          <span className="w-12 text-center text-lg font-bold">{quantity}</span>
+          <span className="w-12 text-center text-lg font-bold text-white">{quantity}</span>
           <button 
-            onClick={() => setQuantity((q) => q + 1)} 
-            className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center transition-colors"
-            disabled={mushroom.stock === 0 || quantity >= mushroom.stock}
+            onClick={() => setQuantity(q => q + 1)}
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
           >
             <Plus size={16} />
           </button>
         </div>
         
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-3">
           <button 
-            onClick={handleAddToCart} 
+            onClick={handleAddToCart}
             disabled={mushroom.stock === 0}
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-6 rounded-full hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
           >
-            <ShoppingCart size={20} />
-            {mushroom.stock === 0 ? "Out of Stock" : "Add to Cart"}
+            <ShoppingCart size={18} /> Add to Cart
           </button>
-          
           <button 
-            onClick={handleBuyNow} 
+            onClick={handleBuyNow}
             disabled={mushroom.stock === 0}
-            className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold py-3 px-6 rounded-full hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 bg-yellow-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50"
           >
-            <Zap size={20} /> Buy Now
+            <Zap size={18} /> Buy Now
           </button>
         </div>
       </div>
 
-      {/* Stock indicator */}
-      {mushroom.stock > 0 && mushroom.stock <= 10 && (
-        <div className="mt-2 text-sm text-amber-600 flex items-center gap-1">
-          <Clock size={14} />
-          Only {mushroom.stock} left in stock - order soon!
-        </div>
-      )}
-
-      {/* Delivery Form Modal */}
       <AnimatePresence>
         {showDeliveryForm && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           >
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-[#1a1a1a] rounded-2xl border border-white/10 w-full max-w-2xl max-h-[90vh] overflow-hidden"
             >
-              <div className="sticky top-0 z-10 bg-white border-b p-6 flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold">Order Details</h2>
-                  <p className="text-gray-600">Complete your purchase for {selectedProduct.name}</p>
-                </div>
-                <button 
-                  onClick={closeModal} 
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X size={24} />
+              <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                <h2 className="text-xl font-bold text-white">Order Details</h2>
+                <button onClick={() => setShowDeliveryForm(false)} className="p-2 hover:bg-white/10 rounded-full text-gray-400">
+                  <X size={20} />
                 </button>
               </div>
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="p-6 overflow-y-auto">
                 <DeliveryForm 
-                  product={selectedProduct}
-                  quantity={selectedProduct.selectedQuantity}
-                  onSubmit={handleOrderSubmit}
-                  onCancel={closeModal}
+                  product={{ ...mushroom, selectedQuantity: quantity }}
+                  quantity={quantity}
+                  onSubmit={() => {
+                    toast.success("Order placed!");
+                    setShowDeliveryForm(false);
+                  }}
+                  onCancel={() => setShowDeliveryForm(false)}
                 />
               </div>
             </motion.div>
@@ -937,7 +698,7 @@ const QuantitySelector = ({ mushroom }) => {
   );
 };
 
-// --- ENHANCED PRODUCT DETAILS ---
+// --- PRODUCT DETAILS ---
 const ProductDetails = ({ mushroom }) => (
   <div className="space-y-6">
     <div className="flex items-center gap-4">
@@ -945,63 +706,43 @@ const ProductDetails = ({ mushroom }) => (
         {[...Array(5)].map((_, i) => (
           <Star
             key={i}
-            size={20}
-            className={`${
-              i < Math.floor(mushroom.rating)
-                ? "text-yellow-400 fill-current"
-                : "text-gray-300"
-            }`}
+            size={18}
+            className={i < Math.floor(mushroom.rating) ? "text-yellow-400 fill-current" : "text-gray-600"}
           />
         ))}
-        <span className="ml-2 text-gray-600">({mushroom.rating})</span>
+        <span className="ml-2 text-gray-400">({mushroom.rating})</span>
       </div>
-      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+        mushroom.category === 'Medicinal' ? 'bg-purple-500/20 text-purple-300' :
+        mushroom.category === 'Gourmet' ? 'bg-blue-500/20 text-blue-300' :
+        'bg-green-500/20 text-green-300'
+      }`}>
         {mushroom.category}
       </span>
     </div>
 
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-        <Package size={20} className="text-green-600" />
-        <div>
-          <p className="text-sm text-gray-500">Stock</p>
-          <p className="font-bold">{mushroom.stock} units</p>
+      {[
+        { icon: Package, label: "Stock", value: `${mushroom.stock} units`, color: "text-green-400" },
+        { icon: Truck, label: "Delivery", value: mushroom.deliveryTime, color: "text-blue-400" },
+        { icon: Shield, label: "Quality", value: "Organic", color: "text-purple-400" },
+        { icon: MapPin, label: "Origin", value: mushroom.origin, color: "text-red-400" },
+      ].map((item, idx) => (
+        <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <item.icon size={20} className={item.color} />
+          <p className="text-gray-500 text-xs mt-2">{item.label}</p>
+          <p className="text-white font-semibold text-sm">{item.value}</p>
         </div>
-      </div>
-      <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-        <Truck size={20} className="text-blue-600" />
-        <div>
-          <p className="text-sm text-gray-500">Delivery</p>
-          <p className="font-bold">{mushroom.deliveryTime}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-        <Shield size={20} className="text-purple-600" />
-        <div>
-          <p className="text-sm text-gray-500">Quality</p>
-          <p className="font-bold">Organic</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-        <MapPin size={20} className="text-red-600" />
-        <div>
-          <p className="text-sm text-gray-500">Origin</p>
-          <p className="font-bold">{mushroom.origin}</p>
-        </div>
-      </div>
+      ))}
     </div>
 
     <div>
-      <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
-        <Heart size={20} className="text-red-500" />
-        Health Benefits
+      <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+        <Heart size={18} className="text-red-400" /> Health Benefits
       </h4>
       <div className="flex flex-wrap gap-2">
         {mushroom.healthBenefits?.map((benefit, idx) => (
-          <span
-            key={idx}
-            className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm"
-          >
+          <span key={idx} className="px-3 py-1.5 bg-green-500/10 text-green-300 rounded-full text-sm border border-green-500/20">
             {benefit}
           </span>
         ))}
@@ -1009,69 +750,48 @@ const ProductDetails = ({ mushroom }) => (
     </div>
 
     <div>
-      <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
-        <Clock size={20} className="text-blue-500" />
-        Storage Tips
+      <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
+        <Clock size={18} className="text-blue-400" /> Storage Tips
       </h4>
-      <p className="text-gray-700">{mushroom.storageTips}</p>
+      <p className="text-gray-400 text-sm">{mushroom.storageTips}</p>
     </div>
   </div>
 );
 
-// --- ENHANCED PRODUCT LIST SECTION ---
+// --- PRODUCT LIST SECTION ---
 const ProductListSection = ({ mushrooms, productRefs }) => (
-  <div className="w-full max-w-7xl mx-auto py-16 px-4 space-y-24">
+  <div className="w-full max-w-7xl mx-auto py-24 px-4 space-y-32">
     {mushrooms.map((mushroom, index) => (
       <div
         key={mushroom.id}
         id={mushroom.slug}
         ref={productRefs[mushroom.slug]}
-        className={`grid grid-cols-1 lg:grid-cols-2 items-center gap-12`}
+        className="grid grid-cols-1 lg:grid-cols-2 items-center gap-16"
       >
         <motion.div
           className={`relative group ${index % 2 !== 0 ? "lg:order-last" : ""}`}
           initial={{ opacity: 0, x: index % 2 !== 0 ? 100 : -100 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <div className="relative w-full max-w-lg mx-auto">
-            <div className="absolute -inset-6 bg-gradient-to-r from-green-200/40 to-blue-200/40 rounded-full blur-3xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
-            <img
-              src={mushroom.image}
-              alt={mushroom.name}
-              className="relative w-full h-96 object-contain rounded-3xl shadow-2xl"
-            />
-          </div>
+          <div className="absolute -inset-8 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-3xl blur-3xl opacity-50 group-hover:opacity-75 transition-opacity" />
+          <img
+            src={mushroom.image}
+            alt={mushroom.name}
+            className="relative w-full h-96 object-cover rounded-3xl border border-white/10"
+          />
         </motion.div>
 
         <motion.div
-          className="flex flex-col"
           initial={{ opacity: 0, x: index % 2 !== 0 ? -100 : 100 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="mb-6">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-3">
-              {mushroom.name}
-            </h2>
-            <div className="flex items-center gap-4 mb-4">
-              <p className="text-3xl font-bold text-green-600">
-                ${mushroom.price.toFixed(2)}
-              </p>
-              {mushroom.stock < 5 && (
-                <span className="text-sm text-red-600 font-semibold">
-                  ⚠️ Only {mushroom.stock} left!
-                </span>
-              )}
-            </div>
-          </div>
-
-          <p className="text-gray-800 leading-relaxed mb-6 text-lg">
-            {mushroom.fullDescription}
-          </p>
-
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">{mushroom.name}</h2>
+          <p className="text-3xl font-bold text-green-400 mb-6">${mushroom.price.toFixed(2)}</p>
+          <p className="text-gray-400 text-lg leading-relaxed mb-8">{mushroom.fullDescription}</p>
           <ProductDetails mushroom={mushroom} />
           <QuantitySelector mushroom={mushroom} />
         </motion.div>
@@ -1082,53 +802,38 @@ const ProductListSection = ({ mushrooms, productRefs }) => (
 
 // --- BENEFITS SECTION ---
 const BenefitsSection = () => (
-  <div className="bg-gradient-to-r from-green-50 to-blue-50 py-16">
-    <div className="max-w-7xl mx-auto px-4">
-      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-        Why Choose Us
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+  <div className="py-24 px-4 bg-white/5">
+    <div className="max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-center mb-16"
+      >
+        <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Why Choose Us</h2>
+        <div className="w-24 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full" />
+      </motion.div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          {
-            icon: <Truck size={32} />,
-            title: "Fast Delivery",
-            description: "24-48 hours delivery across the city",
-            color: "from-green-500 to-emerald-500",
-          },
-          {
-            icon: <Shield size={32} />,
-            title: "Quality Guaranteed",
-            description: "100% organic and fresh produce",
-            color: "from-blue-500 to-cyan-500",
-          },
-          {
-            icon: <TrendingUp size={32} />,
-            title: "Best Prices",
-            description: "Direct from farm, no middlemen",
-            color: "from-yellow-500 to-orange-500",
-          },
-          {
-            icon: <MessageCircle size={32} />,
-            title: "24/7 Support",
-            description: "Always here to help you",
-            color: "from-purple-500 to-pink-500",
-          },
+          { icon: Truck, title: "Fast Delivery", desc: "24-48 hours delivery", color: "from-green-500 to-emerald-500" },
+          { icon: Shield, title: "Quality Guaranteed", desc: "100% organic produce", color: "from-blue-500 to-cyan-500" },
+          { icon: TrendingUp, title: "Best Prices", desc: "Direct from farm", color: "from-yellow-500 to-orange-500" },
+          { icon: MessageCircle, title: "24/7 Support", desc: "Always here to help", color: "from-purple-500 to-pink-500" },
         ].map((benefit, idx) => (
           <motion.div
             key={idx}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
             viewport={{ once: true }}
-            className="bg-white p-6 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow"
+            transition={{ delay: idx * 0.1 }}
+            className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors group"
           >
-            <div
-              className={`w-16 h-16 bg-gradient-to-r ${benefit.color} rounded-xl flex items-center justify-center mb-4 mx-auto`}
-            >
-              <div className="text-white">{benefit.icon}</div>
+            <div className={`w-14 h-14 bg-gradient-to-r ${benefit.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+              <benefit.icon className="text-white" size={24} />
             </div>
-            <h3 className="text-xl font-bold mb-2">{benefit.title}</h3>
-            <p className="text-gray-600">{benefit.description}</p>
+            <h3 className="text-xl font-bold text-white mb-2">{benefit.title}</h3>
+            <p className="text-gray-400">{benefit.desc}</p>
           </motion.div>
         ))}
       </div>
@@ -1136,60 +841,50 @@ const BenefitsSection = () => (
   </div>
 );
 
-// --- ENHANCED TESTIMONIALS SECTION ---
+// --- TESTIMONIALS ---
 const TestimonialsSection = () => {
   const [testimonials, setTestimonials] = useState(initialTestimonialData);
 
   useEffect(() => {
-    const loadTestimonials = async () => {
-      const data = await MushroomService.fetchTestimonials();
-      setTestimonials(data);
-    };
-    loadTestimonials();
+    MushroomService.fetchTestimonials().then(setTestimonials);
   }, []);
 
   return (
-    <div className="bg-white py-16">
-      <div className="w-full max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-          What Our Customers Say
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
+    <div className="py-24 px-4">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">What Customers Say</h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full" />
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {testimonials.map((t, index) => (
             <motion.div
-              key={testimonial.id}
-              initial={{ opacity: 0, y: 20 }}
+              key={t.id}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="relative h-full bg-gradient-to-br from-green-50 to-blue-50 p-8 rounded-2xl border border-green-200/50 flex flex-col shadow-lg"
+              transition={{ delay: index * 0.1 }}
+              className="bg-white/5 border border-white/10 rounded-2xl p-8 relative"
             >
-              <Quote
-                className="absolute top-4 right-4 text-green-200/50"
-                size={64}
-              />
-              <div className="z-10">
-                <div className="flex items-center mb-6">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-r from-green-400 to-blue-400 flex items-center justify-center mr-4">
-                    <User className="text-white" size={24} />
-                  </div>
-                  <div>
-                    <p className="text-gray-900 font-bold text-lg">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-gray-600 text-sm">
-                      {testimonial.location} • {testimonial.date}
-                    </p>
-                  </div>
+              <Quote className="absolute top-6 right-6 text-green-500/20" size={48} />
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center">
+                  <User className="text-white" size={20} />
                 </div>
-                <p className="text-gray-700 italic text-lg leading-relaxed">
-                  "{testimonial.quote}"
-                </p>
+                <div>
+                  <p className="text-white font-bold">{t.name}</p>
+                  <p className="text-gray-500 text-sm">{t.location} • {t.date}</p>
+                </div>
               </div>
-              <div className="flex text-yellow-500 mt-6">
-                {[...Array(testimonial.stars)].map((_, i) => (
-                  <Star key={i} size={20} fill="currentColor" />
-                ))}
+              <p className="text-gray-300 italic leading-relaxed">"{t.quote}"</p>
+              <div className="flex text-yellow-400 mt-4">
+                {[...Array(t.stars)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
               </div>
             </motion.div>
           ))}
@@ -1199,116 +894,93 @@ const TestimonialsSection = () => {
   );
 };
 
-// --- CONTACT/SUPPORT SECTION ---
+// --- CONTACT SECTION ---
 const ContactSection = () => {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch(API_ENDPOINTS.CONTACT_US, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      
-      if (response.ok) {
-        toast.success("Message sent successfully!");
-        setFormData({ name: "", email: "", message: "" });
-      }
-    } catch (error) {
-      toast.error("Failed to send message");
-    }
-    setLoading(false);
+    toast.success("Message sent!");
+    setFormData({ name: "", email: "", message: "" });
   };
 
   return (
-    <div className="bg-gradient-to-r from-green-900 to-emerald-900 py-16">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Need Help? Contact Us
-            </h2>
-            <p className="text-green-100 mb-8 text-lg">
-              Our mushroom experts are here to help you with recipes, cultivation tips, and orders.
-            </p>
+    <div className="py-24 px-4 bg-gradient-to-r from-green-900/50 to-emerald-900/50">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-12">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl font-bold text-white mb-6">Need Help?</h2>
+            <p className="text-gray-400 mb-8">Our experts are here to help you with recipes, tips, and orders.</p>
+            
             <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <Phone className="text-green-300" />
-                <div>
-                  <p className="font-bold">Call Us</p>
-                  <p className="text-green-200">+1 (555) 123-4567</p>
+              {[
+                { icon: Phone, label: "Call Us", value: "+1 (555) 123-4567" },
+                { icon: Mail, label: "Email Us", value: "support@mushroommart.com" },
+                { icon: Clock, label: "Available", value: "Mon-Sun: 8AM - 10PM" },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                    <item.icon className="text-green-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-sm">{item.label}</p>
+                    <p className="text-white font-semibold">{item.value}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Mail className="text-green-300" />
-                <div>
-                  <p className="font-bold">Email Us</p>
-                  <p className="text-green-200">support@mushroommart.com</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Clock className="text-green-300" />
-                <div>
-                  <p className="font-bold">Available</p>
-                  <p className="text-green-200">Mon-Sun: 8AM - 10PM</p>
-                </div>
-              </div>
+              ))}
             </div>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Your Name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:border-green-300"
-                  required
-                />
-              </div>
-              <div>
-                <input
-                  type="email"
-                  placeholder="Your Email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:border-green-300"
-                  required
-                />
-              </div>
-              <div>
-                <textarea
-                  placeholder="Your Message"
-                  value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:border-green-300 resize-none"
-                  required
-                />
-              </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="bg-white/5 border border-white/10 rounded-2xl p-8"
+          >
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Your Name"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
+                required
+              />
+              <input
+                type="email"
+                placeholder="Your Email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
+                required
+              />
+              <textarea
+                placeholder="Your Message"
+                value={formData.message}
+                onChange={(e) => setFormData({...formData, message: e.target.value})}
+                rows={4}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 resize-none"
+                required
+              />
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition-colors disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
               >
-                {loading ? "Sending..." : "Send Message"}
+                Send Message
               </button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
+// --- MAIN COMPONENT ---
 export default function MushroomsPage() {
   const [mushrooms, setMushrooms] = useState(initialMushroomData);
   const [filter, setFilter] = useState("All");
@@ -1322,121 +994,79 @@ export default function MushroomsPage() {
     { value: "price-low", label: "Price: Low to High" },
     { value: "price-high", label: "Price: High to Low" },
     { value: "rating", label: "Highest Rated" },
-    { value: "new", label: "Newest" },
   ];
 
-  // refs for product scroll
   const productRefs = initialMushroomData.reduce((acc, mushroom) => {
     acc[mushroom.slug] = useRef(null);
     return acc;
   }, {});
 
-  // Load data from backend on mount
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      const data = await MushroomService.fetchMushrooms();
+    MushroomService.fetchMushrooms().then(data => {
       setMushrooms(data);
       setLoading(false);
-    };
-    loadData();
+    });
   }, []);
 
-  const handleImageClick = (slug) => {
-    productRefs[slug]?.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
-
-  // Auto scroll when page loads with hash
   const location = useLocation();
   useEffect(() => {
     if (location.hash) {
       const id = location.hash.replace("#", "");
-      const element = productRefs[id]?.current;
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 300);
-      }
+      setTimeout(() => {
+        productRefs[id]?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
     }
-  }, [location, productRefs]);
+  }, [location]);
 
-  // Filter and sort mushrooms
   const filteredAndSortedMushrooms = React.useMemo(() => {
     let filtered = mushrooms;
+    if (filter !== "All") filtered = filtered.filter(m => m.category === filter);
+    if (search) filtered = filtered.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
 
-    // Apply category filter
-    if (filter !== "All") {
-      filtered = filtered.filter((m) => m.category === filter);
-    }
-
-    // Apply search filter
-    if (search) {
-      filtered = filtered.filter((m) =>
-        m.name.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    // Apply sorting
     switch (sortBy) {
-      case "price-low":
-        return [...filtered].sort((a, b) => a.price - b.price);
-      case "price-high":
-        return [...filtered].sort((a, b) => b.price - a.price);
-      case "rating":
-        return [...filtered].sort((a, b) => b.rating - a.rating);
-      case "new":
-        return [...filtered].sort((a, b) => b.id - a.id);
-      default:
-        return filtered.sort((a, b) => b.rating - a.rating);
+      case "price-low": return [...filtered].sort((a, b) => a.price - b.price);
+      case "price-high": return [...filtered].sort((a, b) => b.price - a.price);
+      case "rating": return [...filtered].sort((a, b) => b.rating - a.rating);
+      default: return filtered.sort((a, b) => b.rating - a.rating);
     }
   }, [mushrooms, filter, search, sortBy]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fdfbe9]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading mushrooms...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-[#fdfbe9] min-h-screen text-gray-900 font-sans">
-      <Toaster position="top-center" />
+    <div className="bg-[#0a0a0a] min-h-screen text-white">
+      <Toaster position="top-center" toastOptions={{ style: { background: '#1a1a1a', color: '#fff', border: '1px solid #333' } }} />
       <HeroSection />
+      
       <main>
-        <motion.div
-          className="w-full max-w-7xl mx-auto py-16 px-4"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Premium Mushroom Collection
-            </h2>
-            <p className="text-gray-700 max-w-2xl mx-auto text-lg">
-              Handpicked from the finest farms, delivered fresh to your kitchen
-            </p>
-          </div>
+        <div className="max-w-7xl mx-auto py-24 px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Premium Collection</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">Handpicked from the finest farms</p>
+          </motion.div>
 
-          {/* Search and Filter Bar */}
+          {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
-            <div className="flex gap-4 flex-wrap justify-center md:justify-start">
-              {categories.map((cat) => (
+            <div className="flex gap-2 flex-wrap">
+              {categories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setFilter(cat)}
-                  className={`px-4 py-2 rounded-full font-medium transition-all ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     filter === cat
-                      ? "bg-green-600 text-white shadow-lg"
-                      : "bg-green-100 text-gray-800 hover:bg-green-200"
+                      ? "bg-green-600 text-white"
+                      : "bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10"
                   }`}
                 >
                   {cat}
@@ -1444,95 +1074,45 @@ export default function MushroomsPage() {
               ))}
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="flex gap-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
                 <input
                   type="text"
-                  placeholder="Search mushrooms..."
+                  placeholder="Search..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto"
+                  className="pl-10 pr-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-green-500/50 w-48"
                 />
               </div>
-              
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none bg-white pr-8"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-              </div>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-green-500/50"
+              >
+                {sortOptions.map(opt => <option key={opt.value} value={opt.value} className="bg-[#1a1a1a]">{opt.label}</option>)}
+              </select>
             </div>
-          </div>
-
-          {/* Results count */}
-          <div className="mb-6 text-gray-600">
-            {filteredAndSortedMushrooms.length} product{filteredAndSortedMushrooms.length !== 1 ? 's' : ''} found
-            {filter !== 'All' && ` in ${filter}`}
-            {search && ` matching "${search}"`}
           </div>
 
           {filteredAndSortedMushrooms.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-gray-400 mb-4">
-                <Search size={48} className="mx-auto" />
-              </div>
-              <p className="text-gray-500 text-lg mb-2">No mushrooms found matching your criteria.</p>
-              <button
-                onClick={() => {
-                  setFilter('All');
-                  setSearch('');
-                  setSortBy('popular');
-                }}
-                className="text-green-600 hover:text-green-700 font-medium"
-              >
-                Clear filters and show all products
-              </button>
+            <div className="text-center py-16 text-gray-500">
+              <Search size={48} className="mx-auto mb-4 opacity-50" />
+              <p>No mushrooms found</p>
             </div>
           ) : (
-            <MushroomCarousel
-              mushrooms={filteredAndSortedMushrooms}
-              onImageClick={handleImageClick}
-            />
+            <MushroomCarousel mushrooms={filteredAndSortedMushrooms} onImageClick={(slug) => productRefs[slug]?.current?.scrollIntoView({ behavior: "smooth" })} />
           )}
-        </motion.div>
+        </div>
 
-        {/* Only show detailed product list if there are products and user hasn't searched/filtered too much */}
         {filteredAndSortedMushrooms.length <= 8 && filteredAndSortedMushrooms.length > 0 && (
-          <ProductListSection
-            mushrooms={filteredAndSortedMushrooms}
-            productRefs={productRefs}
-          />
+          <ProductListSection mushrooms={filteredAndSortedMushrooms} productRefs={productRefs} />
         )}
-        
+
         <BenefitsSection />
         <TestimonialsSection />
         <ContactSection />
       </main>
-      
-      {/* Add custom styles for line clamping */}
-      <style jsx>{`
-        .line-clamp-1 {
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 1;
-        }
-        .line-clamp-2 {
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-        }
-      `}</style>
     </div>
   );
 }
