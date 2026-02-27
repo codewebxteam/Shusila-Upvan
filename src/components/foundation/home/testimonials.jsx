@@ -52,7 +52,7 @@ const Testimonials = () => {
           </h3>
         </div>
 
-        <div className="relative max-w-4xl mx-auto">
+        <div className="relative max-w-lg mx-auto">
           
           {/* Framer Motion Wrapper for Touch/Drag */}
           <div className="relative overflow-visible cursor-grab active:cursor-grabbing">

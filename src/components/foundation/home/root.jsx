@@ -17,7 +17,7 @@ const Root = () => {
             <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">The Root Methodology</span>
           </div>
           <h3 className="text-5xl lg:text-8xl font-black text-slate-900 tracking-tighter leading-[0.8] mb-6">
-            Lab <span className="text-slate-200 italic font-light">to</span> Home.
+            Lab <span className="text-slate-400 italic font-light">to</span> Home.
           </h3>
           <p className="text-sm lg:text-base text-slate-400 font-medium max-w-lg leading-relaxed">
             Hum shuddhata ko engineer karte hain. Har drop aur har tissue hamari research aur laboratory science ka result hai.
@@ -28,7 +28,7 @@ const Root = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           
           {/* Mushroom: The Bio-Tech Card */}
-          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[450px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-slate-900 shadow-2xl shadow-slate-200 border border-slate-800">
+          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[400px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-slate-900 shadow-2xl shadow-slate-200 border border-slate-800">
             <div className="relative z-10 h-full flex flex-col justify-between">
               <div className="flex justify-between items-start">
                 <div className="relative">
@@ -68,7 +68,7 @@ const Root = () => {
           </button>
 
           {/* Dairy: The Tech-Logic Card */}
-          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[450px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-blue-600 shadow-2xl shadow-blue-100 border border-blue-500">
+          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[400px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-blue-600 shadow-2xl shadow-blue-100 border border-blue-500">
             <div className="relative z-10 h-full flex flex-col justify-between text-white">
               <div className="flex justify-between items-start">
                 <div className="relative">

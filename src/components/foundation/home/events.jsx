@@ -41,7 +41,7 @@ const Events = () => {
           </div>
           <h3 className="text-5xl lg:text-8xl font-black text-slate-900 tracking-tighter leading-[0.85] mb-8">
             Beyond the <br />
-            <span className="text-slate-300 italic">Product.</span>
+            <span className="text-slate-400 italic">Product.</span>
           </h3>
           <p className="text-sm lg:text-base text-slate-500 font-medium max-w-xl leading-relaxed">
             Foundation sirf products nahi bechta, hum ek community banate hain. Hamare events ka maksad hai logon ko prakriti aur shuddhata ke kareeb lana.

@@ -21,11 +21,11 @@ const Hero = () => {
             </div>
 
             <h1 className="text-6xl lg:text-8xl font-black text-slate-900 leading-[0.85] tracking-tighter">
-              Pure. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-200 to-slate-400" style={{ WebkitTextStroke: '1px #cbd5e1' }}>
-                Natural.
+              Pure <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-400 to-slate-600" style={{ WebkitTextStroke: '1px #cbd5e1' }}>
+                Natural
               </span> <br />
-              Organic.
+              Organic
             </h1>
             
             <p className="mt-8 text-sm lg:text-base text-slate-500 font-medium leading-relaxed max-w-sm border-l-2 border-green-500 pl-4">
@@ -75,12 +75,12 @@ const Hero = () => {
 
               {/* Stylish Bottom Info */}
               <div className="mt-6 flex items-end justify-between px-2">
-                <div>
+                {/* <div>
                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Established</p>
                   <p className="text-lg font-black text-slate-800 tracking-tighter">2026</p>
-                </div>
+                </div> */}
                 <div className="text-right">
-                  <p className="text-[9px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">
+                  <p className="text-[10px] font-black text-green-500 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">
                     Live Status: Open
                   </p>
                 </div>
