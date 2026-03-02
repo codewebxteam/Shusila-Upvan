@@ -4,11 +4,17 @@ import { User, ShoppingBag, ShoppingCart, X, ChevronRight, LogOut, Settings } fr
 import { useNavigate } from 'react-router-dom';
 // Aapki image ka path
 import ownerImg from '../../assets/owner/swapnil.webp';
+<<<<<<< HEAD
 import { useAuth } from '../../context/AuthContext';
 
 const AccountSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+=======
+
+const AccountSidebar = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+>>>>>>> origin/main
 
   // Mapping items to match Dashboard tabs exactly
   const menuItems = [
@@ -28,7 +34,11 @@ const AccountSidebar = ({ isOpen, onClose }) => {
       {isOpen && (
         <>
           {/* 1. Backdrop Overlay */}
+<<<<<<< HEAD
           <motion.div
+=======
+          <motion.div 
+>>>>>>> origin/main
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[100] pointer-events-auto"
@@ -42,6 +52,7 @@ const AccountSidebar = ({ isOpen, onClose }) => {
           >
             {/* Sidebar Header with User Info */}
             <div className="p-8 border-b border-slate-50 relative bg-slate-50/50">
+<<<<<<< HEAD
               <button
                 onClick={onClose}
                 className="absolute top-6 right-6 p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-100 transition-all"
@@ -55,6 +66,21 @@ const AccountSidebar = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-slate-900 tracking-tighter italic leading-none">Hello, {user?.name || 'Guest'}.</h2>
+=======
+              <button 
+                onClick={onClose} 
+                className="absolute top-6 right-6 p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-100 transition-all"
+              >
+                <X size={20}/>
+              </button>
+              
+              <div className="flex items-center gap-4 mt-4">
+                <div className="w-14 h-14 bg-white rounded-2xl border-4 border-white shadow-lg overflow-hidden shrink-0">
+                  <img src={ownerImg} alt="User" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tighter italic leading-none">Hello, Swapnil.</h2>
+>>>>>>> origin/main
                   <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-1">Verified Member</p>
                 </div>
               </div>
@@ -63,7 +89,11 @@ const AccountSidebar = ({ isOpen, onClose }) => {
             {/* Navigation Menu */}
             <nav className="flex-1 p-5 space-y-3 overflow-y-auto">
               <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] px-4 mb-4">Dashboard Quick Links</p>
+<<<<<<< HEAD
 
+=======
+              
+>>>>>>> origin/main
               {menuItems.map((item) => (
                 <button
                   key={item.id}
@@ -86,6 +116,7 @@ const AccountSidebar = ({ isOpen, onClose }) => {
 
             {/* Footer Action */}
             <div className="p-8 border-t border-slate-50">
+<<<<<<< HEAD
               {user && (
                 <button
                   onClick={() => {
@@ -103,6 +134,16 @@ const AccountSidebar = ({ isOpen, onClose }) => {
                 <span className="text-[8px] font-black uppercase tracking-widest">Privacy</span>
                 <span className="text-[8px] font-black uppercase tracking-widest">•</span>
                 <span className="text-[8px] font-black uppercase tracking-widest">Terms</span>
+=======
+              <button className="w-full py-4.5 bg-slate-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-red-600 transition-all shadow-xl shadow-slate-200 active:scale-95">
+                <LogOut size={14} /> 
+                Sign Out
+              </button>
+              <div className="mt-6 flex justify-center gap-4 text-slate-300">
+                 <span className="text-[8px] font-black uppercase tracking-widest">Privacy</span>
+                 <span className="text-[8px] font-black uppercase tracking-widest">•</span>
+                 <span className="text-[8px] font-black uppercase tracking-widest">Terms</span>
+>>>>>>> origin/main
               </div>
             </div>
           </motion.aside>

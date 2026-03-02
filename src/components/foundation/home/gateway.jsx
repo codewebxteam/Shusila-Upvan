@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 import React from 'react';
+=======
+import react from 'react';
+>>>>>>> origin/main
 // paths according to your structure
 import mushroomimg from '../../../assets/foundation/mushroom.webp';
 import dairyimg from '../../../assets/foundation/dairy.webp';
 
+<<<<<<< HEAD
 const Gateway = () => {
   return (
     <section className="relative w-full bg-white py-4 lg:py-8 overflow-hidden">
@@ -15,15 +20,35 @@ const Gateway = () => {
           <div className="group relative flex-1 h-[220px] lg:h-[400px] rounded-[2.5rem] overflow-hidden bg-white border-2 border-slate-100 hover:border-orange-200 shadow-sm hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500">
             <a href="/mushroom" className="flex h-full w-full items-center justify-between px-6 lg:px-12">
 
+=======
+const gateway = () => {
+  return (
+    <section className="relative w-full bg-white py-4 lg:py-8 overflow-hidden">
+      <div className="container mx-auto px-4">
+        
+        {/* visual gateway: high-visibility interactive panels */}
+        <div className="flex flex-col lg:flex-row gap-5 lg:gap-8">
+          
+          {/* mushroom venture panel */}
+          <div className="group relative flex-1 h-[220px] lg:h-[400px] rounded-[2.5rem] overflow-hidden bg-white border-2 border-slate-100 hover:border-orange-200 shadow-sm hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500">
+            <a href="/mushroom" className="flex h-full w-full items-center justify-between px-6 lg:px-12">
+              
+>>>>>>> origin/main
               {/* text section */}
               <div className="relative z-20 flex flex-col items-start">
                 <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 uppercase mb-2">
                   fresh harvest
                 </span>
                 <h3 className="text-4xl lg:text-6xl font-black text-slate-900 leading-none tracking-tighter mb-8">
+<<<<<<< HEAD
                   Mush<br />room.
                 </h3>
 
+=======
+                  Mush<br/>room.
+                </h3>
+                
+>>>>>>> origin/main
                 {/* explicit button with border ring */}
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] group-hover:bg-orange-600 group-hover:ring-4 group-hover:ring-orange-100 transition-all duration-300 shadow-xl">
                   explore farm
@@ -33,9 +58,15 @@ const Gateway = () => {
 
               {/* floating visual with border and shadow */}
               <div className="relative w-36 h-36 lg:w-64 lg:h-64 rotate-6 group-hover:rotate-0 group-hover:scale-105 transition-all duration-700">
+<<<<<<< HEAD
                 <img
                   src={mushroomimg}
                   alt="mushroom"
+=======
+                <img 
+                  src={mushroomimg} 
+                  alt="mushroom" 
+>>>>>>> origin/main
                   className="w-full h-full object-cover rounded-[2.2rem] border-4 border-white shadow-2xl grayscale-[5%] group-hover:grayscale-0"
                 />
               </div>
@@ -50,16 +81,26 @@ const Gateway = () => {
           {/* dairy venture panel */}
           <div className="group relative flex-1 h-[220px] lg:h-[400px] rounded-[2.5rem] overflow-hidden bg-white border-2 border-slate-100 hover:border-blue-200 shadow-sm hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-500">
             <a href="/dairy" className="flex h-full w-full items-center justify-between px-6 lg:px-12">
+<<<<<<< HEAD
 
+=======
+              
+>>>>>>> origin/main
               {/* text section */}
               <div className="relative z-20 flex flex-col items-start">
                 <span className="text-[10px] font-black tracking-[0.3em] text-blue-600 uppercase mb-2">
                   pure organic
                 </span>
                 <h3 className="text-4xl lg:text-6xl font-black text-slate-900 leading-none tracking-tighter mb-8">
+<<<<<<< HEAD
                   Dairy<br />Farm.
                 </h3>
 
+=======
+                  Dairy<br/>Farm.
+                </h3>
+                
+>>>>>>> origin/main
                 {/* explicit button with border ring */}
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] group-hover:bg-blue-600 group-hover:ring-4 group-hover:ring-blue-100 transition-all duration-300 shadow-xl">
                   visit store
@@ -69,9 +110,15 @@ const Gateway = () => {
 
               {/* floating visual with border and shadow */}
               <div className="relative w-36 h-36 lg:w-64 lg:h-64 -rotate-6 group-hover:rotate-0 group-hover:scale-105 transition-all duration-700">
+<<<<<<< HEAD
                 <img
                   src={dairyimg}
                   alt="dairy"
+=======
+                <img 
+                  src={dairyimg} 
+                  alt="dairy" 
+>>>>>>> origin/main
                   className="w-full h-full object-cover rounded-[2.2rem] border-4 border-white shadow-2xl grayscale-[5%] group-hover:grayscale-0"
                 />
               </div>
@@ -89,4 +136,8 @@ const Gateway = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Gateway;
+=======
+export default gateway;
+>>>>>>> origin/main

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+<<<<<<< HEAD
 import { Home, Sprout, Milk, User, Phone, CircleUser, ShoppingCart } from 'lucide-react';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 // Sidebar Import
@@ -11,6 +12,15 @@ const Header = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { cartCount } = useCart();
+=======
+import { Home, Sprout, Milk, User, Phone, CircleUser } from 'lucide-react';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
+// Sidebar Import
+import AccountSidebar from './common/sidebar';
+
+const Header = () => {
+  const navigate = useNavigate();
+>>>>>>> origin/main
   const location = useLocation();
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
@@ -36,15 +46,24 @@ const Header = () => {
 
   return (
     <>
+<<<<<<< HEAD
       <motion.header
+=======
+      <motion.header 
+>>>>>>> origin/main
         variants={{ visible: { y: 0 }, hidden: { y: -120 } }}
         animate={hidden ? "hidden" : "visible"}
         transition={{ duration: 0.35, ease: "easeInOut" }}
         className="fixed top-0 w-full z-[60] px-4 py-5 pointer-events-none"
       >
         <div className="container mx-auto flex justify-between items-center bg-white/95 backdrop-blur-2xl border border-slate-200/60 p-2.5 px-5 rounded-3xl shadow-2xl pointer-events-auto">
+<<<<<<< HEAD
 
           <motion.div
+=======
+          
+          <motion.div 
+>>>>>>> origin/main
             whileTap={{ scale: 0.95 }}
             className="flex flex-col cursor-pointer group"
             onClick={() => navigate('/')}
@@ -54,6 +73,7 @@ const Header = () => {
             </span>
             <span className="text-[7px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1">The Foundation</span>
           </motion.div>
+<<<<<<< HEAD
 
           <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
             {/* Login/Signup - Visible on all screens */}
@@ -128,13 +148,36 @@ const Header = () => {
               </div>
             </motion.button>
           </div>
+=======
+          
+          {/* Updated Button to trigger Sidebar */}
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSidebarOpen(true)}
+            className="relative group flex items-center gap-2.5 bg-slate-900 p-1.5 pr-5 rounded-2xl text-white shadow-xl transition-all duration-300 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-emerald-600 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+            <div className="relative z-10 w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <CircleUser size={18} className="text-white" />
+            </div>
+            <div className="relative z-10 flex flex-col items-start leading-none">
+              <span className="text-[9px] font-black uppercase tracking-widest mb-0.5">Account</span>
+              <span className="text-[7px] font-bold text-slate-400 group-hover:text-emerald-100 uppercase">My Profile</span>
+            </div>
+          </motion.button>
+>>>>>>> origin/main
         </div>
       </motion.header>
 
       {/* Sidebar Component Implementation */}
       <AccountSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+<<<<<<< HEAD
       <motion.nav
+=======
+      <motion.nav 
+>>>>>>> origin/main
         variants={{ visible: { y: 0, opacity: 1 }, hidden: { y: 150, opacity: 0 } }}
         animate={hidden ? "hidden" : "visible"}
         transition={{ duration: 0.4, ease: "circOut" }}
