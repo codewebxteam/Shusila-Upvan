@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Verified, Sparkles } from 'lucide-react';
-
-import milkImg from '../../assets/dairy/milk.webp';
-import gheeImg from '../../assets/dairy/ghee.webp';
-import curdImg from '../../assets/dairy/curd.webp';
+import { products, categories } from '../../data/products';
+import { useCart } from '../../context/CartContext';
 
 const ProductList = () => {
-  const [quantities, setQuantities] = useState({ 1: 1, 2: 1, 3: 1, 4: 1 });
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const [quantities, setQuantities] = useState({});
+
+  const dairyProducts = products.filter(p => p.category === categories.DAIRY);
 
   const updateQty = (id, delta) => {
     setQuantities(prev => ({
@@ -16,12 +19,11 @@ const ProductList = () => {
     }));
   };
 
-  const products = [
-    { id: 1, name: "Raw A2 Cow Milk", price: 85, img: milkImg, unit: "Litre", color: "from-blue-500/10", tag: "In Stock" },
-    { id: 2, name: "Vedic Bilona Ghee", price: 1200, img: gheeImg, unit: "Kg", color: "from-amber-500/10", tag: "Premium" },
-    { id: 3, name: "Natural Farm Curd", price: 60, img: curdImg, unit: "Kg", color: "from-cyan-500/10", tag: "Fresh Daily" },
-    { id: 4, name: "Organic Butter", price: 450, img: milkImg, unit: "Kg", color: "from-orange-500/10", tag: "Artisan Made" }
-  ];
+  const handleAddToCart = (e, item) => {
+    e.stopPropagation();
+    const qty = quantities[item.id] || 1;
+    addToCart(item, qty);
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -33,8 +35,8 @@ const ProductList = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" }
     }
@@ -43,9 +45,9 @@ const ProductList = () => {
   return (
     <section className="w-full bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header Section with Improved Spacing */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -58,7 +60,7 @@ const ProductList = () => {
               </h3>
               <p className="text-xs sm:text-sm lg:text-base text-slate-500 font-semibold mt-3 sm:mt-0">Purity Certified Dairy Products</p>
             </div>
-            <motion.div 
+            <motion.div
               whileHover={{ scale: 1.05 }}
               className="hidden sm:flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200 hover:border-blue-300 transition-all"
             >
@@ -69,23 +71,24 @@ const ProductList = () => {
         </motion.div>
 
         {/* Product Grid - 4 Columns on Desktop, 2 on Tablet, 1 on Mobile */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: false, amount: 0.2 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
         >
-          {products.map((item, index) => (
-            <motion.div 
+          {dairyProducts.map((item, index) => (
+            <motion.div
               key={item.id}
               variants={itemVariants}
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => navigate(`/product/${item.id}`)}
               className="group relative bg-slate-50 rounded-3xl p-5 sm:p-6 transition-all duration-500 hover:bg-white hover:shadow-2xl hover:shadow-blue-100/50 border border-slate-100 hover:border-blue-200 cursor-pointer"
             >
               {/* Badge Tag */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 + index * 0.1 }}
@@ -97,20 +100,20 @@ const ProductList = () => {
               </motion.div>
 
               {/* Image Container with Enhanced Styling */}
-              <div className={`relative aspect-square rounded-2xl bg-linear-to-br ${item.color} via-blue-500/3 to-transparent mb-6 sm:mb-7 flex items-center justify-center overflow-hidden border border-blue-100/30`}>
-                <motion.img 
-                  src={item.img} 
+              <div className={`relative aspect-square rounded-2xl bg-linear-to-br ${item.color || 'from-blue-500/10'} via-blue-500/3 to-transparent mb-6 sm:mb-7 flex items-center justify-center overflow-hidden border border-blue-100/30`}>
+                <motion.img
+                  src={item.img}
                   alt={item.name}
                   whileHover={{ scale: 1.12 }}
                   transition={{ duration: 0.5 }}
-                  className="w-3/4 h-3/4 object-contain drop-shadow-lg" 
+                  className="w-3/4 h-3/4 object-contain drop-shadow-lg"
                 />
               </div>
 
               {/* Content Section with Proper Spacing */}
               <div className="space-y-4 sm:space-y-5">
                 {/* Title and Subtitle */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
                   transition={{ delay: 0.3 + index * 0.1 }}
@@ -125,44 +128,45 @@ const ProductList = () => {
                 </motion.div>
 
                 {/* Price Display */}
-                <motion.div 
-                  key={quantities[item.id]}
+                <motion.div
+                  key={quantities[item.id] || 1}
                   initial={{ scale: 1.1 }}
                   animate={{ scale: 1 }}
                   className="flex items-baseline gap-2"
                 >
                   <span className="text-xl sm:text-2xl font-black text-blue-600 tracking-tight">
-                    ₹{item.price * quantities[item.id]}
+                    ₹{item.price * (quantities[item.id] || 1)}
                   </span>
                   <span className="text-xs text-slate-400 font-semibold">
-                    ({quantities[item.id]} {item.unit})
+                    ({quantities[item.id] || 1} {item.unit})
                   </span>
                 </motion.div>
 
                 {/* Quantity Selector */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
                   className="flex items-center justify-between bg-white rounded-2xl p-3 border border-slate-200 hover:border-blue-300 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Qty ({item.unit})</span>
                   <div className="flex items-center gap-2 bg-linear-to-r from-slate-900 to-slate-800 rounded-lg p-1">
-                    <motion.button 
+                    <motion.button
                       whileHover={{ scale: 1.15 }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={() => updateQty(item.id, -1)} 
+                      onClick={() => updateQty(item.id, -1)}
                       className="w-8 h-8 flex items-center justify-center text-white hover:text-blue-400 transition-colors duration-200"
                     >
                       <Minus size={14} strokeWidth={2.5} />
                     </motion.button>
                     <span className="text-sm font-black text-white min-w-6 text-center">
-                      {quantities[item.id]}
+                      {quantities[item.id] || 1}
                     </span>
-                    <motion.button 
+                    <motion.button
                       whileHover={{ scale: 1.15 }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={() => updateQty(item.id, 1)} 
+                      onClick={() => updateQty(item.id, 1)}
                       className="w-8 h-8 flex items-center justify-center text-white hover:text-blue-400 transition-colors duration-200"
                     >
                       <Plus size={14} strokeWidth={2.5} />
@@ -171,9 +175,10 @@ const ProductList = () => {
                 </motion.div>
 
                 {/* Add to Cart Button */}
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.03, boxShadow: "0 20px 40px rgba(37, 99, 235, 0.3)" }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={(e) => handleAddToCart(e, item)}
                   className="w-full py-3.5 sm:py-4 bg-linear-to-r from-blue-600 to-blue-500 text-white rounded-2xl text-[10px] sm:text-[11px] font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-blue-500/40 hover:from-blue-700 hover:to-blue-600"
                 >
                   <ShoppingCart size={16} />
@@ -186,13 +191,13 @@ const ProductList = () => {
 
 
         {/* Bulk Enquiry Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-16 lg:mt-20 flex justify-center"
         >
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.05, boxShadow: "0 15px 30px rgba(37, 99, 235, 0.2)" }}
             className="flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-linear-to-r from-blue-50 to-blue-100 rounded-full text-blue-700 hover:from-blue-600 hover:to-blue-700 hover:text-white transition-all duration-300 group border border-blue-200 hover:border-blue-400 font-semibold"
           >

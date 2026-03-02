@@ -1,20 +1,32 @@
 import React from 'react';
-import { Lock, Mail, MapPin, Phone } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const ProfileSettings = () => {
+  const { user } = useAuth();
+
   return (
     <div className="max-w-2xl">
       <h3 className="text-3xl font-black text-slate-900 tracking-tighter italic mb-8">Profile Details.</h3>
-      
+
       <form className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Name</label>
-            <input type="text" defaultValue="Swapnil Singh" className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input
+              type="text"
+              defaultValue={user?.name || "Swapnil Singh"}
+              className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</label>
-            <input type="email" placeholder="example@gmail.com" className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold opacity-60 cursor-not-allowed outline-none" disabled />
+            <input
+              type="email"
+              value={user?.email || "example@gmail.com"}
+              className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold opacity-60 cursor-not-allowed outline-none"
+              disabled
+            />
           </div>
         </div>
 
