@@ -9,7 +9,7 @@ const Root = () => {
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-50/50 rounded-full blur-[120px] -z-10"></div>
 
       <div className="container mx-auto px-6">
-        
+
         {/* Header: Minimal & Stylish */}
         <div className="flex flex-col items-center text-center mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 border border-slate-200 mb-6 transition-all hover:bg-white cursor-default group">
@@ -17,7 +17,7 @@ const Root = () => {
             <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">The Root Methodology</span>
           </div>
           <h3 className="text-5xl lg:text-8xl font-black text-slate-900 tracking-tighter leading-[0.8] mb-6">
-            Lab <span className="text-slate-200 italic font-light">to</span> Home.
+            Lab <span className="text-slate-400 italic font-light">to</span> Home.
           </h3>
           <p className="text-sm lg:text-base text-slate-400 font-medium max-w-lg leading-relaxed">
             Hum shuddhata ko engineer karte hain. Har drop aur har tissue hamari research aur laboratory science ka result hai.
@@ -26,9 +26,9 @@ const Root = () => {
 
         {/* The Actionable Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          
+
           {/* Mushroom: The Bio-Tech Card */}
-          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[450px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-slate-900 shadow-2xl shadow-slate-200 border border-slate-800">
+          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[400px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-slate-900 shadow-2xl shadow-slate-200 border border-slate-800">
             <div className="relative z-10 h-full flex flex-col justify-between">
               <div className="flex justify-between items-start">
                 <div className="relative">
@@ -56,19 +56,19 @@ const Root = () => {
                   </div>
                   <div className="h-8 w-[1px] bg-white/10"></div>
                   <div className="text-green-500 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 group-hover:gap-4 transition-all">
-                    Explore Method <ArrowUpRight size={14}/>
+                    Explore Method <ArrowUpRight size={14} />
                   </div>
                 </div>
               </div>
             </div>
             {/* Background Texture Illusion */}
             <div className="absolute top-0 right-0 w-full h-full opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
             </div>
           </button>
 
           {/* Dairy: The Tech-Logic Card */}
-          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[450px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-blue-600 shadow-2xl shadow-blue-100 border border-blue-500">
+          <button className="group relative w-full aspect-[4/3] lg:aspect-auto lg:h-[400px] text-left rounded-[3.5rem] p-10 lg:p-14 overflow-hidden transition-all duration-700 hover:-translate-y-3 cursor-pointer bg-blue-600 shadow-2xl shadow-blue-100 border border-blue-500">
             <div className="relative z-10 h-full flex flex-col justify-between text-white">
               <div className="flex justify-between items-start">
                 <div className="relative">
@@ -96,7 +96,7 @@ const Root = () => {
                   </div>
                   <div className="h-8 w-[1px] bg-white/20"></div>
                   <div className="text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 group-hover:gap-4 transition-all">
-                    The Process <ArrowUpRight size={14}/>
+                    The Process <ArrowUpRight size={14} />
                   </div>
                 </div>
               </div>
@@ -109,12 +109,12 @@ const Root = () => {
 
         {/* Minimal Bottom Indicators */}
         <div className="mt-16 flex flex-wrap justify-center gap-12 py-8 border-t border-slate-100">
-           {['Lab Tested', '100% Traceable', 'Zero Pesticides'].map((text, i) => (
-             <div key={i} className="flex items-center gap-3 opacity-30 hover:opacity-100 transition-opacity cursor-default">
-               <ShieldCheck size={14} className="text-slate-900"/>
-               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">{text}</span>
-             </div>
-           ))}
+          {['Lab Tested', '100% Traceable', 'Zero Pesticides'].map((text, i) => (
+            <div key={i} className="flex items-center gap-3 opacity-30 hover:opacity-100 transition-opacity cursor-default">
+              <ShieldCheck size={14} className="text-slate-900" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">{text}</span>
+            </div>
+          ))}
         </div>
 
       </div>
