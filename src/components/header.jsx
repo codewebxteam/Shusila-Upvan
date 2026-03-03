@@ -1,13 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+<<<<<<< HEAD
 import { Home, Sprout, Milk, User, Phone, CircleUser, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
+=======
+<<<<<<< HEAD
+import { Home, Sprout, Milk, User, Phone, CircleUser, ShoppingCart } from 'lucide-react';
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
+// Sidebar Import
+import AccountSidebar from './common/sidebar';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+
+const Header = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { cartCount } = useCart();
+=======
+import { Home, Sprout, Milk, User, Phone, CircleUser } from 'lucide-react';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
+>>>>>>> 2baa1c9b936eb7fa150bf9fe73a4446832942f96
 // Sidebar Import
 import AccountSidebar from './common/sidebar';
 import { useCart } from '../context/CartContext';
 
 const Header = () => {
   const navigate = useNavigate();
+>>>>>>> origin/main
   const location = useLocation();
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
@@ -34,15 +53,33 @@ const Header = () => {
 
   return (
     <>
+<<<<<<< HEAD
       <motion.header
+=======
+<<<<<<< HEAD
+      <motion.header
+=======
+      <motion.header 
+>>>>>>> origin/main
+>>>>>>> 2baa1c9b936eb7fa150bf9fe73a4446832942f96
         variants={{ visible: { y: 0 }, hidden: { y: -120 } }}
         animate={hidden ? "hidden" : "visible"}
         transition={{ duration: 0.35, ease: "easeInOut" }}
         className="fixed top-0 w-full z-[60] px-4 py-5 pointer-events-none"
       >
         <div className="container mx-auto flex justify-between items-center bg-white/95 backdrop-blur-2xl border border-slate-200/60 p-2.5 px-5 rounded-3xl shadow-2xl pointer-events-auto">
+<<<<<<< HEAD
 
           <motion.div
+=======
+<<<<<<< HEAD
+
+          <motion.div
+=======
+          
+          <motion.div 
+>>>>>>> origin/main
+>>>>>>> 2baa1c9b936eb7fa150bf9fe73a4446832942f96
             whileTap={{ scale: 0.95 }}
             className="flex flex-col cursor-pointer group"
             onClick={() => navigate('/')}
@@ -52,6 +89,7 @@ const Header = () => {
             </span>
             <span className="text-[7px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1">The Foundation</span>
           </motion.div>
+<<<<<<< HEAD
 
           <div className="flex items-center gap-2.5">
             {/* Premium Cart Button */}
@@ -84,11 +122,76 @@ const Header = () => {
             </motion.button>
 
             {/* Account Button */}
+=======
+<<<<<<< HEAD
+
+          <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+            {/* Login/Signup - Visible on all screens */}
+            {!user ? (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/login')}
+                  className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 hover:bg-slate-50 transition-all leading-none"
+                >
+                  Login
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/signup')}
+                  className="px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-900 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white shadow-xl hover:bg-emerald-600 transition-all leading-none"
+                >
+                  Sign up
+                </motion.button>
+              </>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  // Add a logout option or just go to profile
+                  navigate('/profile');
+                }}
+                className="px-4 sm:px-6 py-2 sm:py-2.5 border border-slate-200 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-900 transition-all leading-none"
+              >
+                Profile
+              </motion.button>
+            )}
+
+            {/* Shopping Cart Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/profile')} // Link to cart/profile
+              className="relative p-3 bg-slate-50 text-slate-900 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:text-emerald-600 transition-all"
+            >
+              <ShoppingCart size={18} />
+              <AnimatePresence>
+                {cartCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center rounded-lg shadow-lg border-2 border-white"
+                  >
+                    {cartCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+
+>>>>>>> 2baa1c9b936eb7fa150bf9fe73a4446832942f96
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setSidebarOpen(true)}
+<<<<<<< HEAD
               className="relative group flex items-center gap-2.5 bg-slate-900 p-1.5 pr-5 rounded-2xl text-white shadow-xl transition-all duration-300 overflow-hidden"
+=======
+              className="relative group flex items-center gap-2.5 bg-slate-900 p-1.5 pr-4 sm:pr-5 rounded-2xl text-white shadow-xl transition-all duration-300 overflow-hidden"
+>>>>>>> 2baa1c9b936eb7fa150bf9fe73a4446832942f96
             >
               <div className="absolute inset-0 bg-emerald-600 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
               <div className="relative z-10 w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
@@ -100,13 +203,43 @@ const Header = () => {
               </div>
             </motion.button>
           </div>
+<<<<<<< HEAD
+=======
+=======
+          
+          {/* Updated Button to trigger Sidebar */}
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSidebarOpen(true)}
+            className="relative group flex items-center gap-2.5 bg-slate-900 p-1.5 pr-5 rounded-2xl text-white shadow-xl transition-all duration-300 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-emerald-600 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+            <div className="relative z-10 w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <CircleUser size={18} className="text-white" />
+            </div>
+            <div className="relative z-10 flex flex-col items-start leading-none">
+              <span className="text-[9px] font-black uppercase tracking-widest mb-0.5">Account</span>
+              <span className="text-[7px] font-bold text-slate-400 group-hover:text-emerald-100 uppercase">My Profile</span>
+            </div>
+          </motion.button>
+>>>>>>> origin/main
+>>>>>>> 2baa1c9b936eb7fa150bf9fe73a4446832942f96
         </div>
       </motion.header>
 
       {/* Sidebar Component Implementation */}
       <AccountSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+<<<<<<< HEAD
       <motion.nav
+=======
+<<<<<<< HEAD
+      <motion.nav
+=======
+      <motion.nav 
+>>>>>>> origin/main
+>>>>>>> 2baa1c9b936eb7fa150bf9fe73a4446832942f96
         variants={{ visible: { y: 0, opacity: 1 }, hidden: { y: 150, opacity: 0 } }}
         animate={hidden ? "hidden" : "visible"}
         transition={{ duration: 0.4, ease: "circOut" }}

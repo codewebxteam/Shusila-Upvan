@@ -6,7 +6,11 @@ import heroFungi from '../../assets/mushroom/herofungi.webp';
 
 const Hero = () => {
   return (
+<<<<<<< HEAD
+    <section className="relative w-full bg-white pt-6 sm:pt-12 pb-2 sm:pb-4 lg:pt-24 lg:pb-10 overflow-hidden">
+=======
     <section className="relative w-full bg-white pt-6 pb-2 lg:pt-24 lg:pb-10 overflow-hidden">
+>>>>>>> origin/main
       {/* Organic Soft Glow */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/60 blur-[100px] -z-10"></div>
 
@@ -14,7 +18,11 @@ const Hero = () => {
         <div className="flex flex-col lg:flex-row items-center gap-0 lg:gap-12">
           
           {/* 1. Content Section */}
+<<<<<<< HEAD
+          <div className="w-full lg:w-1/2 text-center lg:text-left z-10 pt-12 sm:pt-16 lg:pt-0">
+=======
           <div className="w-full lg:w-1/2 text-center lg:text-left z-10 pt-16 lg:pt-0">
+>>>>>>> origin/main
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
               className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600/5 border border-emerald-600/10 rounded-full mb-4"
@@ -25,6 +33,15 @@ const Hero = () => {
 
             <motion.h1 
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+<<<<<<< HEAD
+              className="text-[40px] sm:text-[56px] lg:text-[100px] font-black text-slate-900 tracking-tighter leading-[1.1] sm:leading-[1.15] lg:leading-[1.2] mb-6 sm:mb-8"
+            >
+              The Power <br className="hidden sm:block" /> 
+              <span className="text-emerald-600 italic">Of Fungi.</span>
+            </motion.h1>
+
+            <p className="text-slate-400 text-[10px] sm:text-sm lg:text-base font-bold uppercase tracking-tight max-w-[280px] lg:max-w-md mb-8 sm:mb-10 mx-auto lg:mx-0 leading-relaxed">
+=======
               className="text-[44px] lg:text-[110px] font-black text-slate-900 tracking-tighter leading-[0.8] mb-4"
             >
               The Power <br className="hidden lg:block" /> 
@@ -32,6 +49,7 @@ const Hero = () => {
             </motion.h1>
 
             <p className="text-slate-400 text-[10px] lg:text-base font-bold uppercase tracking-tight max-w-[280px] lg:max-w-md mb-6 mx-auto lg:mx-0 leading-tight">
+>>>>>>> origin/main
               Grown in climate-controlled labs. Pure, organic, and harvested daily for Khalilabad.
             </p>
 

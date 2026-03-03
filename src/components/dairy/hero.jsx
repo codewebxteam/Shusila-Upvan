@@ -5,7 +5,11 @@ import milkVideo from '../../assets/dairy/milkanimation.mp4';
 
 const Hero = () => {
   return (
+<<<<<<< HEAD
+    <section className="relative w-full bg-white pt-4 sm:pt-8 pb-4 sm:pb-6 lg:pt-24 lg:pb-12 overflow-hidden">
+=======
     <section className="relative w-full bg-white pt-4 pb-4 lg:pt-24 lg:pb-12 overflow-hidden">
+>>>>>>> origin/main
       {/* Decorative Blur - Branding Color */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-b from-blue-50/50 to-transparent -z-10"></div>
 
@@ -28,19 +32,31 @@ const Hero = () => {
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="relative"
             >
+<<<<<<< HEAD
+              <h1 className="text-[40px] sm:text-[56px] lg:text-[100px] font-black text-slate-900 tracking-tighter leading-[1.1] sm:leading-[1.15] lg:leading-[1.2] mb-6 sm:mb-8">
+=======
               <h1 className="text-[48px] lg:text-[110px] font-black text-slate-900 tracking-tighter leading-[0.8] mb-4">
+>>>>>>> origin/main
                 Raw <br />
                 <span className="text-blue-600 relative">
                    Untouched
                    <motion.div 
                     initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ delay: 0.5, duration: 1 }}
+<<<<<<< HEAD
+                    className="absolute -bottom-2 sm:-bottom-3 left-0 h-1 sm:h-1.5 md:h-2 bg-blue-100 -z-10" 
+=======
                     className="absolute -bottom-1 left-0 h-1 md:h-2 bg-blue-100 -z-10" 
+>>>>>>> origin/main
                    />
                 </span>
               </h1>
             </motion.div>
 
+<<<<<<< HEAD
+            <p className="text-slate-500 text-[11px] sm:text-sm lg:text-lg font-medium max-w-[280px] lg:max-w-md mb-8 sm:mb-10 leading-relaxed opacity-90">
+=======
             <p className="text-slate-500 text-[11px] lg:text-lg font-medium max-w-[280px] lg:max-w-md mb-6 leading-tight opacity-90">
+>>>>>>> origin/main
               Straight from our farm to your glass within 4 hours. No pasteurization, no compromise.
             </p>
 
