@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Plus, Minus, Verified, Sparkles } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Verified, Sparkles, Check } from 'lucide-react';
 import { products, categories } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 
@@ -9,6 +9,7 @@ const ProductList = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [quantities, setQuantities] = useState({});
+  const [addedItems, setAddedItems] = useState({});
 
   const dairyProducts = products.filter(
     (p) => p.category === categories.DAIRY
@@ -25,6 +26,11 @@ const ProductList = () => {
     e.stopPropagation();
     const qty = quantities[item.id] || 1;
     addToCart(item, qty);
+
+    setAddedItems((prev) => ({ ...prev, [item.id]: true }));
+    setTimeout(() => {
+      setAddedItems((prev) => ({ ...prev, [item.id]: false }));
+    }, 2000);
   };
 
   const containerVariants = {
@@ -152,10 +158,20 @@ const ProductList = () => {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => handleAddToCart(e, item)}
-                  className="w-full py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-700 transition-all"
+                  className={`w-full py-3 text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 transition-all ${addedItems[item.id] ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                 >
-                  <ShoppingCart size={16} />
-                  Add to Cart
+                  {addedItems[item.id] ? (
+                    <>
+                      <Check size={16} />
+                      Added to Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={16} />
+                      Add to Cart
+                    </>
+                  )}
                 </motion.button>
               </div>
             </motion.div>
