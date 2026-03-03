@@ -44,7 +44,7 @@ const Testimonials = () => {
   return (
     <section className="w-full bg-white py-12 lg:py-20 overflow-hidden relative">
       <div className="container mx-auto px-6">
-        
+
         {/* Header - Minimal */}
         <div className="max-w-4xl mx-auto text-center mb-10">
           <h3 className="text-3xl lg:text-5xl font-black text-slate-900 tracking-tighter uppercase italic">
@@ -52,15 +52,11 @@ const Testimonials = () => {
           </h3>
         </div>
 
-<<<<<<< HEAD
         <div className="relative max-w-4xl mx-auto">
-=======
-        <div className="relative max-w-lg mx-auto">
->>>>>>> origin/main
-          
+
           {/* Framer Motion Wrapper for Touch/Drag */}
           <div className="relative overflow-visible cursor-grab active:cursor-grabbing">
-            <motion.div 
+            <motion.div
               className="flex"
               animate={{ x: `-${currentIndex * 100}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -71,7 +67,7 @@ const Testimonials = () => {
               {reviews.map((rev, i) => (
                 <div key={i} className="w-full flex-shrink-0 p-4">
                   <div className={`relative backdrop-blur-xl bg-white/70 border p-10 lg:p-16 rounded-[3.5rem] transition-all duration-500 flex flex-col items-center text-center ${rev.glow}`}>
-                    
+
                     <div className="absolute top-10 right-12 opacity-5 pointer-events-none">
                       <Quote size={80} fill="currentColor" className="text-slate-900" />
                     </div>
@@ -115,8 +111,8 @@ const Testimonials = () => {
         {/* Progress Dots / Touch Indicator */}
         <div className="flex justify-center gap-3 mt-10">
           {reviews.map((_, i) => (
-            <button 
-              key={i} 
+            <button
+              key={i}
               onClick={() => setCurrentIndex(i)}
               className={`h-1.5 rounded-full transition-all duration-500 ${currentIndex === i ? 'w-10 bg-slate-900' : 'w-2 bg-slate-200'}`}
             />

@@ -30,7 +30,7 @@ const Events = () => {
   return (
     <section className="w-full bg-white py-20 lg:py-32 overflow-hidden relative border-t border-slate-50">
       <div className="container mx-auto px-6">
-        
+
         {/* Foundation Header */}
         <div className="max-w-4xl mb-16 lg:mb-24">
           <div className="flex items-center gap-3 mb-6">
@@ -41,11 +41,7 @@ const Events = () => {
           </div>
           <h3 className="text-5xl lg:text-8xl font-black text-slate-900 tracking-tighter leading-[0.85] mb-8">
             Beyond the <br />
-<<<<<<< HEAD
             <span className="text-slate-300 italic">Product.</span>
-=======
-            <span className="text-slate-400 italic">Product.</span>
->>>>>>> origin/main
           </h3>
           <p className="text-sm lg:text-base text-slate-500 font-medium max-w-xl leading-relaxed">
             Foundation sirf products nahi bechta, hum ek community banate hain. Hamare events ka maksad hai logon ko prakriti aur shuddhata ke kareeb lana.
@@ -53,13 +49,13 @@ const Events = () => {
 
           {/* Minimalist Switcher */}
           <div className="mt-12 inline-flex p-1 bg-slate-50 border border-slate-100 rounded-2xl">
-            <button 
+            <button
               onClick={() => setActiveTab('upcoming')}
               className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'upcoming' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400'}`}
             >
               Upcoming Chapters
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('past')}
               className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'past' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400'}`}
             >
@@ -81,7 +77,7 @@ const Events = () => {
                     <div className="text-right">
                       <span className={`text-[10px] font-black uppercase tracking-widest ${event.accent} mb-2 block`}>{event.type}</span>
                       <p className="text-xs font-bold text-slate-400 flex items-center justify-end gap-1">
-                        <MapPin size={12}/> {event.location}
+                        <MapPin size={12} /> {event.location}
                       </p>
                     </div>
                   </div>
@@ -107,9 +103,9 @@ const Events = () => {
               <div key={i} className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 cursor-pointer">
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 to-transparent opacity-60 group-hover:opacity-100 transition-all z-10"></div>
                 <div className="absolute bottom-8 left-8 right-8 z-20 translate-y-4 group-hover:translate-y-0 transition-all opacity-0 group-hover:opacity-100">
-                   <p className="text-[9px] font-black text-green-400 uppercase tracking-widest mb-2">Success Story</p>
-                   <h5 className="text-white font-black text-xl leading-tight">Foundation Day 2025</h5>
-                   <PlayCircle className="text-white/50 mt-4 group-hover:text-white transition-colors" size={32} strokeWidth={1}/>
+                  <p className="text-[9px] font-black text-green-400 uppercase tracking-widest mb-2">Success Story</p>
+                  <h5 className="text-white font-black text-xl leading-tight">Foundation Day 2025</h5>
+                  <PlayCircle className="text-white/50 mt-4 group-hover:text-white transition-colors" size={32} strokeWidth={1} />
                 </div>
                 <div className="w-full h-full bg-slate-200 group-hover:scale-110 transition-transform duration-700"></div>
               </div>

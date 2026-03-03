@@ -20,7 +20,7 @@ const cartReducer = (state, action) => {
       if (existing) {
         return state.map((item) =>
           item.id === action.payload.id &&
-          item.category === action.payload.category
+            item.category === action.payload.category
             ? { ...item, quantity: item.quantity + action.payload.quantity }
             : item
         );
@@ -41,7 +41,7 @@ const cartReducer = (state, action) => {
     case 'UPDATE_QUANTITY':
       return state.map((item) =>
         item.id === action.payload.id &&
-        item.category === action.payload.category
+          item.category === action.payload.category
           ? { ...item, quantity: Math.max(1, action.payload.quantity) }
           : item
       );
@@ -65,8 +65,8 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('shusila_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product) => {
-    dispatch({ type: 'ADD_TO_CART', payload: product });
+  const addToCart = (product, quantity = 1) => {
+    dispatch({ type: 'ADD_TO_CART', payload: { ...product, quantity } });
   };
 
   const removeFromCart = (id, category) => {
@@ -87,12 +87,12 @@ export const CartProvider = ({ children }) => {
   );
 
   const mushroomItems = useMemo(
-    () => cartItems.filter((item) => item.category === 'mushroom'),
+    () => cartItems.filter((item) => item.category?.toLowerCase() === 'mushroom'),
     [cartItems]
   );
 
   const dairyItems = useMemo(
-    () => cartItems.filter((item) => item.category === 'dairy'),
+    () => cartItems.filter((item) => item.category?.toLowerCase() === 'dairy'),
     [cartItems]
   );
 
