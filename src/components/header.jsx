@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Sprout, Milk, User, Phone, CircleUser } from 'lucide-react';
-import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
+import { Home, Sprout, Milk, User, Phone, CircleUser, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 // Sidebar Import
 import AccountSidebar from './common/sidebar';
+import { useCart } from '../context/CartContext';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ const Header = () => {
   const [hidden, setHidden] = useState(false);
   // Sidebar State
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { cartCount } = useCart();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious();
@@ -32,15 +34,15 @@ const Header = () => {
 
   return (
     <>
-      <motion.header 
+      <motion.header
         variants={{ visible: { y: 0 }, hidden: { y: -120 } }}
         animate={hidden ? "hidden" : "visible"}
         transition={{ duration: 0.35, ease: "easeInOut" }}
         className="fixed top-0 w-full z-[60] px-4 py-5 pointer-events-none"
       >
         <div className="container mx-auto flex justify-between items-center bg-white/95 backdrop-blur-2xl border border-slate-200/60 p-2.5 px-5 rounded-3xl shadow-2xl pointer-events-auto">
-          
-          <motion.div 
+
+          <motion.div
             whileTap={{ scale: 0.95 }}
             className="flex flex-col cursor-pointer group"
             onClick={() => navigate('/')}
@@ -50,30 +52,61 @@ const Header = () => {
             </span>
             <span className="text-[7px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1">The Foundation</span>
           </motion.div>
-          
-          {/* Updated Button to trigger Sidebar */}
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSidebarOpen(true)}
-            className="relative group flex items-center gap-2.5 bg-slate-900 p-1.5 pr-5 rounded-2xl text-white shadow-xl transition-all duration-300 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-emerald-600 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-            <div className="relative z-10 w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <CircleUser size={18} className="text-white" />
-            </div>
-            <div className="relative z-10 flex flex-col items-start leading-none">
-              <span className="text-[9px] font-black uppercase tracking-widest mb-0.5">Account</span>
-              <span className="text-[7px] font-bold text-slate-400 group-hover:text-emerald-100 uppercase">My Profile</span>
-            </div>
-          </motion.button>
+
+          <div className="flex items-center gap-2.5">
+            {/* Premium Cart Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/cart')}
+              className="relative group flex items-center gap-2.5 bg-white p-1.5 pr-5 rounded-2xl text-slate-900 border border-slate-200 shadow-xl transition-all duration-300 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-slate-900 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+              <div className="relative z-10 w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <ShoppingCart size={18} className="text-slate-600 group-hover:text-white" />
+                <AnimatePresence>
+                  {cartCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20"
+                    >
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+              <div className="relative z-10 flex flex-col items-start leading-none">
+                <span className="text-[9px] font-black uppercase tracking-widest mb-0.5 group-hover:text-white">My Cart</span>
+                <span className="text-[7px] font-bold text-slate-400 group-hover:text-slate-200 uppercase">Checkout</span>
+              </div>
+            </motion.button>
+
+            {/* Account Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSidebarOpen(true)}
+              className="relative group flex items-center gap-2.5 bg-slate-900 p-1.5 pr-5 rounded-2xl text-white shadow-xl transition-all duration-300 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-emerald-600 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+              <div className="relative z-10 w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                <CircleUser size={18} className="text-white" />
+              </div>
+              <div className="relative z-10 flex flex-col items-start leading-none">
+                <span className="text-[9px] font-black uppercase tracking-widest mb-0.5">Account</span>
+                <span className="text-[7px] font-bold text-slate-400 group-hover:text-emerald-100 uppercase">My Profile</span>
+              </div>
+            </motion.button>
+          </div>
         </div>
       </motion.header>
 
       {/* Sidebar Component Implementation */}
       <AccountSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <motion.nav 
+      <motion.nav
         variants={{ visible: { y: 0, opacity: 1 }, hidden: { y: 150, opacity: 0 } }}
         animate={hidden ? "hidden" : "visible"}
         transition={{ duration: 0.4, ease: "circOut" }}

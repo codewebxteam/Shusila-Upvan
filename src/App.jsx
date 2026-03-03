@@ -4,18 +4,21 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Layout Components
 import Header from './components/header';
 import Footer from './components/Footer';
+import FloatingCartButton from './components/common/FloatingCartButton';
 
 // Pages
 import FoundationHome from './pages/foundation/home';
 import DairyHome from './pages/dairy/home';
 import MushroomHome from './pages/mushroom/home';
 import About from './pages/about';
+import CartPage from './pages/cart/CartPage';
+import Dashboard from './pages/profile/dashboard';
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-white flex flex-col">
-        
+
         {/* Globally Scoped Header */}
         <Header />
 
@@ -26,6 +29,8 @@ function App() {
             <Route path="/dairy" element={<DairyHome />} />
             <Route path="/mushroom" element={<MushroomHome />} />
             <Route path="/about" element={<About />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/profile" element={<Dashboard />} />
 
             {/* Default Fallback */}
             <Route path="*" element={<FoundationHome />} />
@@ -34,7 +39,10 @@ function App() {
 
         {/* Globally Scoped Footer */}
         <Footer />
-        
+
+        {/* Floating Cart Button */}
+        <FloatingCartButton />
+
       </div>
     </Router>
   );
