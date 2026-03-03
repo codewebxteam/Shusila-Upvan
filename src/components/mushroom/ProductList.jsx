@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Plus, Minus, Leaf, Sparkles } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Leaf, Sparkles, Check } from 'lucide-react';
 import { products, categories } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 
@@ -9,6 +9,7 @@ const ProductList = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [quantities, setQuantities] = useState({});
+  const [addedItems, setAddedItems] = useState({});
 
   const mushroomProducts = products.filter(
     (p) => p.category === categories.MUSHROOM
@@ -25,12 +26,17 @@ const ProductList = () => {
     e.stopPropagation();
     const qty = quantities[item.id] || 1;
     addToCart(item, qty);
+
+    setAddedItems((prev) => ({ ...prev, [item.id]: true }));
+    setTimeout(() => {
+      setAddedItems((prev) => ({ ...prev, [item.id]: false }));
+    }, 2000);
   };
 
   return (
     <section className="w-full bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -130,10 +136,20 @@ const ProductList = () => {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => handleAddToCart(e, item)}
-                  className="w-full py-3 bg-emerald-600 text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all"
+                  className={`w-full py-3 text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 transition-all ${addedItems[item.id] ? 'bg-green-600 hover:bg-green-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                    }`}
                 >
-                  <ShoppingCart size={16} />
-                  Add to Cart
+                  {addedItems[item.id] ? (
+                    <>
+                      <Check size={16} />
+                      Added to Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={16} />
+                      Add to Cart
+                    </>
+                  )}
                 </motion.button>
               </div>
             </motion.div>
