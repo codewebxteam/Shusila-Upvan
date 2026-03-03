@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, ShoppingBag, ShoppingCart, X, ChevronRight, LogOut, Settings } from 'lucide-react';
+import { User, ShoppingBag, ShoppingCart, X, ChevronRight, LogOut, Settings, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ownerImg from '../../assets/owner/swapnil.webp';
 import { useAuth } from '../../context/AuthContext';
@@ -11,7 +11,9 @@ const AccountSidebar = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { id: 'profile', label: 'My Profile', desc: 'Account & Security', icon: <Settings size={20} /> },
+    { id: 'cart', label: 'My Cart', desc: 'Manage your items', icon: <ShoppingCart size={20} /> },
     { id: 'orders', label: 'My Orders', desc: 'Active & Past History', icon: <ShoppingBag size={20} /> },
+    { id: 'wishlist', label: 'My Wishlist', desc: 'Favorite Products', icon: <Heart size={20} /> },
   ];
 
   const handleNavigation = (tabId) => {
@@ -91,17 +93,28 @@ const AccountSidebar = ({ isOpen, onClose }) => {
             </nav>
 
             <div className="p-8 border-t border-slate-50">
-              {user && (
+              {user ? (
                 <button
                   onClick={() => {
                     logout();
                     onClose();
                     navigate('/');
                   }}
-                  className="w-full py-4.5 bg-slate-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-red-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
+                  className="w-full py-4.5 bg-red-600 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-red-700 transition-all shadow-xl shadow-red-200 active:scale-95"
                 >
                   <LogOut size={14} />
                   Sign Out
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate('/login');
+                  }}
+                  className="w-full py-4.5 bg-emerald-600 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 active:scale-95"
+                >
+                  <User size={14} />
+                  Sign In / Join Now
                 </button>
               )}
 

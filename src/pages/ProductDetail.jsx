@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Heart, Minus, Plus, ArrowLeft, Star, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Heart, Minus, Plus, ArrowLeft, Star, ShieldCheck, Truck, RefreshCw, Share2 } from 'lucide-react';
 import { getProductById } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
+import ShareModal from '../components/common/ShareModal';
 
 const ProductDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart } = useCart();
+    const { user, openAuthModal } = useAuth();
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const product = getProductById(id);
     const [quantity, setQuantity] = useState(1);
     const [activeTab, setActiveTab] = useState('description');
     const [isAdded, setIsAdded] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     if (!product) {
         return (
@@ -31,14 +37,42 @@ const ProductDetail = () => {
     }
 
     const handleAddToCart = () => {
+        if (!user) {
+            openAuthModal('login');
+            return;
+        }
         addToCart(product, quantity);
         setIsAdded(true);
         setTimeout(() => setIsAdded(false), 2000);
     };
 
     const handleBuyNow = () => {
+        if (!user) {
+            openAuthModal('login');
+            return;
+        }
         addToCart(product, quantity);
         navigate('/profile', { state: { activeTab: 'cart' } });
+    };
+
+    const handleWishlistToggle = () => {
+        if (!user) {
+            openAuthModal('login');
+            return;
+        }
+        toggleWishlist(product);
+    };
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: product.name,
+                text: product.description,
+                url: window.location.href,
+            }).catch(console.error);
+        } else {
+            setIsShareModalOpen(true);
+        }
     };
 
     return (
@@ -81,12 +115,25 @@ const ProductDetail = () => {
                                 <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-100 shadow-sm">
                                     <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">{product.badge || 'NEW ARRIVAL'}</span>
                                 </div>
-                                <motion.button
-                                    whileTap={{ scale: 0.8 }}
-                                    className="w-12 h-12 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center text-slate-300 hover:text-rose-500 transition-colors pointer-events-auto"
-                                >
-                                    <Heart size={20} />
-                                </motion.button>
+                                <div className="flex gap-2 pointer-events-auto">
+                                    <motion.button
+                                        whileTap={{ scale: 0.8 }}
+                                        onClick={handleShare}
+                                        className="w-12 h-12 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center text-slate-400 hover:text-emerald-500 transition-colors"
+                                    >
+                                        <Share2 size={20} />
+                                    </motion.button>
+                                    <motion.button
+                                        whileTap={{ scale: 0.8 }}
+                                        onClick={handleWishlistToggle}
+                                        className={`w-12 h-12 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center transition-all ${isInWishlist(product.id, product.category)
+                                            ? 'bg-rose-50 text-rose-500 border-rose-100'
+                                            : 'bg-white text-slate-300 hover:text-rose-500'
+                                            }`}
+                                    >
+                                        <Heart size={20} fill={isInWishlist(product.id, product.category) ? 'currentColor' : 'none'} />
+                                    </motion.button>
+                                </div>
                             </div>
                         </div>
 
@@ -268,6 +315,12 @@ const ProductDetail = () => {
                     </div>
                 </div>
             </div>
+
+            <ShareModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                product={product}
+            />
         </div>
     );
 };

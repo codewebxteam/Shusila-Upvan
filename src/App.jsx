@@ -21,44 +21,47 @@ import Success from "./pages/Success";
 // Context Providers
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <Router>
-          <div className="min-h-screen bg-white flex flex-col">
-            
-            {/* Global Header */}
-            <Header />
+        <WishlistProvider>
+          <Router>
+            <div className="min-h-screen bg-white flex flex-col">
 
-            {/* Main Content */}
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<FoundationHome />} />
-                <Route path="/dairy" element={<DairyHome />} />
-                <Route path="/mushroom" element={<MushroomHome />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/profile" element={<Dashboard />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/success" element={<Success />} />
+              {/* Global Header */}
+              <Header />
 
-                {/* Fallback Route */}
-                <Route path="*" element={<FoundationHome />} />
-              </Routes>
-            </main>
+              {/* Main Content */}
+              <main className="flex-grow">
+                <Routes>
+                  <Route path="/" element={<FoundationHome />} />
+                  <Route path="/dairy" element={<DairyHome />} />
+                  <Route path="/mushroom" element={<MushroomHome />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/profile" element={<Dashboard />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/success" element={<Success />} />
 
-            {/* Global Footer */}
-            <Footer />
+                  {/* Fallback Route */}
+                  <Route path="*" element={<FoundationHome />} />
+                </Routes>
+              </main>
 
-            {/* Floating Cart Button */}
-            <FloatingCartButton />
+              {/* Global Footer */}
+              <Footer />
 
-          </div>
-        </Router>
+              {/* Floating Cart Button */}
+              <FloatingCartButton />
+
+            </div>
+          </Router>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );

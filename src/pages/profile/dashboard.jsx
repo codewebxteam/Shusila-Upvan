@@ -1,28 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom'; // Ye catch karega sidebar ka signal
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, ShoppingBag, ShoppingCart, LogOut } from 'lucide-react';
+import { User, ShoppingBag, ShoppingCart, Heart } from 'lucide-react';
 
 // Components Import
 import ProfileSettings from '../../components/profile/profile';
 import OrderHistory from '../../components/profile/orders';
+import CartView from '../../components/profile/cart';
+import Wishlist from '../../components/profile/wishlist';
 
 const Dashboard = () => {
-  const location = useLocation(); // URL state ko read karne ke liye
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
 
-  // Ye effect sidebar ke click ko dashboard ke content se connect karega
   useEffect(() => {
     if (location.state && location.state.activeTab) {
       setActiveTab(location.state.activeTab);
-      // Optional: Tab badalne ke baad scroll top par le jayein
       window.scrollTo(0, 0);
     }
-  }, [location.state]); // Jab bhi location badlegi, ye check karega
+  }, [location.state]);
 
   const menuItems = [
     { id: 'profile', label: 'Profile Settings', icon: <User size={20} /> },
+    { id: 'cart', label: 'My Cart', icon: <ShoppingCart size={20} /> },
     { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={20} /> },
+    { id: 'wishlist', label: 'My Wishlist', icon: <Heart size={20} /> },
   ];
 
   return (
@@ -54,14 +56,16 @@ const Dashboard = () => {
           {/* Main Content Area: Yahan change dikhega */}
           <section className="flex-1">
             <motion.div
-              key={activeTab} // Unique key helps Framer Motion trigger animations
+              key={activeTab}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="bg-white rounded-[3rem] p-8 lg:p-12 shadow-sm border border-slate-100 min-h-[600px]"
             >
               {/* Dynamic Rendering Based on Active Tab */}
               {activeTab === 'profile' && <ProfileSettings />}
+              {activeTab === 'cart' && <CartView />}
               {activeTab === 'orders' && <OrderHistory />}
+              {activeTab === 'wishlist' && <Wishlist />}
             </motion.div>
           </section>
 

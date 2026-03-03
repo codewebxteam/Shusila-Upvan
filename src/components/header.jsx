@@ -3,13 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Sprout, Milk, User, CircleUser, ShoppingCart } from 'lucide-react';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import AccountSidebar from './common/sidebar';
+import AuthModal from './common/AuthModal';
+import ownerImg from '../assets/owner/swapnil.webp';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isAuthModalOpen, authView, openAuthModal, closeAuthModal } = useAuth();
   const { cartCount } = useCart();
   const { scrollY } = useScroll();
 
@@ -59,70 +61,82 @@ const Header = () => {
           </motion.div>
 
           {/* Right Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-4">
 
-            {/* Cart Button */}
+            {/* Cart Button - Simplified */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/cart')}
-              className="relative group flex items-center gap-2 bg-white p-2 pr-5 rounded-2xl border border-slate-200 shadow-lg overflow-hidden"
+              className="relative p-2.5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition-colors"
             >
-              <div className="absolute inset-0 bg-slate-900 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-              
-              <div className="relative z-10 w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
-                <ShoppingCart size={18} className="text-slate-600 group-hover:text-white" />
-                
-                <AnimatePresence>
-                  {cartCount > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white"
-                    >
-                      {cartCount > 9 ? '9+' : cartCount}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className="relative z-10 flex flex-col items-start leading-none">
-                <span className="text-[9px] font-black uppercase tracking-widest group-hover:text-white">
-                  My Cart
-                </span>
-                <span className="text-[7px] font-bold text-slate-400 group-hover:text-slate-200 uppercase">
-                  Checkout
-                </span>
-              </div>
+              <ShoppingCart size={20} className="text-slate-600" />
+              <AnimatePresence>
+                {cartCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white"
+                  >
+                    {cartCount > 9 ? '9+' : cartCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </motion.button>
 
-            {/* Account Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSidebarOpen(true)}
-              className="relative group flex items-center gap-2 bg-slate-900 p-2 pr-5 rounded-2xl text-white shadow-xl overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-emerald-600 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-              
-              <div className="relative z-10 w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
-                <CircleUser size={18} />
-              </div>
+            {/* Auth/Profile Section */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {!user ? (
+                <>
+                  {/* Login Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => openAuthModal('login')}
+                    className="px-3 sm:px-4 py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-600 hover:text-emerald-600 transition-colors"
+                  >
+                    Login
+                  </motion.button>
 
-              <div className="relative z-10 flex flex-col items-start leading-none">
-                <span className="text-[9px] font-black uppercase tracking-widest">
-                  Account
-                </span>
-                <span className="text-[7px] font-bold text-slate-400 group-hover:text-emerald-100 uppercase">
-                  {user ? user.name : "Login"}
-                </span>
-              </div>
-            </motion.button>
+                  {/* Signup Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => openAuthModal('signup')}
+                    className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-amber-500 text-white rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20"
+                  >
+                    Sign Up
+                  </motion.button>
+                </>
+              ) : (
+                /* Circular Profile Avatar - Visible only after login */
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSidebarOpen(true)}
+                  className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white shadow-xl overflow-hidden bg-slate-100 flex items-center justify-center group shrink-0"
+                >
+                  <img
+                    src={user?.photo || ownerImg}
+                    alt="Profile"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors" />
+                </motion.button>
+              )}
+            </div>
 
           </div>
         </div>
       </motion.header>
+
+      {/* Modals */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        initialView={authView}
+      />
 
       {/* Sidebar */}
       <AccountSidebar
@@ -144,9 +158,8 @@ const Header = () => {
               <button
                 key={item.name}
                 onClick={() => navigate(item.path)}
-                className={`relative flex flex-col items-center justify-center py-3 flex-1 rounded-2xl transition-all ${
-                  isActive ? 'text-white' : 'text-slate-500'
-                }`}
+                className={`relative flex flex-col items-center justify-center py-3 flex-1 rounded-2xl transition-all ${isActive ? 'text-white' : 'text-slate-500'
+                  }`}
               >
                 {isActive && (
                   <motion.div

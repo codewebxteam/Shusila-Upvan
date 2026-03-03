@@ -15,22 +15,6 @@ const CartView = () => {
         </div>
         <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-2">Cart is Empty</h3>
         <p className="text-sm text-slate-400 mb-6">Add products from our store</p>
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => navigate('/mushroom')}
-            className="flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors"
-          >
-            <Sprout size={12} /> Mushrooms
-          </button>
-
-          <button
-            onClick={() => navigate('/dairy')}
-            className="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-700 transition-colors"
-          >
-            <Milk size={12} /> Dairy
-          </button>
-        </div>
       </div>
     );
   }

@@ -1,9 +1,10 @@
-import React from 'react';
+import react from 'react';
+import { Link } from 'react-router-dom';
 // paths according to your structure
 import mushroomimg from '../../../assets/foundation/mushroom.webp';
 import dairyimg from '../../../assets/foundation/dairy.webp';
 
-const Gateway = () => {
+const gateway = () => {
   return (
     <section className="relative w-full bg-white py-4 lg:py-8 overflow-hidden">
       <div className="container mx-auto px-4">
@@ -13,7 +14,7 @@ const Gateway = () => {
 
           {/* mushroom venture panel */}
           <div className="group relative flex-1 h-[220px] lg:h-[400px] rounded-[2.5rem] overflow-hidden bg-white border-2 border-slate-100 hover:border-orange-200 shadow-sm hover:shadow-2xl hover:shadow-orange-100/50 transition-all duration-500">
-            <a href="/mushroom" className="flex h-full w-full items-center justify-between px-6 lg:px-12">
+            <Link to="/mushroom" className="flex h-full w-full items-center justify-between px-6 lg:px-12">
 
               {/* text section */}
               <div className="relative z-20 flex flex-col items-start">
@@ -44,12 +45,12 @@ const Gateway = () => {
               <div className="absolute right-6 bottom-0 select-none pointer-events-none opacity-[0.04]">
                 <span className="text-[10rem] lg:text-[14rem] font-black leading-none text-slate-900">01</span>
               </div>
-            </a>
+            </Link>
           </div>
 
           {/* dairy venture panel */}
           <div className="group relative flex-1 h-[220px] lg:h-[400px] rounded-[2.5rem] overflow-hidden bg-white border-2 border-slate-100 hover:border-blue-200 shadow-sm hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-500">
-            <a href="/dairy" className="flex h-full w-full items-center justify-between px-6 lg:px-12">
+            <Link to="/dairy" className="flex h-full w-full items-center justify-between px-6 lg:px-12">
 
               {/* text section */}
               <div className="relative z-20 flex flex-col items-start">
@@ -80,7 +81,7 @@ const Gateway = () => {
               <div className="absolute right-6 bottom-0 select-none pointer-events-none opacity-[0.04]">
                 <span className="text-[10rem] lg:text-[14rem] font-black leading-none text-slate-900">02</span>
               </div>
-            </a>
+            </Link>
           </div>
 
         </div>
@@ -89,4 +90,4 @@ const Gateway = () => {
   );
 };
 
-export default Gateway;
+export default gateway;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 // Path maintained as per your structure
 import heroImg from '../../../assets/foundation/hero.webp';
 
@@ -22,7 +23,7 @@ const Hero = () => {
 
             <h1 className="text-6xl lg:text-8xl font-black text-slate-900 leading-[0.85] tracking-tighter">
               Pure. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-200 to-slate-400" style={{ WebkitTextStroke: '1px #cbd5e1' }}>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-300 to-slate-600" style={{ WebkitTextStroke: '1px #cbd5e1' }}>
                 Natural.
               </span> <br />
               Organic.
@@ -35,16 +36,16 @@ const Hero = () => {
 
             {/* Premium Interactive Buttons */}
             <div className="mt-12 flex flex-row items-center gap-6">
-              <a
-                href="/mushroom"
+              <Link
+                to="/mushroom"
                 className="relative group px-10 py-4 bg-slate-900 text-white text-[11px] font-bold uppercase tracking-widest rounded-2xl overflow-hidden transition-all active:scale-95"
               >
                 <span className="relative z-10">Mushroom</span>
                 <div className="absolute inset-0 bg-green-600 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300"></div>
-              </a>
+              </Link>
 
-              <a
-                href="/dairy"
+              <Link
+                to="/dairy"
                 className="group flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-900"
               >
                 Dairy Farm
@@ -52,7 +53,7 @@ const Hero = () => {
                   <div className="h-[1px] w-8 bg-slate-200 group-hover:w-12 group-hover:bg-green-500 transition-all duration-500"></div>
                   <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                 </div>
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -75,10 +76,6 @@ const Hero = () => {
 
               {/* Stylish Bottom Info */}
               <div className="mt-6 flex items-end justify-between px-2">
-                <div>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Established</p>
-                  <p className="text-lg font-black text-slate-800 tracking-tighter">2026</p>
-                </div>
                 <div className="text-right">
                   <p className="text-[9px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">
                     Live Status: Open

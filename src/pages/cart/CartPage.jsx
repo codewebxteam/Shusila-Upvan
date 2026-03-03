@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Trash2, Plus, Minus, Sprout, Milk, ArrowRight, ShoppingCart, X, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import CheckoutModal from '../../components/cart/CheckoutModal';
+import CheckoutModal from '../../pages/cart/CheckoutModal';
 
 const CartPage = () => {
     const navigate = useNavigate();
@@ -47,32 +47,6 @@ const CartPage = () => {
 
                         <h2 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter mb-4">Your Cart is Empty</h2>
                         <p className="text-sm lg:text-base text-slate-400 mb-12 max-w-sm mx-auto leading-relaxed">Add some delicious products to your cart and start your healthy journey today!</p>
-
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                            <motion.button
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => navigate('/mushroom')}
-                                className="group flex items-center gap-3 px-10 py-5 bg-emerald-600 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-emerald-100 hover:bg-slate-900 transition-all"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
-                                    <Sprout size={16} />
-                                </div>
-                                Browse Mushrooms
-                            </motion.button>
-
-                            <motion.button
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => navigate('/dairy')}
-                                className="group flex items-center gap-3 px-10 py-5 bg-amber-500 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-amber-100 hover:bg-slate-900 transition-all"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-amber-400 transition-colors">
-                                    <Milk size={16} />
-                                </div>
-                                Browse Dairy Products
-                            </motion.button>
-                        </div>
                     </motion.div>
                 </div>
             </main>

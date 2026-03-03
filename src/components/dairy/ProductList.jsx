@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Plus, Minus, Verified, Sparkles, Check } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Verified, Sparkles, Check, Heart } from 'lucide-react';
 import { products, categories } from '../../data/products';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 const ProductList = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user, openAuthModal } = useAuth();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
 
@@ -24,6 +28,12 @@ const ProductList = () => {
 
   const handleAddToCart = (e, item) => {
     e.stopPropagation();
+
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
+
     const qty = quantities[item.id] || 1;
     addToCart(item, qty);
 
@@ -31,6 +41,15 @@ const ProductList = () => {
     setTimeout(() => {
       setAddedItems((prev) => ({ ...prev, [item.id]: false }));
     }, 2000);
+  };
+
+  const handleWishlistToggle = (e, item) => {
+    e.stopPropagation();
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
+    toggleWishlist(item);
   };
 
   const containerVariants = {
@@ -95,6 +114,20 @@ const ProductList = () => {
               onClick={() => navigate(`/product/${item.id}`)}
               className="group relative bg-slate-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl border border-slate-100 hover:border-blue-200 cursor-pointer transition-all"
             >
+              {/* Wishlist Button */}
+              <button
+                onClick={(e) => handleWishlistToggle(e, item)}
+                className={`absolute top-4 right-4 z-10 p-2 rounded-full transition-all ${isInWishlist(item.id, item.category)
+                  ? 'bg-red-50 text-red-500'
+                  : 'bg-white/80 text-slate-400 hover:text-red-500 hover:bg-red-50'
+                  }`}
+              >
+                <Heart
+                  size={18}
+                  fill={isInWishlist(item.id, item.category) ? 'currentColor' : 'none'}
+                />
+              </button>
+
               {/* Image */}
               <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-blue-50 to-transparent mb-6 flex items-center justify-center overflow-hidden">
                 <motion.img
