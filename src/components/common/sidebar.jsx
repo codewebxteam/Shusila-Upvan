@@ -17,7 +17,11 @@ const AccountSidebar = ({ isOpen, onClose }) => {
   ];
 
   const handleNavigation = (tabId) => {
-    navigate('/profile', { state: { activeTab: tabId } });
+    if (tabId === 'orders') {
+      navigate('/orders');
+    } else {
+      navigate('/profile', { state: { activeTab: tabId } });
+    }
     onClose();
   };
 

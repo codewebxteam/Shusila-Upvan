@@ -7,9 +7,11 @@ import {
     AlertCircle, Info, Sparkles, MousePointer2, Box
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useOrders } from '../../context/OrderContext';
 
 const CheckoutModal = ({ onClose }) => {
     const { cartItems, subtotal, tax, grandTotal, cartCount, clearCart } = useCart();
+    const { placeOrder } = useOrders();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         fullName: '', mobile: '', email: '',
@@ -34,9 +36,15 @@ const CheckoutModal = ({ onClose }) => {
     };
 
     const handlePlaceOrder = () => {
+        placeOrder({
+            items: cartItems,
+            subtotal,
+            tax,
+            grandTotal,
+            ...formData
+        });
         setOrderPlaced(true);
         setTimeout(() => {
-            clearCart();
             onClose();
         }, 3000);
     };

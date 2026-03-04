@@ -23,7 +23,7 @@ const Hero = () => {
 
             <h1 className="text-6xl lg:text-8xl font-black text-slate-900 leading-[0.85] tracking-tighter">
               Pure. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-300 to-slate-600" style={{ WebkitTextStroke: '1px #cbd5e1' }}>
+              <span className="text-emerald-600">
                 Natural.
               </span> <br />
               Organic.

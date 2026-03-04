@@ -1,9 +1,16 @@
 import React from 'react';
 import { Lock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useOrders } from '../../context/OrderContext';
 
 const ProfileSettings = () => {
   const { user } = useAuth();
+  const { orders } = useOrders();
+
+  // Get latest address from orders if available
+  const latestAddress = orders.length > 0
+    ? `${orders[0].address.street}, ${orders[0].address.locality}, ${orders[0].address.city}, ${orders[0].address.state} - ${orders[0].address.pincode}`
+    : '';
 
   return (
     <div className="max-w-2xl">
@@ -15,7 +22,8 @@ const ProfileSettings = () => {
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Name</label>
             <input
               type="text"
-              defaultValue={user?.name || "Swapnil Singh"}
+              defaultValue={user?.name || ""}
+              placeholder="Your Name"
               className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
@@ -23,7 +31,8 @@ const ProfileSettings = () => {
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</label>
             <input
               type="email"
-              value={user?.email || "example@gmail.com"}
+              value={user?.email || ""}
+              placeholder="Your Email"
               className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold opacity-60 cursor-not-allowed outline-none"
               disabled
             />
@@ -31,8 +40,13 @@ const ProfileSettings = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Delivery Address (Khalilabad)</label>
-          <textarea rows="3" className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Delivery Address</label>
+          <textarea
+            rows="3"
+            defaultValue={latestAddress}
+            placeholder="No address saved yet. Place an order to save your address."
+            className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
+          ></textarea>
         </div>
 
         <div className="pt-6 border-t border-slate-50">

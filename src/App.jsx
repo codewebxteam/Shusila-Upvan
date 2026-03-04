@@ -15,6 +15,7 @@ import CartPage from "./pages/cart/CartPage";
 import Dashboard from "./pages/profile/dashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import OrdersPage from "./pages/profile/OrdersPage";
 import ProductDetail from "./pages/ProductDetail";
 import Success from "./pages/Success";
 
@@ -45,6 +46,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/profile" element={<Dashboard />} />
+                  <Route path="/orders" element={<OrdersPage />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/success" element={<Success />} />
 
