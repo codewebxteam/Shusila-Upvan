@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 
 // Layout Components
 import Header from "./components/header";
@@ -24,44 +24,74 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 
+// Admin Pages
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminInventory from "./pages/admin/AdminInventory";
+import AdminPayments from "./pages/admin/AdminPayments";
+import AdminCustomers from "./pages/admin/AdminCustomers";
+import AdminOrders from "./pages/admin/AdminOrders";
+
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Global Header */}
+      {!isAdminRoute && <Header />}
+
+      {/* Main Content */}
+      <main className="flex-grow">
+        <Routes>
+          {/* User Routes */}
+          <Route path="/" element={<FoundationHome />} />
+          <Route path="/dairy" element={<DairyHome />} />
+          <Route path="/mushroom" element={<MushroomHome />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<Dashboard />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/success" element={<Success />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="reports" element={<AdminDashboard />} />
+            <Route path="inventory" element={<AdminInventory />} />
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="*" element={<AdminDashboard />} />
+          </Route>
+
+          {/* Fallback Route */}
+          <Route path="*" element={<FoundationHome />} />
+        </Routes>
+      </main>
+
+      {/* Global Footer */}
+      {!isAdminRoute && <Footer />}
+
+      {/* Floating Cart Button */}
+      {!isAdminRoute && <FloatingCartButton />}
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <WishlistProvider>
           <Router>
-            <div className="min-h-screen bg-white flex flex-col">
-
-              {/* Global Header */}
-              <Header />
-
-              {/* Main Content */}
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<FoundationHome />} />
-                  <Route path="/dairy" element={<DairyHome />} />
-                  <Route path="/mushroom" element={<MushroomHome />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/profile" element={<Dashboard />} />
-                  <Route path="/orders" element={<OrdersPage />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/success" element={<Success />} />
-
-                  {/* Fallback Route */}
-                  <Route path="*" element={<FoundationHome />} />
-                </Routes>
-              </main>
-
-              {/* Global Footer */}
-              <Footer />
-
-              {/* Floating Cart Button */}
-              <FloatingCartButton />
-
-            </div>
+            <AppContent />
           </Router>
         </WishlistProvider>
       </CartProvider>

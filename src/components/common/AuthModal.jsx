@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const AuthModal = ({ isOpen, onClose, initialView = 'login' }) => {
     const { login, signup, loginWithGoogle } = useAuth();
+    const navigate = useNavigate();
     const [view, setView] = useState(initialView); // 'login' or 'signup'
+    const [isAdminLogin, setIsAdminLogin] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -29,7 +32,16 @@ const AuthModal = ({ isOpen, onClose, initialView = 'login' }) => {
         try {
             if (view === 'login') {
                 const success = await login(formData.email, formData.password);
-                if (success) onClose();
+                if (success) {
+                    onClose();
+                    // If login succeeds and admin toggle is checked (or hardcoded email match)
+                    if (isAdminLogin && formData.email === 'admin@gmail.com') {
+                        navigate('/admin');
+                    } else if (isAdminLogin) {
+                        // Normally you'd check roles here, we'll just navigate for demo
+                        navigate('/admin');
+                    }
+                }
                 else setError('Invalid email or password');
             } else {
                 if (formData.password !== formData.confirmPassword) {
@@ -86,17 +98,32 @@ const AuthModal = ({ isOpen, onClose, initialView = 'login' }) => {
                         <X size={20} />
                     </button>
 
-                    {/* Header */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-6">
                         <h2 className="text-3xl font-black tracking-tight mb-2">
                             <span className="bg-gradient-to-r from-emerald-600 to-amber-500 bg-clip-text text-transparent italic">
-                                {view === 'login' ? 'Welcome Back' : 'Create Account'}
+                                {view === 'login' ? (isAdminLogin ? 'Admin Portal' : 'Welcome Back') : 'Create Account'}
                             </span>
                         </h2>
                         <p className="text-slate-500 text-sm font-semibold">
                             {view === 'login' ? 'Sign in to your account' : 'Join our premium collection'}
                         </p>
                     </div>
+
+                    {/* Admin Toggle */}
+                    {view === 'login' && (
+                        <div className="flex justify-center mb-6">
+                            <button
+                                type="button"
+                                onClick={() => setIsAdminLogin(!isAdminLogin)}
+                                className={`text-[10px] uppercase font-black tracking-widest px-4 py-2 rounded-full border-2 transition-all ${isAdminLogin
+                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                                        : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+                                    }`}
+                            >
+                                {isAdminLogin ? 'Admin Login Mode Active' : 'Login as Admin'}
+                            </button>
+                        </div>
+                    )}
 
                     {error && (
                         <div className="mb-4 text-[10px] font-black uppercase tracking-widest text-red-500 text-center">
