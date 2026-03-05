@@ -5,11 +5,15 @@ import React, {
   useMemo,
   useEffect,
 } from 'react';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
 const cartReducer = (state, action) => {
   switch (action.type) {
+    case 'SET_CART':
+      return action.payload;
+
     case 'ADD_TO_CART': {
       const existing = state.find(
         (item) =>
@@ -55,15 +59,25 @@ const cartReducer = (state, action) => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, dispatch] = useReducer(cartReducer, [], () => {
-    const saved = localStorage.getItem('shusila_cart');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const { user } = useAuth();
+  const [cartItems, dispatch] = useReducer(cartReducer, []);
+
+  // Load cart when user changes
+  useEffect(() => {
+    if (user) {
+      const saved = localStorage.getItem(`shusila_cart_${user.id}`);
+      dispatch({ type: 'SET_CART', payload: saved ? JSON.parse(saved) : [] });
+    } else {
+      dispatch({ type: 'SET_CART', payload: [] });
+    }
+  }, [user]);
 
   // Persist cart
   useEffect(() => {
-    localStorage.setItem('shusila_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (user) {
+      localStorage.setItem(`shusila_cart_${user.id}`, JSON.stringify(cartItems));
+    }
+  }, [cartItems, user]);
 
   const addToCart = (product, quantity = 1) => {
     dispatch({ type: 'ADD_TO_CART', payload: { ...product, quantity } });

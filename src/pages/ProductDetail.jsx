@@ -7,6 +7,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import ShareModal from '../components/common/ShareModal';
+import RecommendedProducts from '../components/product/RecommendedProducts';
+import { useEffect } from 'react';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -19,6 +21,10 @@ const ProductDetail = () => {
     const [activeTab, setActiveTab] = useState('description');
     const [isAdded, setIsAdded] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [id]);
 
     if (!product) {
         return (
@@ -315,6 +321,8 @@ const ProductDetail = () => {
                     </div>
                 </div>
             </div>
+
+            <RecommendedProducts currentProductId={product.id} category={product.category} />
 
             <ShareModal
                 isOpen={isShareModalOpen}

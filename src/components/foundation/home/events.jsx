@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
 import { Calendar, MapPin, Users, ArrowRight, PlayCircle, Plus, Sparkles, Globe } from 'lucide-react';
 
+// Import Legacy Images
+import legacy1 from '../../../assets/foundation/legacy/foundation_day_2025.png';
+import legacy2 from '../../../assets/foundation/legacy/success_story_1.png';
+import legacy3 from '../../../assets/foundation/legacy/farmers_meetup.png';
+import legacy4 from '../../../assets/foundation/legacy/farm_landscape.png';
+
 const Events = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
+
+  const legacyStories = [
+    { title: "Foundation Day 2025", category: "Big Celebration", img: legacy1 },
+    { title: "Success Story: Milky Way", category: "Growth Journey", img: legacy2 },
+    { title: "First Farmers Meetup", category: "Community Hub", img: legacy3 },
+    { title: "Legacy of Purity", category: "Sustainable Vision", img: legacy4 },
+  ];
 
   const foundationEvents = [
     {
@@ -99,15 +112,19 @@ const Events = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {[1, 2, 3, 4].map((i) => (
+            {legacyStories.map((story, i) => (
               <div key={i} className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 cursor-pointer">
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 to-transparent opacity-60 group-hover:opacity-100 transition-all z-10"></div>
                 <div className="absolute bottom-8 left-8 right-8 z-20 translate-y-4 group-hover:translate-y-0 transition-all opacity-0 group-hover:opacity-100">
-                  <p className="text-[9px] font-black text-green-400 uppercase tracking-widest mb-2">Success Story</p>
-                  <h5 className="text-white font-black text-xl leading-tight">Foundation Day 2025</h5>
+                  <p className="text-[9px] font-black text-green-400 uppercase tracking-widest mb-2">{story.category}</p>
+                  <h5 className="text-white font-black text-xl leading-tight">{story.title}</h5>
                   <PlayCircle className="text-white/50 mt-4 group-hover:text-white transition-colors" size={32} strokeWidth={1} />
                 </div>
-                <div className="w-full h-full bg-slate-200 group-hover:scale-110 transition-transform duration-700"></div>
+                <img
+                  src={story.img}
+                  alt={story.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
               </div>
             ))}
           </div>

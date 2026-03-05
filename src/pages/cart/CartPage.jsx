@@ -17,36 +17,43 @@ const CartPage = () => {
     // Empty Cart State - Flipkart Style Refined
     if (cartItems.length === 0) {
         return (
-            <main className="min-h-screen bg-white pt-28 pb-32">
-                <div className="container mx-auto px-6">
+            <main className="min-h-[70vh] bg-[#f8f9fa] flex items-center justify-center">
+                <div className="container mx-auto px-6 text-center">
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="max-w-2xl mx-auto text-center py-20"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="max-w-xl mx-auto flex flex-col items-center py-16"
                     >
-                        {/* Premium Flipkart-style Illustration Placeholder */}
-                        <div className="relative w-64 h-64 mx-auto mb-12">
-                            <div className="absolute inset-0 bg-emerald-50 rounded-full scale-110 blur-3xl opacity-50 animate-pulse" />
-                            <div className="relative w-full h-full bg-slate-50 rounded-[3rem] border border-slate-100 shadow-inner flex items-center justify-center overflow-hidden">
-                                <ShoppingBag size={120} className="text-slate-200 stroke-[0.5]" />
-                                <motion.div
-                                    animate={{ y: [0, -10, 0] }}
-                                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                                >
-                                    <div className="w-16 h-20 bg-white rounded-xl shadow-2xl border border-slate-100 flex flex-col p-2 gap-2">
-                                        <div className="w-full h-2 bg-slate-100 rounded-full" />
-                                        <div className="w-2/3 h-2 bg-slate-50 rounded-full" />
-                                        <div className="mt-auto w-full h-6 bg-emerald-50 rounded-lg flex items-center justify-center">
-                                            <div className="w-3 h-3 bg-emerald-200 rounded-full" />
-                                        </div>
-                                    </div>
-                                </motion.div>
+                        {/* Simple Shopping Bag Icon */}
+                        <div className="mb-6 flex justify-center">
+                            <div className="w-24 h-24 border-4 border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50/50">
+                                <ShoppingBag size={48} strokeWidth={2.5} className="text-slate-300" />
                             </div>
                         </div>
 
-                        <h2 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter mb-4">Your Cart is Empty</h2>
-                        <p className="text-sm lg:text-base text-slate-400 mb-12 max-w-sm mx-auto leading-relaxed">Add some delicious products to your cart and start your healthy journey today!</p>
+                        {/* Text Content */}
+                        <h2 className="text-3xl font-black text-slate-700 tracking-tight mb-3">Your Cart is Empty</h2>
+                        <p className="text-sm font-semibold text-slate-400 mb-10 w-full max-w-sm">
+                            Add some delicious products to your cart!
+                        </p>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
+                            <button
+                                onClick={() => navigate('/mushroom')}
+                                className="w-full sm:w-auto px-8 py-3.5 bg-[#8bc34a] text-white rounded-full text-sm font-black tracking-wide hover:bg-[#7cb342] transition-colors shadow-md shadow-[#8bc34a]/30 flex items-center justify-center gap-2"
+                            >
+                                <Sprout size={18} strokeWidth={2.5} />
+                                Browse Mushrooms
+                            </button>
+                            <button
+                                onClick={() => navigate('/dairy')}
+                                className="w-full sm:w-auto px-8 py-3.5 bg-[#fbc02d] text-white rounded-full text-sm font-black tracking-wide hover:bg-[#f9a825] transition-colors shadow-md shadow-[#fbc02d]/30 flex items-center justify-center gap-2"
+                            >
+                                <Milk size={18} strokeWidth={2.5} />
+                                Browse Dairy Products
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
             </main>
