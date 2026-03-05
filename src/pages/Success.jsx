@@ -6,13 +6,13 @@ import { useCart } from '../context/CartContext';
 
 const Success = () => {
     const navigate = useNavigate();
-    const { cart, clearCart } = useCart();
+    const { cartItems, clearCart } = useCart();
 
     useEffect(() => {
-        if (cart.length > 0) {
+        if (cartItems && cartItems.length > 0) {
             clearCart();
         }
-    }, [cart.length, clearCart]);
+    }, [cartItems, clearCart]);
 
     return (
         <div className="min-h-screen bg-white flex items-center justify-center p-4 pt-32 relative z-[70] pointer-events-auto">
@@ -48,18 +48,18 @@ const Success = () => {
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/orders')}
                         className="px-10 py-5 bg-slate-900 text-white rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] shadow-xl flex items-center justify-center gap-3 transition-all hover:bg-emerald-600"
                     >
-                        Back to Home <ArrowRight size={16} />
+                        Track Order <ArrowRight size={16} />
                     </motion.button>
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/profile', { state: { activeTab: 'orders' } })}
+                        onClick={() => navigate('/')}
                         className="px-10 py-5 bg-white text-slate-900 border border-slate-200 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center justify-center gap-3 transition-all hover:bg-slate-50"
                     >
-                        View Orders <ShoppingBag size={16} />
+                        Continue Shopping <ShoppingBag size={16} />
                     </motion.button>
                 </div>
 

@@ -6,12 +6,14 @@ import {
     ShieldCheck, Smartphone, Landmark, Wallet, Banknote,
     AlertCircle, Info, Sparkles, MousePointer2, Box
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useOrders } from '../../context/OrderContext';
 
 const CheckoutModal = ({ onClose }) => {
     const { cartItems, subtotal, tax, grandTotal, cartCount, clearCart } = useCart();
     const { placeOrder } = useOrders();
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         fullName: '', mobile: '', email: '',
@@ -43,10 +45,9 @@ const CheckoutModal = ({ onClose }) => {
             grandTotal,
             ...formData
         });
-        setOrderPlaced(true);
-        setTimeout(() => {
-            onClose();
-        }, 3000);
+        clearCart();
+        onClose();
+        navigate('/success');
     };
 
     const steps = [
@@ -97,7 +98,24 @@ const CheckoutModal = ({ onClose }) => {
                         <CheckCircle2 size={48} className="text-emerald-600" />
                     </motion.div>
                     <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-3 italic">Order Placed!</h2>
-                    <p className="text-sm text-slate-400 leading-relaxed">Congratulations, Your order has been placed successfully. We'll contact you for delivery details shortly.</p>
+                    <p className="text-sm text-slate-400 leading-relaxed mb-8">Congratulations, Your order has been placed successfully. We'll contact you for delivery details shortly.</p>
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={() => {
+                                onClose();
+                                navigate('/orders');
+                            }}
+                            className="w-full py-4 bg-[#111827] text-white rounded-2xl text-[14px] font-bold uppercase tracking-wider shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all"
+                        >
+                            Track Order
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="w-full py-4 bg-white text-slate-400 border border-slate-200 rounded-2xl text-[14px] font-bold uppercase tracking-wider hover:bg-slate-50 hover:text-slate-900 transition-all"
+                        >
+                            Continue Shopping
+                        </button>
+                    </div>
                 </motion.div>
             </motion.div>
         );

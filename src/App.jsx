@@ -32,6 +32,7 @@ import AdminInventory from "./pages/admin/AdminInventory";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 function AppContent() {
   const location = useLocation();
@@ -68,6 +69,7 @@ function AppContent() {
             <Route path="customers" element={<AdminCustomers />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="settings" element={<AdminSettings />} />
             <Route path="*" element={<AdminDashboard />} />
           </Route>
 
