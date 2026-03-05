@@ -14,9 +14,25 @@ const ProductList = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
+  const [selectedTag, setSelectedTag] = useState('All');
+  const [page, setPage] = useState(1);
 
-  const dairyProducts = products.filter(
-    (p) => p.category === categories.DAIRY
+  const dairyProducts = products.filter(p => p.category === categories.DAIRY);
+
+  // Get unique tags
+  const allTags = ['All', ...new Set(dairyProducts.map(p => p.tag))];
+
+  // Filter products by tag  
+  const filteredProducts = selectedTag === 'All'
+    ? dairyProducts
+    : dairyProducts.filter(p => p.tag === selectedTag);
+
+  // Pagination logic
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
   );
 
   const updateQty = (id, delta) => {
@@ -105,15 +121,8 @@ const ProductList = () => {
           whileInView="visible"
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {dairyProducts.map((item) => (
-            <motion.div
-              key={item.id}
-              variants={itemVariants}
-              whileHover={{ y: -8 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigate(`/product/${item.id}`)}
-              className="group relative bg-slate-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl border border-slate-100 hover:border-blue-200 cursor-pointer transition-all"
-            >
+          {paginatedProducts.map((item) => (
+            <div key={item.id}>
               {/* Wishlist Button */}
               <button
                 onClick={(e) => handleWishlistToggle(e, item)}
@@ -129,7 +138,10 @@ const ProductList = () => {
               </button>
 
               {/* Image */}
-              <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-blue-50 to-transparent mb-6 flex items-center justify-center overflow-hidden">
+              <div
+                className="relative aspect-square rounded-2xl bg-gradient-to-br from-blue-50 to-transparent mb-6 flex items-center justify-center overflow-hidden cursor-pointer"
+                onClick={() => navigate(`/product/${item.id}`)}
+              >
                 <motion.img
                   src={item.img}
                   alt={item.name}
@@ -163,7 +175,6 @@ const ProductList = () => {
                 {/* Quantity */}
                 <div
                   className="flex items-center justify-between bg-white rounded-xl p-3 border border-slate-200"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   <span className="text-xs font-bold text-slate-500 uppercase">
                     Qty
@@ -207,7 +218,7 @@ const ProductList = () => {
                   )}
                 </motion.button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </motion.div>
 

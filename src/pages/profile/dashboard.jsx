@@ -14,9 +14,10 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('profile');
 
   useEffect(() => {
-    if (location.state && location.state.activeTab) {
-      setActiveTab(location.state.activeTab);
-      window.scrollTo(0, 0);
+    if (location.state) {
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 100);
     }
   }, [location.state]);
 

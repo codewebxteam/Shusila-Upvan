@@ -137,7 +137,7 @@ const CheckoutModal = ({ onClose }) => {
 
                             <div className="bg-white/60 backdrop-blur-sm rounded-[2rem] p-6 border border-[#f1efe1] shadow-sm">
                                 <h5 className="text-[11px] font-bold text-slate-900 mb-6 uppercase tracking-widest">Cart Items ({cartCount})</h5>
-                                <div className="space-y-6 max-h-[280px] overflow-y-auto mb-8 pr-2 scrollbar-hide">
+                                <div className="space-y-6 max-h-[280px] overflow-y-auto mb-8 pr-2">
                                     {cartItems.map((item) => (
                                         <div key={`${item.category}-${item.id}`} className="flex items-center gap-4">
                                             <div className="w-14 h-14 bg-slate-50 rounded-2xl overflow-hidden shrink-0 border border-slate-100 p-1">

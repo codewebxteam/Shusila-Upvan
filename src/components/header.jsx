@@ -7,6 +7,7 @@ import AuthModal from './common/AuthModal';
 import ownerImg from '../assets/owner/swapnil.webp';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { throttle } from 'lodash';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -18,11 +19,11 @@ const Header = () => {
   const [hidden, setHidden] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
+  useMotionValueEvent(scrollY, "change", throttle((latest) => {
     const previous = scrollY.getPrevious();
     if (latest > previous && latest > 150) setHidden(true);
     else setHidden(false);
-  });
+  }, 200));
 
   useEffect(() => {
     window.scrollTo(0, 0);

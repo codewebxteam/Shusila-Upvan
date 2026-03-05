@@ -14,10 +14,25 @@ const ProductList = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
+  const [selectedTag, setSelectedTag] = useState('All');
+  const [page, setPage] = useState(1);
 
   const mushroomProducts = products.filter(
     (p) => p.category === categories.MUSHROOM
   );
+
+  // Get unique tags
+  const allTags = ['All', ...new Set(mushroomProducts.map(p => p.tag))];
+
+  // Filter products by tag
+  const filteredProducts = selectedTag === 'All' 
+    ? mushroomProducts
+    : mushroomProducts.filter(p => p.tag === selectedTag);
+
+  // Pagination logic
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const updateQty = (id, delta) => {
     setQuantities((prev) => ({
@@ -82,9 +97,31 @@ const ProductList = () => {
           </div>
         </motion.div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {mushroomProducts.map((item) => (
+        {/* Category Filter Tabs */}
+        <div className="mb-12 flex flex-wrap gap-3">
+          {allTags.map((tag) => (
+            <motion.button
+              key={tag}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSelectedTag(tag)}
+              className={`px-6 py-2 rounded-full text-sm font-black uppercase transition-all ${
+                selectedTag === tag
+                  ? 'bg-emerald-600 text-white shadow-lg'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {tag}
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Product Grid - Paginated, 8 per page */}
+        <motion.div
+          layout
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          {paginatedProducts.map((item) => (
             <motion.div
               key={item.id}
               whileHover={{ y: -8 }}
@@ -187,7 +224,22 @@ const ProductList = () => {
               </div>
             </motion.div>
           ))}
-        </div>
+
+        </motion.div>
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-8 gap-2">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => setPage(i + 1)}
+                className={`px-4 py-2 rounded-full font-bold text-xs transition-all ${page === i + 1 ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Bulk Orders */}
         <div className="mt-16 flex justify-center">
