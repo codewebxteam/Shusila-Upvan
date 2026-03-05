@@ -26,4 +26,7 @@ export const firestoreDb = getFirestore(app);
 // Initialize Realtime Database
 export const realtimeDb = getDatabase(app);
 
+// Export 'db' for compatibility
+export const db = firestoreDb;
+
 export default app;
