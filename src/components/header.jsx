@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Sprout, Milk, User, CircleUser, ShoppingCart, Menu, X } from 'lucide-react';
+import { Home, Sprout, Milk, User, CircleUser, ShoppingCart, Menu, X, Search } from 'lucide-react';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import AccountSidebar from './common/sidebar';
 import AuthModal from './common/AuthModal';
 import ownerImg from '../assets/owner/swapnil.webp';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { products } from '../data/products';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -18,6 +19,9 @@ const Header = () => {
   const [hidden, setHidden] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious();
@@ -28,6 +32,18 @@ const Header = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setSearchResults([]);
+      return;
+    }
+    const filtered = products.filter(p =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 5);
+    setSearchResults(filtered);
+  }, [searchQuery]);
 
   const navItems = [
     { name: 'Home', path: '/', icon: <Home size={22} /> },
@@ -60,6 +76,69 @@ const Header = () => {
               The Foundation
             </span>
           </motion.div>
+
+          {/* Search Box - Desktop */}
+          <div className="hidden md:block relative flex-grow max-w-md mx-8 group">
+            <div className={`relative flex items-center transition-all duration-300 rounded-2xl border shadow-sm ${isSearchFocused ? 'border-emerald-500 bg-white ring-8 ring-emerald-500/5 shadow-xl shadow-emerald-500/10' : 'bg-slate-100/80 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>
+              <Search size={18} className={`ml-4 transition-colors ${isSearchFocused ? 'text-emerald-500' : 'text-slate-500'}`} />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                className="w-full bg-transparent border-none focus:ring-0 px-3 py-3 text-xs font-bold text-slate-900 placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="mr-3 p-1 hover:bg-slate-200 rounded-lg transition-colors"
+                >
+                  <X size={14} className="text-slate-400" />
+                </button>
+              )}
+            </div>
+
+            {/* Results Dropdown */}
+            <AnimatePresence>
+              {(isSearchFocused && searchQuery) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-[2rem] shadow-2xl overflow-hidden p-2 ring-1 ring-slate-900/5"
+                >
+                  {searchResults.length > 0 ? (
+                    <div className="flex flex-col">
+                      {searchResults.map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            navigate(`/product/${p.id}`);
+                            setSearchQuery('');
+                          }}
+                          className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-left group"
+                        >
+                          <div className="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center p-2">
+                            <img src={p.img} alt={p.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{p.name}</p>
+                            <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">₹{p.price} • {p.category}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">No products found for "{searchQuery}"</p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Right Buttons */}
           <div className="flex items-center gap-2 sm:gap-4">
@@ -150,6 +229,51 @@ const Header = () => {
               className="mt-4 mx-auto container pointer-events-auto min-[426px]:hidden"
             >
               <div className="bg-white/95 backdrop-blur-2xl border border-slate-200/60 p-4 rounded-3xl shadow-2xl flex flex-col gap-2">
+                {/* Mobile Search */}
+                <div className="relative flex items-center bg-slate-100 border border-slate-200 rounded-2xl p-1 mb-2 shadow-sm">
+                  <Search size={16} className="ml-3 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-transparent border-none focus:ring-0 px-3 py-3 text-[11px] font-bold text-slate-900 placeholder:text-slate-400"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="mr-2 p-1 hover:bg-slate-200 rounded-lg">
+                      <X size={14} className="text-slate-400" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Mobile Search Results */}
+                {searchQuery && (
+                  <div className="mb-4 bg-white/50 rounded-2xl border border-slate-100 max-h-[250px] overflow-y-auto p-2">
+                    {searchResults.length > 0 ? (
+                      searchResults.map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            navigate(`/product/${p.id}`);
+                            setSearchQuery('');
+                            setIsMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded-xl mb-1 last:mb-0 transition-colors"
+                        >
+                          <div className="w-10 h-10 bg-white rounded-lg overflow-hidden flex items-center justify-center p-1 border border-slate-50">
+                            <img src={p.img} alt={p.name} className="w-full h-full object-contain" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{p.name}</p>
+                            <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">₹{p.price}</p>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="p-4 text-[9px] font-black text-slate-400 text-center uppercase tracking-widest italic">No results</p>
+                    )}
+                  </div>
+                )}
                 {navItems.map((item) => (
                   <button
                     key={item.name}
