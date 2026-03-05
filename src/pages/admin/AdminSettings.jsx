@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Save, Store, MapPin, CreditCard, Bell,
     Mail, Smartphone, ShieldCheck, Clock, CheckCircle2
 } from 'lucide-react';
+import { db } from '../../firebase';
+import { ref, onValue, set } from 'firebase/database';
 
 const AdminSettings = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [showSuccess, setShowSuccess] = useState(false);
 
     // Form states for the settings
@@ -36,6 +39,17 @@ const AdminSettings = () => {
         adminAlertsEmail: 'admin@shusilaupvan.com'
     });
 
+    useEffect(() => {
+        const settingsRef = ref(db, 'settings');
+        const unsubscribe = onValue(settingsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                setFormData(snapshot.val());
+            }
+            setIsLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
     // Handle form input changes
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -45,15 +59,19 @@ const AdminSettings = () => {
         }));
     };
 
-    // Simulate saving settings to a database
-    const handleSave = () => {
+    // Save settings to Firebase
+    const handleSave = async () => {
         setIsSaving(true);
-        // Simulate network request
-        setTimeout(() => {
-            setIsSaving(false);
+        try {
+            await set(ref(db, 'settings'), formData);
             setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000); // Hide success message after 3 seconds
-        }, 1500);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            alert("Failed to save settings. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Define the tabs available
@@ -116,8 +134,8 @@ const AdminSettings = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-3 px-5 py-3.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
-                                        ? 'bg-indigo-50 text-indigo-700 shadow-sm'
-                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                    ? 'bg-indigo-50 text-indigo-700 shadow-sm'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                                     }`}
                             >
                                 <span className={activeTab === tab.id ? 'text-indigo-600' : 'text-slate-400'}>
@@ -131,232 +149,239 @@ const AdminSettings = () => {
 
                 {/* Right Content Area */}
                 <div className="flex-1">
-                    <div className="bg-white rounded-[2rem] p-8 lg:p-10 shadow-sm border border-slate-100">
-
-                        {/* 1. General Settings Tab */}
-                        {activeTab === 'general' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-                                <div>
-                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <Store className="text-indigo-500" size={24} /> General Information
-                                    </h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Store Name</label>
-                                            <input
-                                                type="text" name="storeName" value={formData.storeName} onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Support Email</label>
-                                            <input
-                                                type="email" name="supportEmail" value={formData.supportEmail} onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Support Phone</label>
-                                            <input
-                                                type="text" name="supportPhone" value={formData.supportPhone} onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Default GST (%)</label>
-                                            <input
-                                                type="number" name="gstPercentage" value={formData.gstPercentage} onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="pt-8 border-t border-slate-100">
-                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <ShieldCheck className="text-rose-500" size={24} /> Danger Zone
-                                    </h3>
-
-                                    <div className="p-6 border border-rose-100 bg-rose-50/50 rounded-2xl flex items-center justify-between">
+                    <div className="bg-white rounded-[2rem] p-8 lg:p-10 shadow-sm border border-slate-100 min-h-[500px] flex flex-col">
+                        {isLoading ? (
+                            <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+                                <div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+                                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Syncing with Cloud...</p>
+                            </div>
+                        ) : (
+                            <>
+                                {/* 1. General Settings Tab */}
+                                {activeTab === 'general' && (
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800">Maintenance Mode</h4>
-                                            <p className="text-xs text-slate-500 mt-1">Prevent customers from placing new orders while you update the store.</p>
-                                        </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" name="maintenanceMode" checked={formData.maintenanceMode} onChange={handleChange} className="sr-only peer" />
-                                            <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500 shadow-inner"></div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
+                                            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                                <Store className="text-indigo-500" size={24} /> General Information
+                                            </h3>
 
-                        {/* 2. Shipping Settings Tab */}
-                        {activeTab === 'shipping' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-                                <div>
-                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <MapPin className="text-indigo-500" size={24} /> Delivery Rules
-                                    </h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Free Delivery Threshold (₹)</label>
-                                            <input
-                                                type="number" name="freeDeliveryThreshold" value={formData.freeDeliveryThreshold} onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all relative"
-                                            />
-                                            <p className="text-[10px] text-slate-400 font-semibold px-2">Orders above this amount get free shipping.</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Flat Delivery Fee (₹)</label>
-                                            <input
-                                                type="number" name="flatDeliveryFee" value={formData.flatDeliveryFee} onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="pt-6 border-t border-slate-100 space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                                            <Clock size={14} /> Available Time Slots
-                                        </label>
-                                        <input
-                                            type="text" name="timeSlots" value={formData.timeSlots} onChange={handleChange}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            placeholder="e.g. 9 AM - 12 PM, 4 PM - 7 PM"
-                                        />
-                                        <p className="text-[10px] text-slate-400 font-semibold px-2">Comma separated list of slots.</p>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Serviceable Pincodes</label>
-                                        <textarea
-                                            name="serviceablePincodes" value={formData.serviceablePincodes} onChange={handleChange} rows="3"
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
-                                            placeholder="e.g. 800001, 800002"
-                                        />
-                                        <p className="text-[10px] text-slate-400 font-semibold px-2">Only users with these pincodes can checkout. Leave empty to serve all.</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* 3. Payments Settings Tab */}
-                        {activeTab === 'payments' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-                                <div>
-                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <CreditCard className="text-indigo-500" size={24} /> Payment Gateways
-                                    </h3>
-                                    <p className="text-sm text-slate-500 mb-8">Toggle the payment methods you want to show on the checkout screen.</p>
-
-                                    <div className="space-y-4">
-                                        <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
-                                                    <span className="font-black text-xl">₹</span>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Store Name</label>
+                                                    <input
+                                                        type="text" name="storeName" value={formData.storeName} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                    />
                                                 </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Support Email</label>
+                                                    <input
+                                                        type="email" name="supportEmail" value={formData.supportEmail} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Support Phone</label>
+                                                    <input
+                                                        type="text" name="supportPhone" value={formData.supportPhone} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Default GST (%)</label>
+                                                    <input
+                                                        type="number" name="gstPercentage" value={formData.gstPercentage} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-8 border-t border-slate-100">
+                                            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                                <ShieldCheck className="text-rose-500" size={24} /> Danger Zone
+                                            </h3>
+
+                                            <div className="p-6 border border-rose-100 bg-rose-50/50 rounded-2xl flex items-center justify-between">
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-slate-800">Cash on Delivery (COD)</h4>
-                                                    <p className="text-xs text-slate-500 mt-0.5">Allow users to pay upon receiving the items.</p>
+                                                    <h4 className="text-sm font-bold text-slate-800">Maintenance Mode</h4>
+                                                    <p className="text-xs text-slate-500 mt-1">Prevent customers from placing new orders while you update the store.</p>
+                                                </div>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" name="maintenanceMode" checked={formData.maintenanceMode} onChange={handleChange} className="sr-only peer" />
+                                                    <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500 shadow-inner"></div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {/* 2. Shipping Settings Tab */}
+                                {activeTab === 'shipping' && (
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                                <MapPin className="text-indigo-500" size={24} /> Delivery Rules
+                                            </h3>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Free Delivery Threshold (₹)</label>
+                                                    <input
+                                                        type="number" name="freeDeliveryThreshold" value={formData.freeDeliveryThreshold} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all relative"
+                                                    />
+                                                    <p className="text-[10px] text-slate-400 font-semibold px-2">Orders above this amount get free shipping.</p>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Flat Delivery Fee (₹)</label>
+                                                    <input
+                                                        type="number" name="flatDeliveryFee" value={formData.flatDeliveryFee} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                    />
                                                 </div>
                                             </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" name="enableCOD" checked={formData.enableCOD} onChange={handleChange} className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                            </label>
                                         </div>
 
-                                        <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-                                                    <Smartphone size={20} />
+                                        <div className="pt-6 border-t border-slate-100 space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                    <Clock size={14} /> Available Time Slots
+                                                </label>
+                                                <input
+                                                    type="text" name="timeSlots" value={formData.timeSlots} onChange={handleChange}
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                    placeholder="e.g. 9 AM - 12 PM, 4 PM - 7 PM"
+                                                />
+                                                <p className="text-[10px] text-slate-400 font-semibold px-2">Comma separated list of slots.</p>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Serviceable Pincodes</label>
+                                                <textarea
+                                                    name="serviceablePincodes" value={formData.serviceablePincodes} onChange={handleChange} rows="3"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                                                    placeholder="e.g. 800001, 800002"
+                                                />
+                                                <p className="text-[10px] text-slate-400 font-semibold px-2">Only users with these pincodes can checkout. Leave empty to serve all.</p>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {/* 3. Payments Settings Tab */}
+                                {activeTab === 'payments' && (
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                                <CreditCard className="text-indigo-500" size={24} /> Payment Gateways
+                                            </h3>
+                                            <p className="text-sm text-slate-500 mb-8">Toggle the payment methods you want to show on the checkout screen.</p>
+
+                                            <div className="space-y-4">
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                                                            <span className="font-black text-xl">₹</span>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-800">Cash on Delivery (COD)</h4>
+                                                            <p className="text-xs text-slate-500 mt-0.5">Allow users to pay upon receiving the items.</p>
+                                                        </div>
+                                                    </div>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="enableCOD" checked={formData.enableCOD} onChange={handleChange} className="sr-only peer" />
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                    </label>
                                                 </div>
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-slate-800">UPI Payments</h4>
-                                                    <p className="text-xs text-slate-500 mt-0.5">Accept PhonePe, GPay, Paytm, etc.</p>
+
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                                            <Smartphone size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-800">UPI Payments</h4>
+                                                            <p className="text-xs text-slate-500 mt-0.5">Accept PhonePe, GPay, Paytm, etc.</p>
+                                                        </div>
+                                                    </div>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="enableUPI" checked={formData.enableUPI} onChange={handleChange} className="sr-only peer" />
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                    </label>
+                                                </div>
+
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                                                            <CreditCard size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-800">Credit / Debit Cards</h4>
+                                                            <p className="text-xs text-slate-500 mt-0.5">Secure card payments via Razorpay.</p>
+                                                        </div>
+                                                    </div>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="enableCards" checked={formData.enableCards} onChange={handleChange} className="sr-only peer" />
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                    </label>
                                                 </div>
                                             </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" name="enableUPI" checked={formData.enableUPI} onChange={handleChange} className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                            </label>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {/* 4. Notification Settings Tab */}
+                                {activeTab === 'notifications' && (
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                                <Bell className="text-indigo-500" size={24} /> Email Notifications
+                                            </h3>
+
+                                            <div className="space-y-6">
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <h4 className="text-sm font-bold text-slate-800">Order Confirmations</h4>
+                                                        <p className="text-xs text-slate-500 mt-1 max-w-sm">Automatically send an email receipt to customers when they successfully place an order.</p>
+                                                    </div>
+                                                    <label className="relative inline-flex items-center cursor-pointer mt-1">
+                                                        <input type="checkbox" name="orderEmails" checked={formData.orderEmails} onChange={handleChange} className="sr-only peer" />
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                                    </label>
+                                                </div>
+
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <h4 className="text-sm font-bold text-slate-800">Promotional Emails</h4>
+                                                        <p className="text-xs text-slate-500 mt-1 max-w-sm">Send marketing emails about new farm products and discounts to subscribed users.</p>
+                                                    </div>
+                                                    <label className="relative inline-flex items-center cursor-pointer mt-1">
+                                                        <input type="checkbox" name="promotionalEmails" checked={formData.promotionalEmails} onChange={handleChange} className="sr-only peer" />
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
-                                                    <CreditCard size={20} />
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-slate-800">Credit / Debit Cards</h4>
-                                                    <p className="text-xs text-slate-500 mt-0.5">Secure card payments via Razorpay.</p>
-                                                </div>
+                                        <div className="pt-8 border-t border-slate-100">
+                                            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                                <Mail className="text-indigo-500" size={24} /> Admin Alerts
+                                            </h3>
+
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Receive Alerts At</label>
+                                                <input
+                                                    type="email" name="adminAlertsEmail" value={formData.adminAlertsEmail} onChange={handleChange}
+                                                    className="w-full md:w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                />
+                                                <p className="text-[10px] text-slate-400 font-semibold px-2">New order notifications and contact form submissions will be sent to this email.</p>
                                             </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" name="enableCards" checked={formData.enableCards} onChange={handleChange} className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                            </label>
                                         </div>
-                                    </div>
-                                </div>
-                            </motion.div>
+                                    </motion.div>
+                                )}
+                            </>
                         )}
-
-                        {/* 4. Notification Settings Tab */}
-                        {activeTab === 'notifications' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-                                <div>
-                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <Bell className="text-indigo-500" size={24} /> Email Notifications
-                                    </h3>
-
-                                    <div className="space-y-6">
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <h4 className="text-sm font-bold text-slate-800">Order Confirmations</h4>
-                                                <p className="text-xs text-slate-500 mt-1 max-w-sm">Automatically send an email receipt to customers when they successfully place an order.</p>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer mt-1">
-                                                <input type="checkbox" name="orderEmails" checked={formData.orderEmails} onChange={handleChange} className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                                            </label>
-                                        </div>
-
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <h4 className="text-sm font-bold text-slate-800">Promotional Emails</h4>
-                                                <p className="text-xs text-slate-500 mt-1 max-w-sm">Send marketing emails about new farm products and discounts to subscribed users.</p>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer mt-1">
-                                                <input type="checkbox" name="promotionalEmails" checked={formData.promotionalEmails} onChange={handleChange} className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="pt-8 border-t border-slate-100">
-                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <Mail className="text-indigo-500" size={24} /> Admin Alerts
-                                    </h3>
-
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Receive Alerts At</label>
-                                        <input
-                                            type="email" name="adminAlertsEmail" value={formData.adminAlertsEmail} onChange={handleChange}
-                                            className="w-full md:w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                        />
-                                        <p className="text-[10px] text-slate-400 font-semibold px-2">New order notifications and contact form submissions will be sent to this email.</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
                     </div>
                 </div>
             </div>

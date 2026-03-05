@@ -1,54 +1,60 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Download, CreditCard, Wallet, Receipt, RefreshCcw } from 'lucide-react';
-
-const paymentData = [
-    {
-        paymentId: "PAY-001",
-        orderId: "ORD-001",
-        customer: "Rahul Sharma",
-        amount: "₹2499",
-        method: "UPI",
-        status: "Success"
-    },
-    {
-        paymentId: "PAY-002",
-        orderId: "ORD-002",
-        customer: "Priya Singh",
-        amount: "₹4999",
-        method: "Card",
-        status: "Success"
-    },
-    {
-        paymentId: "PAY-003",
-        orderId: "ORD-003",
-        customer: "Amit Kumar",
-        amount: "₹1299",
-        method: "COD",
-        status: "Pending"
-    }
-];
-
-// Helper to style the Method pill
-const getMethodStyle = (method) => {
-    switch (method) {
-        case 'UPI': return 'bg-blue-50 text-blue-600 border-blue-200';
-        case 'Card': return 'bg-indigo-50 text-indigo-600 border-indigo-200';
-        case 'COD': return 'bg-slate-100 text-slate-600 border-slate-200';
-        default: return 'bg-slate-100 text-slate-600 border-slate-200';
-    }
-};
-
-// Helper to style the Status pill
-const getStatusStyle = (status) => {
-    switch (status) {
-        case 'Success': return 'bg-emerald-50 text-emerald-600 border-emerald-200';
-        case 'Pending': return 'bg-amber-50 text-amber-600 border-amber-200';
-        case 'Failed': return 'bg-red-50 text-red-600 border-red-200';
-        default: return 'bg-slate-100 text-slate-600 border-slate-200';
-    }
-};
+import { db } from '../../firebase';
+import { ref, onValue } from 'firebase/database';
 
 const AdminPayments = () => {
+    const [orders, setOrders] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const ordersRef = ref(db, 'orders');
+        const unsubscribe = onValue(ordersRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            const orderList = Object.keys(data).map(key => ({
+                ...data[key],
+                firebaseId: key
+            }));
+            setOrders(orderList.reverse());
+            setIsLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const stats = useMemo(() => {
+        const totalRevenue = orders.reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+        const onlinePayments = orders.filter(o => o.paymentMethod !== 'COD').reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+        const codPayments = orders.filter(o => o.paymentMethod === 'COD').reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+
+        return {
+            totalRevenue,
+            onlinePayments,
+            codPayments,
+            pendingRefunds: 0 // Mock for now
+        };
+    }, [orders]);
+
+    // Helper to style the Method pill
+    const getMethodStyle = (method) => {
+        switch (method) {
+            case 'UPI': return 'bg-blue-50 text-blue-600 border-blue-200';
+            case 'Card': return 'bg-indigo-50 text-indigo-600 border-indigo-200';
+            case 'COD': return 'bg-slate-100 text-slate-600 border-slate-200';
+            default: return 'bg-slate-100 text-slate-600 border-slate-200';
+        }
+    };
+
+    // Helper to style the Status pill
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'Success':
+            case 'Delivered': return 'bg-emerald-50 text-emerald-600 border-emerald-200';
+            case 'Pending': return 'bg-amber-50 text-amber-600 border-amber-200';
+            case 'Failed': return 'bg-red-50 text-red-600 border-red-200';
+            default: return 'bg-slate-100 text-slate-600 border-slate-200';
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto w-full animate-fade-in pb-12">
             {/* Header Area */}
@@ -65,7 +71,7 @@ const AdminPayments = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Total Revenue */}
                 <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹2.45L</h3>
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹{(stats.totalRevenue / 100000).toFixed(2)}L</h3>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Wallet size={16} /> Total Revenue
                     </p>
@@ -75,7 +81,7 @@ const AdminPayments = () => {
                 <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-indigo-100 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out z-0"></div>
                     <div className="relative z-10 flex flex-col justify-center h-full">
-                        <h3 className="text-[2.2rem] font-black text-indigo-600 group-hover:text-white transition-colors tracking-tight mb-1">₹1.89L</h3>
+                        <h3 className="text-[2.2rem] font-black text-indigo-600 group-hover:text-white transition-colors tracking-tight mb-1">₹{(stats.onlinePayments / 1000).toFixed(1)}K</h3>
                         <p className="text-sm font-bold text-indigo-400 group-hover:text-indigo-200 transition-colors uppercase tracking-widest flex items-center gap-2">
                             <CreditCard size={16} /> Online Payments
                         </p>
@@ -84,7 +90,7 @@ const AdminPayments = () => {
 
                 {/* COD Payments */}
                 <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹56K</h3>
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹{(stats.codPayments / 1000).toFixed(1)}K</h3>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Receipt size={16} /> COD Payments
                     </p>
@@ -92,7 +98,7 @@ const AdminPayments = () => {
 
                 {/* Pending Refunds */}
                 <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹12K</h3>
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹0</h3>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <RefreshCcw size={16} /> Pending Refunds
                     </p>
@@ -114,7 +120,6 @@ const AdminPayments = () => {
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className="bg-slate-50/50">
-                                <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Payment ID</th>
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Order ID</th>
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Customer</th>
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Amount</th>
@@ -124,32 +129,33 @@ const AdminPayments = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {paymentData.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                            {isLoading ? (
+                                <tr><td colSpan="6" className="py-10 text-center text-slate-400 font-black uppercase tracking-widest text-xs">Syncing payments...</td></tr>
+                            ) : orders.length === 0 ? (
+                                <tr><td colSpan="6" className="py-10 text-center text-slate-400 font-black uppercase tracking-widest text-xs">No transactions found</td></tr>
+                            ) : orders.map((o) => (
+                                <tr key={o.firebaseId} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="py-4 px-6">
-                                        <span className="font-bold text-slate-600 text-sm">{item.paymentId}</span>
+                                        <span className="font-bold text-slate-600 text-sm">#{o.firebaseId.slice(-6).toUpperCase()}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className="font-bold text-slate-600 text-sm">{item.orderId}</span>
+                                        <span className="text-sm font-semibold text-slate-700">{o.shippingAddress?.fullName || 'Anonymous'}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className="text-sm font-semibold text-slate-700">{item.customer}</span>
+                                        <span className="text-sm font-bold text-slate-700">₹{o.grandTotal}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className="text-sm font-bold text-slate-700">{item.amount}</span>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getMethodStyle(item.method)}`}>
-                                            {item.method}
+                                        <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getMethodStyle(o.paymentMethod)}`}>
+                                            {o.paymentMethod || 'N/A'}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(item.status)}`}>
-                                            {item.status}
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(o.status)}`}>
+                                            {o.status}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className="text-sm font-semibold text-slate-500">2024-01-15</span>
+                                        <span className="text-sm font-semibold text-slate-500">{new Date(o.date).toLocaleDateString()}</span>
                                     </td>
                                 </tr>
                             ))}

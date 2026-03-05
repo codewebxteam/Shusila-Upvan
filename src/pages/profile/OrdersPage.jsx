@@ -97,8 +97,8 @@ const OrdersPage = () => {
                                     {/* Items Preview */}
                                     <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
                                         {order.items.map((item, idx) => (
-                                            <div key={idx} className="w-16 h-16 bg-slate-50 rounded-2xl border border-slate-100 p-2 shrink-0">
-                                                <img src={item.img} alt={item.name} className="w-full h-full object-contain" />
+                                            <div key={idx} className="w-40 h-40 bg-white rounded-[2.5rem] border border-slate-100 p-6 shrink-0 shadow-sm group-hover:border-emerald-100 transition-all duration-500">
+                                                <img src={item.img} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
                                             </div>
                                         ))}
                                     </div>
@@ -107,7 +107,7 @@ const OrdersPage = () => {
                                     <div className="flex items-center justify-between pt-8 border-t border-slate-50">
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Amount</p>
-                                            <p className="text-xl font-bold font-serif text-[#313628]">₹{order.grandTotal.toLocaleString('en-IN')}</p>
+                                            <p className="text-xl font-bold font-serif text-[#313628]">₹{(order.grandTotal || order.amount || 0).toLocaleString('en-IN')}</p>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <motion.button

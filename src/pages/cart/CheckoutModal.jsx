@@ -20,10 +20,34 @@ const CheckoutModal = ({ onClose }) => {
         pincode: '', locality: '', street: '', city: '', state: '', landmark: '', alternatePhone: '',
         addressType: 'home',
         paymentMethod: 'cod',
+        selectedBank: '',
+        selectedWallet: '',
+        upiId: '',
+        cardDetails: { number: '', name: '', expiry: '', cvv: '' },
         deliveryDate: new Date().toISOString().split('T')[0],
         timeSlot: '9 AM - 12 PM',
         selectedAddressId: 1
     });
+
+    const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
+    const [isWalletDropdownOpen, setIsWalletDropdownOpen] = useState(false);
+
+    const banks = [
+        { id: 'sbi', name: 'State Bank of India', icon: 'https://cdn.iconscout.com/icon/free/png-256/free-sbi-3629051-3030232.png' },
+        { id: 'hdfc', name: 'HDFC Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/HDFC_Bank_Logo.svg/2560px-HDFC_Bank_Logo.svg.png' },
+        { id: 'icici', name: 'ICICI Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/ICICI_Bank_Logo.svg/1200px-ICICI_Bank_Logo.svg.png' },
+        { id: 'axis', name: 'Axis Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Axis_Bank_logo.svg/2560px-Axis_Bank_logo.svg.png' },
+        { id: 'kotak', name: 'Kotak Mahindra Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Kotak_Mahindra_Bank_logo.svg/2560px-Kotak_Mahindra_Bank_logo.svg.png' },
+        { id: 'pnb', name: 'Punjab National Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Punjab_National_Bank_Logo.svg/2560px-Punjab_National_Bank_Logo.svg.png' },
+        { id: 'bob', name: 'Bank of Baroda', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Bank_of_Baroda_Logo.svg/2560px-Bank_of_Baroda_Logo.svg.png' },
+        { id: 'idbi', name: 'IDBI Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/IDBI_Bank_Logo.svg/2560px-IDBI_Bank_Logo.svg.png' },
+    ];
+
+    const wallets = [
+        { id: 'paytm', name: 'Paytm', icon: 'https://logos-world.net/wp-content/uploads/2020/11/Paytm-Logo.png' },
+        { id: 'phonepe', name: 'PhonePe', icon: 'https://logos-world.net/wp-content/uploads/2020/11/PhonePe-Logo.png' },
+        { id: 'amazon', name: 'Amazon Pay', icon: 'https://logos-world.net/wp-content/uploads/2021/04/Amazon-Pay-Logo.png' },
+    ];
 
     const savedAddresses = [
         { id: 1, name: 'Ajeet Kumar', mobile: '9876543210', pincode: '800001', locality: 'Boring Road', street: 'Flat 402, Shanti Complex', city: 'Patna', state: 'Bihar', type: 'Home' },
@@ -34,20 +58,29 @@ const CheckoutModal = ({ onClose }) => {
     const [orderPlaced, setOrderPlaced] = useState(false);
 
     const handleChange = (e) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        if (name.startsWith('card.')) {
+            const field = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                cardDetails: { ...prev.cardDetails, [field]: value }
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handlePlaceOrder = () => {
+        const itemsToPass = [...cartItems];
         placeOrder({
-            items: cartItems,
+            items: itemsToPass,
             subtotal,
             tax,
             grandTotal,
             ...formData
         });
-        clearCart();
         onClose();
-        navigate('/success');
+        navigate('/success', { state: { items: itemsToPass } });
     };
 
     const steps = [
@@ -69,11 +102,11 @@ const CheckoutModal = ({ onClose }) => {
         const method = paymentMethods.find(m => m.id === formData.paymentMethod);
         switch (formData.paymentMethod) {
             case 'cod': return `Pay ₹${grandTotal.toLocaleString('en-IN')} in cash when the product arrives.`;
-            case 'upi': return "Scan the QR code in the next step or enter your UPI ID.";
+            case 'upi': return formData.upiId ? `Paying via ${formData.upiId}` : "Enter your UPI ID to proceed.";
             case 'debit':
-            case 'credit': return "Secure checkout with 128-bit encryption.";
-            case 'bank': return "Select your bank from the list (SBI, HDFC, ICICI, etc.)";
-            case 'wallet': return "Pay using Paytm, PhonePe, or Amazon Pay.";
+            case 'credit': return formData.cardDetails.number ? `Card ending in ${formData.cardDetails.number.slice(-4)}` : "Enter your card details safely.";
+            case 'bank': return formData.selectedBank ? `Paying via ${banks.find(b => b.id === formData.selectedBank)?.name}` : "Select your bank to continue.";
+            case 'wallet': return formData.selectedWallet ? `Paying via ${wallets.find(w => w.id === formData.selectedWallet)?.name}` : "Select your favorite wallet.";
             default: return "";
         }
     };
@@ -526,16 +559,162 @@ const CheckoutModal = ({ onClose }) => {
                                     key={formData.paymentMethod}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="p-6 bg-[#f8f9f4] rounded-[2.5rem] border border-dashed border-[#dce0bc] mb-10 flex items-center gap-5"
+                                    className="p-8 bg-[#f8f9f4] rounded-[3rem] border border-dashed border-[#dce0bc] mb-10"
                                 >
-                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#a4a87a] shadow-sm shrink-0">
-                                        {paymentMethods.find(m => m.id === formData.paymentMethod)?.icon}
+                                    <div className="flex items-center gap-5 mb-6">
+                                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#a4a87a] shadow-sm shrink-0">
+                                            {paymentMethods.find(m => m.id === formData.paymentMethod)?.icon}
+                                        </div>
+                                        <div className="leading-tight">
+                                            <h5 className="text-sm font-bold text-[#3a3f30] mb-1">
+                                                {paymentMethods.find(m => m.id === formData.paymentMethod)?.label} Details
+                                            </h5>
+                                            <p className="text-xs text-slate-500 font-medium">{getPaymentDetails()}</p>
+                                        </div>
                                     </div>
-                                    <div className="leading-tight">
-                                        <h5 className="text-sm font-bold text-[#3a3f30] mb-1">
-                                            {paymentMethods.find(m => m.id === formData.paymentMethod)?.label} Selected
-                                        </h5>
-                                        <p className="text-xs text-slate-500 font-medium">{getPaymentDetails()}</p>
+
+                                    {/* Sub-options UI */}
+                                    <div className="pt-2">
+                                        {/* Bank Selection Dropdown */}
+                                        {formData.paymentMethod === 'bank' && (
+                                            <div className="relative">
+                                                <button
+                                                    onClick={() => setIsBankDropdownOpen(!isBankDropdownOpen)}
+                                                    className="w-full flex items-center justify-between p-4 bg-white border border-white rounded-[1.8rem] shadow-sm hover:shadow-md transition-all group"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        {formData.selectedBank ? (
+                                                            <>
+                                                                <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-50 p-1">
+                                                                    <img src={banks.find(b => b.id === formData.selectedBank)?.icon} alt="" className="w-full h-full object-contain" />
+                                                                </div>
+                                                                <span className="text-sm font-bold text-slate-800">{banks.find(b => b.id === formData.selectedBank)?.name}</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+                                                                    <Landmark size={20} />
+                                                                </div>
+                                                                <span className="text-sm font-bold text-slate-400">Select Your Bank</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <ChevronRight className={`text-slate-400 transition-transform ${isBankDropdownOpen ? 'rotate-90' : ''}`} size={18} />
+                                                </button>
+
+                                                {isBankDropdownOpen && (
+                                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-3 z-20 max-h-[300px] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2">
+                                                        {banks.map(bank => (
+                                                            <button
+                                                                key={bank.id}
+                                                                onClick={() => { setFormData(prev => ({ ...prev, selectedBank: bank.id })); setIsBankDropdownOpen(false); }}
+                                                                className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all ${formData.selectedBank === bank.id ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-600'}`}
+                                                            >
+                                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white p-1 shrink-0 border border-slate-100">
+                                                                    <img src={bank.icon} alt={bank.name} className="w-full h-full object-contain" />
+                                                                </div>
+                                                                <span className="text-sm font-bold">{bank.name}</span>
+                                                                {formData.selectedBank === bank.id && <CheckCircle2 size={16} className="ml-auto" />}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Wallet Selection Dropdown */}
+                                        {formData.paymentMethod === 'wallet' && (
+                                            <div className="relative">
+                                                <button
+                                                    onClick={() => setIsWalletDropdownOpen(!isWalletDropdownOpen)}
+                                                    className="w-full flex items-center justify-between p-4 bg-white border border-white rounded-[1.8rem] shadow-sm hover:shadow-md transition-all group"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        {formData.selectedWallet ? (
+                                                            <>
+                                                                <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-50 p-1">
+                                                                    <img src={wallets.find(w => w.id === formData.selectedWallet)?.icon} alt="" className="w-full h-full object-contain" />
+                                                                </div>
+                                                                <span className="text-sm font-bold text-slate-800">{wallets.find(w => w.id === formData.selectedWallet)?.name}</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+                                                                    <Wallet size={20} />
+                                                                </div>
+                                                                <span className="text-sm font-bold text-slate-400">Select Digital Wallet</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <ChevronRight className={`text-slate-400 transition-transform ${isWalletDropdownOpen ? 'rotate-90' : ''}`} size={18} />
+                                                </button>
+
+                                                {isWalletDropdownOpen && (
+                                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-3 z-20 animate-in fade-in slide-in-from-top-2">
+                                                        {wallets.map(wallet => (
+                                                            <button
+                                                                key={wallet.id}
+                                                                onClick={() => { setFormData(prev => ({ ...prev, selectedWallet: wallet.id })); setIsWalletDropdownOpen(false); }}
+                                                                className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all ${formData.selectedWallet === wallet.id ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-600'}`}
+                                                            >
+                                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white p-1 shrink-0 border border-slate-100">
+                                                                    <img src={wallet.icon} alt={wallet.name} className="w-full h-full object-contain" />
+                                                                </div>
+                                                                <span className="text-sm font-bold">{wallet.name}</span>
+                                                                {formData.selectedWallet === wallet.id && <CheckCircle2 size={16} className="ml-auto" />}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* UPI Input */}
+                                        {formData.paymentMethod === 'upi' && (
+                                            <div className="relative">
+                                                <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                                <input
+                                                    name="upiId" value={formData.upiId} onChange={handleChange}
+                                                    placeholder="Enter your UPI ID (e.g., user@okhdfcbank)"
+                                                    className="w-full pl-14 pr-6 py-4 bg-white border border-white rounded-[1.8rem] text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* Card Details */}
+                                        {(formData.paymentMethod === 'debit' || formData.paymentMethod === 'credit') && (
+                                            <div className="space-y-4">
+                                                <div className="relative">
+                                                    <CreditCard className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                                    <input
+                                                        name="card.number" value={formData.cardDetails.number} onChange={handleChange}
+                                                        placeholder="Card Number"
+                                                        maxLength={16}
+                                                        className="w-full pl-14 pr-6 py-4 bg-white border border-white rounded-[1.8rem] text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm tracking-[0.2em]"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="relative">
+                                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                                        <input
+                                                            name="card.expiry" value={formData.cardDetails.expiry} onChange={handleChange}
+                                                            placeholder="MM/YY"
+                                                            maxLength={5}
+                                                            className="w-full pl-14 pr-6 py-4 bg-white border border-white rounded-[1.8rem] text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="relative">
+                                                        <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                                        <input
+                                                            name="card.cvv" value={formData.cardDetails.cvv} onChange={handleChange}
+                                                            placeholder="CVV"
+                                                            maxLength={3}
+                                                            className="w-full pl-14 pr-6 py-4 bg-white border border-white rounded-[1.8rem] text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
 

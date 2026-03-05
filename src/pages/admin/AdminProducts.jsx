@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pencil, Trash2, Plus, X, Upload } from 'lucide-react';
+import { db } from '../../firebase';
+import { ref, onValue, set, push, remove, update } from 'firebase/database';
+import { products as initialProductsData } from '../../data/products';
 
 const initialProducts = [
     { id: 1, name: 'Fresh Milk (1L)', category: 'Dairy Product', price: 60, stock: 150, status: 'Active', icon: '🥛' },
@@ -12,8 +15,37 @@ const initialProducts = [
 ];
 
 const AdminProducts = () => {
-    const [products, setProducts] = useState(initialProducts);
+    const [products, setProducts] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Sync with Firebase
+    useEffect(() => {
+        const productsRef = ref(db, 'products');
+        const unsubscribe = onValue(productsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const productList = Object.keys(data).map(key => ({
+                    ...data[key],
+                    firebaseId: key
+                }));
+                setProducts(productList.reverse());
+            } else {
+                // If DB is empty, seed it with initial data (optional but helpful for first run)
+                initialProductsData.forEach(p => {
+                    const newRef = push(ref(db, 'products'));
+                    set(newRef, {
+                        ...p,
+                        status: 'Active',
+                        stock: Math.floor(Math.random() * 100)
+                    });
+                });
+            }
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     // Form state
     const [newProduct, setNewProduct] = useState({
@@ -75,18 +107,23 @@ const AdminProducts = () => {
         if (newProduct.category === 'Mushroom Product') icon = '🍄';
         else if (newProduct.category === 'Dairy Product') icon = '🥛';
 
-        // Add to list
-        const productToAdd = {
-            id: products.length + 1,
+        // Prepare record
+        const productData = {
             name: newProduct.weight ? `${newProduct.name} (${newProduct.weight})` : newProduct.name,
             category: newProduct.category,
             price: parseFloat(newProduct.price),
             stock: stockNum,
             status: status,
-            icon: icon
+            icon: icon,
+            description: newProduct.description,
+            discount: newProduct.discount || 0,
+            createdAt: new Date().toISOString()
         };
 
-        setProducts([productToAdd, ...products]); // Add to top for visibility
+        // Push to Firebase
+        const productsRef = ref(db, 'products');
+        push(productsRef, productData);
+
         setIsAddModalOpen(false);
 
         // Reset form
@@ -94,6 +131,16 @@ const AdminProducts = () => {
             name: '', price: '', discount: '', description: '', image: null, stock: '', weight: '', category: 'Dairy Product'
         });
     };
+
+    const handleDelete = (firebaseId) => {
+        if (window.confirm('Are you sure you want to delete this product?')) {
+            remove(ref(db, `products/${firebaseId}`));
+        }
+    };
+
+    if (isLoading) {
+        return <div className="p-12 text-center font-black text-slate-400 uppercase tracking-widest">Loading Products...</div>;
+    }
 
     return (
         <div className="w-full animate-fade-in pb-12 relative">
@@ -149,7 +196,7 @@ const AdminProducts = () => {
                                             <button
                                                 className="hover:text-rose-600 transition-colors p-2 hover:bg-rose-50 rounded-lg"
                                                 title="Delete Product"
-                                                onClick={() => setProducts(products.filter(p => p.id !== product.id))}
+                                                onClick={() => handleDelete(product.firebaseId)}
                                             >
                                                 <Trash2 size={18} strokeWidth={2.5} />
                                             </button>
@@ -351,6 +398,5 @@ const AdminProducts = () => {
             `}</style>
         </div>
     );
-};
-
+}
 export default AdminProducts;

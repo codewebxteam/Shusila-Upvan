@@ -1,56 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Phone, Ban, Users, UserPlus, Star, Landmark } from 'lucide-react';
-
-const customersData = [
-    {
-        id: 1,
-        customer: "Rahul Sharma",
-        email: "rahul@example.com",
-        orders: 12,
-        spent: "₹45,600",
-        joined: "2023-06-15",
-        status: "Active"
-    },
-    {
-        id: 2,
-        customer: "Priya Singh",
-        email: "priya@example.com",
-        orders: 8,
-        spent: "₹32,400",
-        joined: "2023-08-20",
-        status: "Active"
-    },
-    {
-        id: 3,
-        customer: "Amit Kumar",
-        email: "amit@example.com",
-        orders: 5,
-        spent: "₹18,900",
-        joined: "2023-10-10",
-        status: "Active"
-    },
-    {
-        id: 4,
-        customer: "Sneha Patel",
-        email: "sneha@example.com",
-        orders: 15,
-        spent: "₹67,800",
-        joined: "2023-05-05",
-        status: "VIP"
-    }
-];
-
-// Helper to style the Status pill
-const getStatusStyle = (status) => {
-    switch (status) {
-        case 'Active': return 'bg-emerald-100 text-emerald-700';
-        case 'VIP': return 'bg-[#fef08a] text-[#854d0e]'; // Custom gold/yellow tailwind colors for VIP match
-        case 'Inactive': return 'bg-slate-100 text-slate-600';
-        default: return 'bg-slate-100 text-slate-600';
-    }
-};
+import { db } from '../../firebase';
+import { ref, onValue } from 'firebase/database';
 
 const AdminCustomers = () => {
+    const [customers, setCustomers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch Users and Orders to calculate stats
+        const usersRef = ref(db, 'users');
+        const ordersRef = ref(db, 'orders');
+
+        const unsubUsers = onValue(usersRef, (userSnap) => {
+            const usersData = userSnap.val() || {};
+
+            // Listen to orders to get real-time stats for users
+            onValue(ordersRef, (orderSnap) => {
+                const ordersData = orderSnap.val() || {};
+                const ordersList = Object.values(ordersData);
+
+                const customerList = Object.keys(usersData).map(uid => {
+                    const userOrders = ordersList.filter(o => o.userId === uid);
+                    const totalSpent = userOrders.reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+
+                    return {
+                        id: uid,
+                        customer: usersData[uid].displayName || usersData[uid].name || 'Anonymous',
+                        email: usersData[uid].email || 'N/A',
+                        orders: userOrders.length,
+                        spent: `₹${totalSpent.toLocaleString()}`,
+                        joined: usersData[uid].createdAt ? new Date(usersData[uid].createdAt).toLocaleDateString() : 'N/A',
+                        status: userOrders.length > 5 ? 'VIP' : 'Active'
+                    };
+                });
+
+                setCustomers(customerList);
+                setIsLoading(false);
+            }, { onlyOnce: true }); // Avoid nested persistent listeners if possible, but for admin it's okay
+        });
+
+        return () => unsubUsers();
+    }, []);
+
+    // Helper to style the Status pill
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'Active': return 'bg-emerald-100 text-emerald-700';
+            case 'VIP': return 'bg-[#fef08a] text-[#854d0e]';
+            case 'Inactive': return 'bg-slate-100 text-slate-600';
+            default: return 'bg-slate-100 text-slate-600';
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto w-full animate-fade-in pb-12">
             {/* Header Area */}
@@ -66,35 +68,33 @@ const AdminCustomers = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Total Customers */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden group">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">892</h3>
-                    <p className="text-sm font-bold text-slate-400">
-                        Total Customers
-                    </p>
-                </div>
-
-                {/* New This Month */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">45</h3>
-                    <p className="text-sm font-bold text-slate-400">
-                        New This Month
-                    </p>
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden group border-b-4 border-b-indigo-500">
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">{customers.length}</h3>
+                    <p className="text-sm font-bold text-slate-400">Total Customers</p>
                 </div>
 
                 {/* VIP Customers */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">234</h3>
-                    <p className="text-sm font-bold text-slate-400">
-                        VIP Customers
-                    </p>
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden border-b-4 border-b-amber-500">
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">
+                        {customers.filter(c => c.status === 'VIP').length}
+                    </h3>
+                    <p className="text-sm font-bold text-slate-400">VIP Customers</p>
                 </div>
 
-                {/* Avg Lifetime Value */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹2.4L</h3>
-                    <p className="text-sm font-bold text-slate-400">
-                        Avg. Lifetime Value
-                    </p>
+                {/* Avg Orders */}
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden border-b-4 border-b-emerald-500">
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">
+                        {customers.length > 0 ? (customers.reduce((s, c) => s + c.orders, 0) / customers.length).toFixed(1) : 0}
+                    </h3>
+                    <p className="text-sm font-bold text-slate-400">Avg. Orders/User</p>
+                </div>
+
+                {/* Revenue/Cust */}
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden border-b-4 border-b-rose-500">
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">
+                        ₹{customers.length > 0 ? Math.floor(customers.reduce((s, c) => s + parseInt(c.spent.replace(/[₹,]/g, '')), 0) / customers.length).toLocaleString() : 0}
+                    </h3>
+                    <p className="text-sm font-bold text-slate-400">Avg. Revenue/User</p>
                 </div>
             </div>
 
@@ -118,7 +118,11 @@ const AdminCustomers = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {customersData.map((item) => (
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan="7" className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Loading data...</td>
+                                </tr>
+                            ) : customers.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="py-4 px-6">
                                         <span className="font-bold text-slate-700 text-sm block">{item.customer}</span>
@@ -145,9 +149,6 @@ const AdminCustomers = () => {
                                             <button className="text-slate-400 hover:text-slate-600 transition-colors" title="Message">
                                                 <Mail size={16} strokeWidth={2.5} />
                                             </button>
-                                            <button className="text-slate-400 hover:text-slate-600 transition-colors" title="Call">
-                                                <Phone size={16} strokeWidth={2.5} />
-                                            </button>
                                             <button className="text-slate-400 hover:text-red-500 transition-colors" title="Block">
                                                 <Ban size={16} strokeWidth={2.5} />
                                             </button>
@@ -159,7 +160,6 @@ const AdminCustomers = () => {
                     </table>
                 </div>
             </div>
-
         </div>
     );
 };

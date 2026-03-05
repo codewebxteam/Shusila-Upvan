@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, ChevronRight, Box, Truck, CheckCircle2, Clock, Home, X } from 'lucide-react';
+import { Package, ChevronRight, Box, Truck, CheckCircle2, Clock, Home, X, MoreVertical } from 'lucide-react';
 import { useOrders } from '../../context/OrderContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,41 +38,58 @@ const OrderHistory = () => {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <h3 className="text-3xl font-black text-slate-900 tracking-tighter italic mb-8">Order History.</h3>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-6">
         {orders.map((order) => (
-          <div key={order.id} className="flex flex-col md:flex-row items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-transparent hover:border-emerald-100 transition-all">
-            <div className="flex items-center gap-6 mb-4 md:mb-0">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-400">
-                <Package size={24} />
+          <motion.div
+            key={order.id}
+            layoutId={order.id}
+            className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden hover:shadow-xl hover:border-emerald-100 transition-all duration-500 group"
+          >
+            <div className="p-8">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                    <Box size={24} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Order ID: {order.id}</p>
+                    <p className="text-xs font-bold text-slate-900">Placed on {formatDate(order.date)}</p>
+                  </div>
+                </div>
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(order.status)}`}>
+                  {order.status}
+                </span>
               </div>
-              <div>
-                <p className="text-sm font-black text-slate-900 leading-none mb-1">{order.id}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatDate(order.date)}</p>
+
+              <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                {order.items.map((item, idx) => (
+                  <div key={idx} className="w-40 h-40 bg-white rounded-[2.5rem] border border-slate-100 p-6 shrink-0 shadow-sm group-hover:border-emerald-100 transition-all duration-500">
+                    <img src={item.img} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-8 border-t border-slate-50">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Amount</p>
+                  <p className="text-xl font-bold font-serif text-[#313628]">₹{(order.grandTotal || order.amount || 0).toLocaleString('en-IN')}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSelectedOrder(order)}
+                    className="px-6 py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200/50 flex items-center gap-2"
+                  >
+                    Track Order <ChevronRight size={14} />
+                  </motion.button>
+                </div>
               </div>
             </div>
-
-            <div className="text-center md:text-left mb-4 md:mb-0 px-8">
-              <p className="text-xs font-black text-slate-900 mb-1">
-                {order.items.length} {order.items.length === 1 ? 'Item' : 'Items'}
-              </p>
-              <p className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full inline-block ${getStatusColor(order.status)}`}>
-                {order.status}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <span className="text-lg font-black text-slate-900">₹{order.grandTotal.toLocaleString('en-IN')}</span>
-              <button
-                onClick={() => setSelectedOrder(order)}
-                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-300 hover:text-emerald-600 shadow-sm border border-slate-100"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 

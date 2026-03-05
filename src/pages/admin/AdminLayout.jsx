@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { db } from '../../firebase';
+import { ref, onValue } from 'firebase/database';
 import {
     LayoutDashboard,
     Package,
@@ -21,9 +23,52 @@ const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { user, logout } = useAuth();
+    const [pendingOrders, setPendingOrders] = useState([]);
+    const [messages, setMessages] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [showMessages, setShowMessages] = useState(false);
 
-    // Redirect if not admin (for security in a real app, though here we just rely on login)
-    // Actually, we'll just show it for anyone accessing /admin if they are meant to be an admin.
+    useEffect(() => {
+        const ordersRef = ref(db, 'orders');
+        const messagesRef = ref(db, 'messages');
+
+        const unsubOrders = onValue(ordersRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const list = Object.keys(data).map(key => ({ ...data[key], id: key })).filter(o => o.status === 'Pending');
+                setPendingOrders(list.reverse());
+            } else {
+                setPendingOrders([]);
+            }
+        });
+
+        const unsubMessages = onValue(messagesRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const list = Object.keys(data).map(key => ({ ...data[key], id: key }));
+                setMessages(list.reverse());
+            } else {
+                setMessages([]);
+            }
+        });
+
+        return () => {
+            unsubOrders();
+            unsubMessages();
+        };
+    }, []);
+
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (!e.target.closest('.relative')) {
+                setShowNotifications(false);
+                setShowMessages(false);
+            }
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
 
     const sidebarItems = [
         { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
@@ -84,7 +129,7 @@ const AdminLayout = () => {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
                 {/* Top Header */}
-                <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] z-10 shrink-0">
+                <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] z-[50] shrink-0">
                     {/* Search Bar */}
                     <div className="flex-1 max-w-xl relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -98,15 +143,117 @@ const AdminLayout = () => {
                     {/* Right Toolbar */}
                     <div className="flex items-center gap-6 pl-6">
                         {/* Notifications */}
-                        <div className="flex items-center gap-4">
-                            <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                                <Bell size={20} />
-                                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-                            </button>
-                            <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                                <Mail size={20} />
-                                <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold border-2 border-white rounded-full flex items-center justify-center">12</span>
-                            </button>
+                        <div className="flex items-center gap-4 relative">
+                            {/* Bell Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => {
+                                        setShowNotifications(!showNotifications);
+                                        setShowMessages(false);
+                                    }}
+                                    className={`relative p-2 rounded-full transition-colors ${showNotifications ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+                                >
+                                    <Bell size={20} />
+                                    {pendingOrders.length > 0 && (
+                                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full scale-110"></span>
+                                    )}
+                                </button>
+
+                                {showNotifications && (
+                                    <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Notifications</h3>
+                                            <span className="text-[10px] font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">{pendingOrders.length} New</span>
+                                        </div>
+                                        <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+                                            {pendingOrders.length > 0 ? (
+                                                <div className="divide-y divide-slate-50">
+                                                    {pendingOrders.map((order) => (
+                                                        <div key={order.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => { navigate('/admin/orders'); setShowNotifications(false); }}>
+                                                            <div className="flex items-start gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                                                                    <ShoppingCart size={14} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[12px] font-bold text-slate-800 leading-tight">New Order: {order.orderId}</p>
+                                                                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">Customer: {order.customer || 'Guest'}</p>
+                                                                    <p className="text-[9px] font-bold text-slate-400 mt-1">{order.date || 'Just now'}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="p-10 text-center">
+                                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                                        <Bell size={24} />
+                                                    </div>
+                                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">There is no notification you received</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {pendingOrders.length > 0 && (
+                                            <button className="w-full py-3 bg-slate-50 text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:bg-indigo-50 transition-colors border-t border-slate-100" onClick={() => { navigate('/admin/orders'); setShowNotifications(false); }}>
+                                                View All Orders
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Mail Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => {
+                                        setShowMessages(!showMessages);
+                                        setShowNotifications(false);
+                                    }}
+                                    className={`relative p-2 rounded-full transition-colors ${showMessages ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+                                >
+                                    <Mail size={20} />
+                                    {messages.length > 0 && (
+                                        <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold border-2 border-white rounded-full flex items-center justify-center">
+                                            {messages.length > 99 ? '99+' : messages.length}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {showMessages && (
+                                    <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Messages</h3>
+                                            <span className="text-[10px] font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">{messages.length} Total</span>
+                                        </div>
+                                        <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+                                            {messages.length > 0 ? (
+                                                <div className="divide-y divide-slate-50">
+                                                    {messages.map((msg) => (
+                                                        <div key={msg.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group">
+                                                            <div className="flex items-start gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                                                                    <Mail size={14} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[12px] font-bold text-slate-800 leading-tight">{msg.name || 'Anonymous'}</p>
+                                                                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{msg.message || 'No content...'}</p>
+                                                                    <p className="text-[9px] font-bold text-slate-400 mt-1">{msg.timestamp || 'Recent'}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="p-10 text-center">
+                                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                                        <Mail size={24} />
+                                                    </div>
+                                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">There is no message you received</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* User Profile */}
