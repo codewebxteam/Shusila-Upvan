@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 // Path maintained as per your structure
-import heroImg from '../../../assets/foundation/hero.webp';
+import heroImg from '../../../assets/foundation/storefront.webp';
 
 const Hero = () => {
   return (

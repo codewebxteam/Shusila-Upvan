@@ -11,6 +11,8 @@ import FoundationHome from "./pages/foundation/home";
 import DairyHome from "./pages/dairy/home";
 import MushroomHome from "./pages/mushroom/home";
 import About from "./pages/about";
+import Gallery from "./pages/Gallery";
+import Contact from "./pages/Contact";
 import CartPage from "./pages/cart/CartPage";
 import Dashboard from "./pages/profile/dashboard";
 import Login from "./pages/auth/Login";
@@ -27,7 +29,6 @@ import { WishlistProvider } from "./context/WishlistContext";
 // Admin Pages
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminProducts from "./pages/admin/AdminProducts";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminCustomers from "./pages/admin/AdminCustomers";
@@ -50,7 +51,9 @@ function AppContent() {
           <Route path="/" element={<FoundationHome />} />
           <Route path="/dairy" element={<DairyHome />} />
           <Route path="/mushroom" element={<MushroomHome />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/about-us" element={<About />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -67,7 +70,6 @@ function AppContent() {
             <Route path="inventory" element={<AdminInventory />} />
             <Route path="payments" element={<AdminPayments />} />
             <Route path="customers" element={<AdminCustomers />} />
-            <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="*" element={<AdminDashboard />} />

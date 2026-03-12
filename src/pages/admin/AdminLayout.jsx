@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { db } from '../../firebase';
+import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
 import {
     LayoutDashboard,
@@ -72,7 +72,6 @@ const AdminLayout = () => {
 
     const sidebarItems = [
         { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-        { name: 'Products', path: '/admin/products', icon: <Package size={20} /> },
         { name: 'Orders', path: '/admin/orders', icon: <ShoppingCart size={20} /> },
         { name: 'Customers', path: '/admin/customers', icon: <Users size={20} /> },
         { name: 'Payments', path: '/admin/payments', icon: <CreditCard size={20} /> },

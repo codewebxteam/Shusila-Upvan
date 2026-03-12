@@ -65,7 +65,7 @@ export const CartProvider = ({ children }) => {
   // Load cart when user changes
   useEffect(() => {
     if (user) {
-      const saved = localStorage.getItem(`shusila_cart_${user.id}`);
+      const saved = localStorage.getItem(`susheela_cart_${user.id}`);
       dispatch({ type: 'SET_CART', payload: saved ? JSON.parse(saved) : [] });
     } else {
       dispatch({ type: 'SET_CART', payload: [] });
@@ -75,7 +75,7 @@ export const CartProvider = ({ children }) => {
   // Persist cart
   useEffect(() => {
     if (user) {
-      localStorage.setItem(`shusila_cart_${user.id}`, JSON.stringify(cartItems));
+      localStorage.setItem(`susheela_cart_${user.id}`, JSON.stringify(cartItems));
     }
   }, [cartItems, user]);
 

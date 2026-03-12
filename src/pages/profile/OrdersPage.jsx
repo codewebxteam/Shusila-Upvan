@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Package, ChevronRight, Box, Calendar,
     CheckCircle2, Clock, Truck, Home,
-    ArrowLeft, Search, Filter, MoreVertical
+    ArrowLeft, Search, Filter, MoreVertical, X
 } from 'lucide-react';
 import { useOrders } from '../../context/OrderContext';
 import { useNavigate } from 'react-router-dom';
@@ -134,81 +134,99 @@ const OrdersPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 sm:p-0 backdrop-blur-sm"
                         onClick={() => setSelectedOrder(null)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 20, opacity: 0 }}
-                            animate={{ scale: 1, y: 0, opacity: 1 }}
-                            exit={{ scale: 0.9, y: 20, opacity: 0 }}
-                            className="bg-white rounded-[3rem] w-full max-w-xl overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-[#f1f3f6] w-full max-w-[450px] sm:h-auto h-[90vh] overflow-y-auto sm:rounded-sm shadow-2xl relative flex flex-col font-sans"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm">
-                                        <Truck size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-serif text-[#3a3f30] leading-none mb-1">Tracking Order</h3>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order ID: {selectedOrder.id}</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedOrder(null)}
-                                    className="p-2 text-slate-400 hover:text-slate-900 transition-colors"
-                                >
-                                    <MoreVertical size={20} />
+                            {/* Header */}
+                            <div className="bg-white px-4 py-3 shadow-sm flex items-center gap-3 sticky top-0 z-10 border-b border-gray-200">
+                                <button onClick={() => setSelectedOrder(null)} className="p-1 hover:bg-gray-100 rounded-full text-gray-700 transition-colors">
+                                    <X size={24} strokeWidth={2} />
                                 </button>
+                                <h2 className="text-[17px] font-medium text-gray-900 tracking-wide">Order Details</h2>
                             </div>
 
-                            <div className="p-10">
-                                {/* Timeline */}
-                                <div className="relative space-y-12">
-                                    {/* Central Line */}
-                                    <div className="absolute left-6 top-2 bottom-2 w-0.5 bg-slate-100" />
+                            <div className="flex-1 p-2 space-y-2">
+                                {/* Order ID & Basic Info Card */}
+                                <div className="bg-white p-4 shadow-sm">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 className="text-sm font-medium text-gray-900 mb-1">Order ID - {selectedOrder.id || selectedOrder.firebaseId?.slice(-10).toUpperCase() || 'OD1234567890'}</h3>
+                                            <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                Item total: <span className="font-medium text-gray-900">₹{(selectedOrder.grandTotal || selectedOrder.amount || 0).toLocaleString('en-IN')}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                    {selectedOrder.timeline.map((step, idx) => {
-                                        const isCompleted = step.completed || idx === 0; // First step is always completed
-                                        const isLast = idx === selectedOrder.timeline.length - 1;
+                                {/* Tracking Timeline Card */}
+                                <div className="bg-white p-6 shadow-sm">
+                                    <div className="relative">
+                                        {selectedOrder.timeline.map((step, index) => {
+                                            const isCompleted = step.completed || index === 0;
+                                            const isNextCompleted = selectedOrder.timeline[index + 1]?.completed;
+                                            const isCancelledNode = step.status === 'Cancelled';
+                                            const hasLine = index < selectedOrder.timeline.length - 1;
 
-                                        return (
-                                            <div key={idx} className="relative flex items-start gap-8">
-                                                <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-4 border-white shadow-md ${isCompleted ? 'bg-emerald-600 text-white shadow-emerald-200' : 'bg-white text-slate-300'
-                                                    }`}>
-                                                    {idx === 0 && <CheckCircle2 size={24} />}
-                                                    {idx === 1 && <Clock size={24} />}
-                                                    {idx === 2 && <Truck size={24} />}
-                                                    {idx === 3 && <Home size={24} />}
-                                                </div>
-                                                <div className="flex-1 pt-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <h4 className={`text-sm font-black uppercase tracking-wider ${isCompleted ? 'text-slate-900' : 'text-slate-300'}`}>
+                                            const dotColor = isCancelledNode ? 'bg-[#ff6161]' : (isCompleted ? 'bg-[#26a541]' : 'bg-gray-300');
+                                            const lineColor = isNextCompleted ? (selectedOrder.timeline[index + 1]?.status === 'Cancelled' ? 'bg-[#ff6161]' : 'bg-[#26a541]') : 'bg-gray-200';
+
+                                            return (
+                                                <div key={index} className="flex gap-4 relative min-h-[70px]">
+                                                    {/* Left Side: Icon & Line */}
+                                                    <div className="flex flex-col items-center w-6">
+                                                        <div className="relative mt-1">
+                                                            <div className={`w-3 h-3 rounded-full z-10 relative ${dotColor}`}></div>
+                                                            {isCompleted && !isNextCompleted && hasLine && (
+                                                               <div className="absolute inset-0 bg-[#26a541] rounded-full animate-ping opacity-20"></div> 
+                                                            )}
+                                                        </div>
+                                                        {hasLine && (
+                                                            <div className={`w-[2px] h-full absolute top-4 bottom-[-10px] ${lineColor}`}></div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Right Side: Content */}
+                                                    <div className="flex-1 pb-6 -mt-0.5">
+                                                        <h4 className={`text-[15px] font-medium tracking-wide ${isCancelledNode ? 'text-[#ff6161]' : (isCompleted ? 'text-gray-900' : 'text-gray-400')}`}>
                                                             {step.status}
                                                         </h4>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase">
-                                                            {formatDate(step.date)}
-                                                        </span>
+                                                        <p className={`text-[13px] mt-1 tracking-wide ${isCompleted ? 'text-gray-600' : 'text-gray-400'}`}>
+                                                            {step.desc} {step.date && <span className="block mt-0.5">{formatDate(step.date)}</span>}
+                                                        </p>
                                                     </div>
-                                                    <p className={`text-xs leading-relaxed ${isCompleted ? 'text-slate-500' : 'text-slate-300'}`}>
-                                                        {step.desc}
-                                                    </p>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Shipping Address Card */}
+                                <div className="bg-white p-4 shadow-sm">
+                                    <h4 className="text-[15px] font-medium text-gray-900 mb-2">Shipping Details</h4>
+                                    <div className="text-[13px] text-gray-700 leading-relaxed">
+                                        <p className="font-medium text-gray-900 mb-1">{selectedOrder.shippingAddress?.fullName || 'Customer'}</p>
+                                        {selectedOrder.shippingAddress ? (
+                                            <>
+                                                <p>{selectedOrder.shippingAddress.addressLine1}</p>
+                                                <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} - <span className="font-medium">{selectedOrder.shippingAddress.pincode}</span></p>
+                                                <p className="mt-2 font-medium">Phone number: {selectedOrder.shippingAddress.phone}</p>
+                                            </>
+                                        ) : (
+                                            <p className="text-gray-500 italic">Address details unavailable for this mock order.</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="p-8 bg-slate-50 text-center">
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setSelectedOrder(null)}
-                                    className="w-full py-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors"
-                                >
-                                    Close Details
-                                </motion.button>
-                            </div>
+                            
+                            {/* Bottom padding for mobile */}
+                            <div className="pb-4 bg-[#f1f3f6]"></div>
                         </motion.div>
                     </motion.div>
                 )}

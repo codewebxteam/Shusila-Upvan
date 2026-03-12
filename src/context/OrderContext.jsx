@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { realtimeDb as db } from '../firebase';
 import { ref, push, set, onValue, off } from 'firebase/database';
 import { useAuth } from './AuthContext';
 
@@ -79,7 +79,7 @@ export const OrderProvider = ({ children }) => {
         const newOrderRef = push(ordersRef);
 
         const newOrder = {
-            id: `ORD${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+            id: `ORD${Math.random().toString(36).substr(2, 9).toUpperCase()} `,
             date: now.toISOString(),
             status: 'Placed',
             customer: user?.displayName || user?.name || orderData.fullName,

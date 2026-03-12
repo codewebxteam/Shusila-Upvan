@@ -1,11 +1,91 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { PackageSearch, AlertTriangle, TrendingDown, BoxSelect, PackageCheck } from 'lucide-react';
-import { db } from '../../firebase';
-import { ref, onValue } from 'firebase/database';
+import { PackageSearch, AlertTriangle, TrendingDown, BoxSelect, PackageCheck, X, Plus, Upload } from 'lucide-react';
+import { realtimeDb as db } from '../../firebase';
+import { ref, onValue, update, push, set } from 'firebase/database';
 
 const AdminInventory = () => {
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [newStock, setNewStock] = useState('');
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newProduct, setNewProduct] = useState({
+        name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
+    });
+
+    const handleUpdateClick = (item) => {
+        setSelectedItem(item);
+        setNewStock(item.stock.toString());
+        setIsUpdateModalOpen(true);
+    };
+
+    const handleStockUpdate = (e) => {
+        e.preventDefault();
+        const stockNum = parseInt(newStock, 10);
+        if (isNaN(stockNum) || stockNum < 0) return;
+
+        let status = 'Active';
+        if (stockNum === 0) status = 'Out of Stock';
+        else if (stockNum < 10) status = 'Low Stock';
+
+        update(ref(db, `products/${selectedItem.firebaseId}`), {
+            stock: stockNum,
+            status: status
+        });
+        setIsUpdateModalOpen(false);
+        setSelectedItem(null);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewProduct(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setNewProduct(prev => ({ ...prev, image: file }));
+        }
+    };
+
+    const handleAddProductSubmit = (e) => {
+        e.preventDefault();
+        
+        if (!newProduct.name || !newProduct.price || !newProduct.stock) {
+            alert('Please fill in required fields (Name, Price, Quantity)');
+            return;
+        }
+
+        let status = 'Active';
+        const stockNum = parseInt(newProduct.stock, 10);
+        if (stockNum === 0) status = 'Out of Stock';
+        else if (stockNum < 10) status = 'Low Stock';
+
+        let icon = '📦';
+        if (newProduct.category === 'Mushroom Product') icon = '🍄';
+        else if (newProduct.category === 'Dairy Product') icon = '🥛';
+
+        const productData = {
+            name: newProduct.name,
+            category: newProduct.category,
+            price: parseFloat(newProduct.price),
+            stock: stockNum,
+            status: status,
+            icon: icon,
+            description: newProduct.description,
+            specification: newProduct.specification,
+            highlights: newProduct.highlights,
+            discount: newProduct.discount || 0,
+            createdAt: new Date().toISOString()
+        };
+
+        push(ref(db, 'products'), productData);
+        setIsAddModalOpen(false);
+        setNewProduct({
+            name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
+        });
+    };
 
     useEffect(() => {
         const productsRef = ref(db, 'products');
@@ -37,13 +117,22 @@ const AdminInventory = () => {
     return (
         <div className="max-w-7xl mx-auto w-full animate-fade-in pb-12">
             {/* Header Area */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Inventory</h1>
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                    <span className="hover:text-indigo-600 cursor-pointer transition-colors">Home</span>
-                    <span>/</span>
-                    <span className="text-indigo-600">Inventory</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Inventory</h1>
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                        <span className="hover:text-indigo-600 cursor-pointer transition-colors">Home</span>
+                        <span>/</span>
+                        <span className="text-indigo-600">Inventory</span>
+                    </div>
                 </div>
+                <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 px-5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-indigo-500/30 shrink-0"
+                >
+                    <Plus size={18} strokeWidth={2.5} />
+                    Restock / Add New Item
+                </button>
             </div>
 
             {/* Summary Cards */}
@@ -140,7 +229,10 @@ const AdminInventory = () => {
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 text-right">
-                                        <button className="inline-flex items-center justify-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-500/20">
+                                        <button 
+                                            onClick={() => handleUpdateClick(item)}
+                                            className="inline-flex items-center justify-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-500/20"
+                                        >
                                             <PackageSearch size={14} strokeWidth={3} />
                                             Update
                                         </button>
@@ -151,6 +243,250 @@ const AdminInventory = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Update Stock Modal Overlay */}
+            {isUpdateModalOpen && selectedItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in"
+                        onClick={() => setIsUpdateModalOpen(false)}
+                    ></div>
+
+                    {/* Modal Content */}
+                    <div className="bg-white rounded-3xl w-full max-w-md relative z-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in">
+                        <div className="border-b border-slate-100 p-6 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-black text-slate-800">Update Stock</h2>
+                                <p className="text-sm font-medium text-slate-500 mt-1">{selectedItem.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setIsUpdateModalOpen(false)}
+                                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+                            >
+                                <X size={20} strokeWidth={2.5} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleStockUpdate} className="p-6">
+                            <div className="mb-6">
+                                <label className="block text-sm font-bold text-slate-700 mb-2">New Stock Quantity <span className="text-rose-500">*</span></label>
+                                <input
+                                    type="number"
+                                    value={newStock}
+                                    onChange={(e) => setNewStock(e.target.value)}
+                                    min="0"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 mt-8">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsUpdateModalOpen(false)}
+                                    className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30"
+                                >
+                                    Update Stock
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add New Product Modal Overlay */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsAddModalOpen(false)}></div>
+
+                    <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative z-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in custom-scrollbar">
+                        <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 p-6 flex items-center justify-between z-20">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-800">Add New Product</h2>
+                                <p className="text-sm font-medium text-slate-500 mt-1">Fill in the details to restock or list a new item.</p>
+                            </div>
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+                            >
+                                <X size={24} strokeWidth={2.5} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAddProductSubmit} className="p-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                                {/* Left Column: Image Upload */}
+                                <div className="lg:col-span-1 space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Product Image</label>
+                                        <div className="border-2 border-dashed border-slate-200 rounded-2xl h-64 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group relative overflow-hidden">
+                                            {newProduct.image ? (
+                                                <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center">
+                                                    <span className="text-4xl mb-2">📸</span>
+                                                    <span className="text-sm font-semibold text-slate-600 px-4 text-center truncate w-full">
+                                                        {newProduct.image.name}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center text-slate-400 group-hover:text-indigo-500 transition-colors">
+                                                    <Upload size={32} className="mb-3" />
+                                                    <span className="text-sm font-semibold">Click to upload image</span>
+                                                    <span className="text-xs font-medium mt-1">SVG, PNG, JPG or GIF</span>
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Highlights (Comma separated)</label>
+                                        <textarea
+                                            name="highlights"
+                                            value={newProduct.highlights}
+                                            onChange={handleInputChange}
+                                            rows="4"
+                                            placeholder="e.g. Organic, Freshly Picked, Rich in Calcium"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all resize-none custom-scrollbar"
+                                        ></textarea>
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Details */}
+                                <div className="lg:col-span-2 space-y-6">
+                                    {/* Row 1 */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Product Name <span className="text-rose-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={newProduct.name}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g. Fresh Cow Milk"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* Row 2: Category & Quantity */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Category <span className="text-rose-500">*</span></label>
+                                            <select
+                                                name="category"
+                                                value={newProduct.category}
+                                                onChange={handleInputChange}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all appearance-none"
+                                            >
+                                                <option value="Dairy Product">Dairy Product</option>
+                                                <option value="Mushroom Product">Mushroom Product</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Quantity (Stock) <span className="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                name="stock"
+                                                value={newProduct.stock}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                placeholder="e.g. 100"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Row 3: Pricing */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Price (₹) <span className="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                name="price"
+                                                value={newProduct.price}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Discount (%)</label>
+                                            <input
+                                                type="number"
+                                                name="discount"
+                                                value={newProduct.discount}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                max="100"
+                                                placeholder="0"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Row 4: Description */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Description</label>
+                                        <textarea
+                                            name="description"
+                                            value={newProduct.description}
+                                            onChange={handleInputChange}
+                                            rows="3"
+                                            placeholder="Enter complete product description..."
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all resize-none custom-scrollbar"
+                                        ></textarea>
+                                    </div>
+
+                                    {/* Row 5: Specification */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Specifications</label>
+                                        <textarea
+                                            name="specification"
+                                            value={newProduct.specification}
+                                            onChange={handleInputChange}
+                                            rows="3"
+                                            placeholder="Brand: Susheela Upvan\nWeight: 500g\nStorage: Keep Refrigerated"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all resize-none custom-scrollbar"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer Actions */}
+                            <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                    className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30"
+                                >
+                                    Publish Product
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <style jsx global>{`
                 @keyframes fadeIn {

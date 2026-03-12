@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, Ban, Users, UserPlus, Star, Landmark } from 'lucide-react';
-import { db } from '../../firebase';
+import { Mail, Phone, Ban, Users, UserPlus, Star, Landmark, Filter, ChevronDown, Calendar } from 'lucide-react';
+import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
 
 const AdminCustomers = () => {
     const [customers, setCustomers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [sortBy, setSortBy] = useState('Newest Customers');
+    const [timeFilter, setTimeFilter] = useState('All Time');
+    const [showSortDropdown, setShowSortDropdown] = useState(false);
+    const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
     useEffect(() => {
         // Fetch Users and Orders to calculate stats
@@ -53,15 +57,133 @@ const AdminCustomers = () => {
         }
     };
 
+    // Derived filtered and sorted customers
+    const processedCustomers = React.useMemo(() => {
+        let result = [...customers];
+
+        // 1. Apply Time Filter
+        // Note: For realistic time filtering we need real order dates, but based on the user's joined date 
+        // to simplify. In a real scenario, "Highest Spending This Month" requires mapping orders by date.
+        // Assuming joined date is ISO or parseable for demo purposes:
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const getStartOfWeek = () => {
+            const d = new Date(now);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day == 0 ? -6 : 1);
+            return new Date(d.setDate(diff)).setHours(0,0,0,0);
+        };
+        const startOfWeek = new Date(getStartOfWeek());
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+        if (timeFilter !== 'All Time') {
+            result = result.filter(c => {
+                if (c.joined === 'N/A') return false;
+                const joinedDate = new Date(c._rawJoinedDate || c.joined); // Use raw if available or parse string
+                if (isNaN(joinedDate.getTime())) return true; // fallback for unparseable
+
+                if (timeFilter === 'Today') return joinedDate >= startOfToday;
+                if (timeFilter === 'This Week') return joinedDate >= startOfWeek;
+                if (timeFilter === 'This Month') return joinedDate >= startOfMonth;
+                if (timeFilter === 'This Year') return joinedDate >= startOfYear;
+                return true;
+            });
+        }
+
+        // 2. Apply Sort
+        result.sort((a, b) => {
+            if (sortBy === 'Highest Spending') {
+                const spentA = parseInt(a.spent.replace(/[₹,]/g, '')) || 0;
+                const spentB = parseInt(b.spent.replace(/[₹,]/g, '')) || 0;
+                return spentB - spentA;
+            }
+            if (sortBy === 'Most Orders') {
+                return b.orders - a.orders;
+            }
+            if (sortBy === 'Newest Customers') {
+                const dateA = new Date(a._rawJoinedDate || a.joined).getTime() || 0;
+                const dateB = new Date(b._rawJoinedDate || b.joined).getTime() || 0;
+                return dateB - dateA; // Newest first
+            }
+            if (sortBy === 'Oldest Customers') {
+                const dateA = new Date(a._rawJoinedDate || a.joined).getTime() || Date.now();
+                const dateB = new Date(b._rawJoinedDate || b.joined).getTime() || Date.now();
+                return dateA - dateB; // Oldest first
+            }
+            return 0;
+        });
+
+        return result;
+    }, [customers, sortBy, timeFilter]);
+
     return (
         <div className="max-w-7xl mx-auto w-full animate-fade-in pb-12">
             {/* Header Area */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Customers</h1>
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                    <span className="hover:text-indigo-600 cursor-pointer transition-colors">Home</span>
-                    <span>/</span>
-                    <span className="text-indigo-600">Customers</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Customers</h1>
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                        <span className="hover:text-indigo-600 cursor-pointer transition-colors">Home</span>
+                        <span>/</span>
+                        <span className="text-indigo-600">Customers</span>
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <div className="flex items-center gap-3 relative z-10">
+                    {/* Sort Dropdown */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => { setShowSortDropdown(!showSortDropdown); setShowTimeDropdown(false); }}
+                            className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 px-4 rounded-xl font-bold text-sm transition-colors shadow-sm"
+                        >
+                            <Filter size={16} className="text-indigo-500" />
+                            Sort By: {sortBy}
+                            <ChevronDown size={14} className="text-slate-400 ml-1" />
+                        </button>
+                        
+                        {showSortDropdown && (
+                            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 z-50">
+                                {['Highest Spending', 'Most Orders', 'Newest Customers', 'Oldest Customers'].map(option => (
+                                    <button
+                                        key={option}
+                                        onClick={() => { setSortBy(option); setShowSortDropdown(false); }}
+                                        className={`w-full text-left px-5 py-2.5 text-sm font-bold transition-colors ${sortBy === option ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                                    >
+                                        {option}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Time Dropdown */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => { setShowTimeDropdown(!showTimeDropdown); setShowSortDropdown(false); }}
+                            className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 px-4 rounded-xl font-bold text-sm transition-colors shadow-sm"
+                        >
+                            <Calendar size={16} className="text-emerald-500" />
+                            {timeFilter}
+                            <ChevronDown size={14} className="text-slate-400 ml-1" />
+                        </button>
+                        
+                        {showTimeDropdown && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 z-50">
+                                {['All Time', 'Today', 'This Week', 'This Month', 'This Year'].map(option => (
+                                    <button
+                                        key={option}
+                                        onClick={() => { setTimeFilter(option); setShowTimeDropdown(false); }}
+                                        className={`w-full text-left px-5 py-2.5 text-sm font-bold transition-colors ${timeFilter === option ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                                    >
+                                        {option}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -122,7 +244,11 @@ const AdminCustomers = () => {
                                 <tr>
                                     <td colSpan="7" className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Loading data...</td>
                                 </tr>
-                            ) : customers.map((item) => (
+                            ) : processedCustomers.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No customers found</td>
+                                </tr>
+                            ) : processedCustomers.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="py-4 px-6">
                                         <span className="font-bold text-slate-700 text-sm block">{item.customer}</span>

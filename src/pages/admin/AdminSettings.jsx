@@ -4,7 +4,7 @@ import {
     Save, Store, MapPin, CreditCard, Bell,
     Mail, Smartphone, ShieldCheck, Clock, CheckCircle2
 } from 'lucide-react';
-import { db } from '../../firebase';
+import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, set } from 'firebase/database';
 
 const AdminSettings = () => {
@@ -16,8 +16,8 @@ const AdminSettings = () => {
     // Form states for the settings
     const [formData, setFormData] = useState({
         // General Settings
-        storeName: 'Shusila Upvan',
-        supportEmail: 'care@shusilaupvan.com',
+        storeName: 'Susheela Upvan',
+        supportEmail: 'care@susheelaupvan.com',
         supportPhone: '+91 9876543210',
         gstPercentage: '18',
         maintenanceMode: false,
@@ -25,8 +25,8 @@ const AdminSettings = () => {
         // Shipping Settings
         freeDeliveryThreshold: '500',
         flatDeliveryFee: '50',
-        timeSlots: '9 AM - 12 PM, 4 PM - 7 PM',
-        serviceablePincodes: '800001, 800002, 560001',
+        timeSlots: '6 AM - 9 AM, 4 PM - 7 PM',
+        serviceablePincodes: '272175, 272001',
 
         // Payment Settings
         enableCOD: true,
@@ -36,15 +36,18 @@ const AdminSettings = () => {
         // Notification Settings
         orderEmails: true,
         promotionalEmails: false,
-        adminAlertsEmail: 'admin@shusilaupvan.com'
+        adminAlertsEmail: 'admin@susheelaupvan.com'
     });
 
     useEffect(() => {
         const settingsRef = ref(db, 'settings');
         const unsubscribe = onValue(settingsRef, (snapshot) => {
             if (snapshot.exists()) {
-                setFormData(snapshot.val());
+                setFormData(prev => ({ ...prev, ...snapshot.val() }));
             }
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Error fetching settings:", error);
             setIsLoading(false);
         });
         return () => unsubscribe();
@@ -88,13 +91,13 @@ const AdminSettings = () => {
             <div className="flex flex-col sm:flex-row items-baseline justify-between mb-8 gap-4 border-b border-slate-200 pb-6">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">Store Settings</h1>
-                    <p className="text-sm font-semibold text-slate-400 mt-1 uppercase tracking-widest">Configure your e-commerce platform</p>
+                    <p className="text-sm font-semibold text-slate-400 mt-1 uppercase tracking-widest">Configure your farm store settings</p>
                 </div>
 
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-lg shadow-emerald-200 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {isSaving ? (
                         <>
@@ -134,11 +137,11 @@ const AdminSettings = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-3 px-5 py-3.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
-                                    ? 'bg-indigo-50 text-indigo-700 shadow-sm'
+                                    ? 'bg-emerald-50 text-emerald-700 shadow-sm'
                                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                                     }`}
                             >
-                                <span className={activeTab === tab.id ? 'text-indigo-600' : 'text-slate-400'}>
+                                <span className={activeTab === tab.id ? 'text-emerald-600' : 'text-slate-400'}>
                                     {tab.icon}
                                 </span>
                                 {tab.label}
@@ -152,7 +155,7 @@ const AdminSettings = () => {
                     <div className="bg-white rounded-[2rem] p-8 lg:p-10 shadow-sm border border-slate-100 min-h-[500px] flex flex-col">
                         {isLoading ? (
                             <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-                                <div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+                                <div className="w-10 h-10 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin" />
                                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Syncing with Cloud...</p>
                             </div>
                         ) : (
@@ -162,7 +165,7 @@ const AdminSettings = () => {
                                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                         <div>
                                             <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                                <Store className="text-indigo-500" size={24} /> General Information
+                                                <Store className="text-emerald-500" size={24} /> General Information
                                             </h3>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -170,28 +173,28 @@ const AdminSettings = () => {
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Store Name</label>
                                                     <input
                                                         type="text" name="storeName" value={formData.storeName} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Support Email</label>
                                                     <input
                                                         type="email" name="supportEmail" value={formData.supportEmail} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Support Phone</label>
                                                     <input
                                                         type="text" name="supportPhone" value={formData.supportPhone} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Default GST (%)</label>
                                                     <input
                                                         type="number" name="gstPercentage" value={formData.gstPercentage} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                                     />
                                                 </div>
                                             </div>
@@ -205,7 +208,7 @@ const AdminSettings = () => {
                                             <div className="p-6 border border-rose-100 bg-rose-50/50 rounded-2xl flex items-center justify-between">
                                                 <div>
                                                     <h4 className="text-sm font-bold text-slate-800">Maintenance Mode</h4>
-                                                    <p className="text-xs text-slate-500 mt-1">Prevent customers from placing new orders while you update the store.</p>
+                                                    <p className="text-xs text-slate-500 mt-1">Prevent customers from placing new orders while you update the farm store.</p>
                                                 </div>
                                                 <label className="relative inline-flex items-center cursor-pointer">
                                                     <input type="checkbox" name="maintenanceMode" checked={formData.maintenanceMode} onChange={handleChange} className="sr-only peer" />
@@ -221,7 +224,7 @@ const AdminSettings = () => {
                                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                         <div>
                                             <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                                <MapPin className="text-indigo-500" size={24} /> Delivery Rules
+                                                <MapPin className="text-emerald-500" size={24} /> Delivery Rules
                                             </h3>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -229,15 +232,15 @@ const AdminSettings = () => {
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Free Delivery Threshold (₹)</label>
                                                     <input
                                                         type="number" name="freeDeliveryThreshold" value={formData.freeDeliveryThreshold} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all relative"
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all relative"
                                                     />
-                                                    <p className="text-[10px] text-slate-400 font-semibold px-2">Orders above this amount get free shipping.</p>
+                                                    <p className="text-[10px] text-slate-400 font-semibold px-2">Orders above this amount get free farm-fresh delivery.</p>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Flat Delivery Fee (₹)</label>
                                                     <input
                                                         type="number" name="flatDeliveryFee" value={formData.flatDeliveryFee} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                                     />
                                                 </div>
                                             </div>
@@ -250,8 +253,8 @@ const AdminSettings = () => {
                                                 </label>
                                                 <input
                                                     type="text" name="timeSlots" value={formData.timeSlots} onChange={handleChange}
-                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                                    placeholder="e.g. 9 AM - 12 PM, 4 PM - 7 PM"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                                    placeholder="e.g. 6 AM - 9 AM, 4 PM - 7 PM"
                                                 />
                                                 <p className="text-[10px] text-slate-400 font-semibold px-2">Comma separated list of slots.</p>
                                             </div>
@@ -260,8 +263,8 @@ const AdminSettings = () => {
                                                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Serviceable Pincodes</label>
                                                 <textarea
                                                     name="serviceablePincodes" value={formData.serviceablePincodes} onChange={handleChange} rows="3"
-                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
-                                                    placeholder="e.g. 800001, 800002"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"
+                                                    placeholder="e.g. 272175, 272002"
                                                 />
                                                 <p className="text-[10px] text-slate-400 font-semibold px-2">Only users with these pincodes can checkout. Leave empty to serve all.</p>
                                             </div>
@@ -274,19 +277,19 @@ const AdminSettings = () => {
                                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                         <div>
                                             <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                                <CreditCard className="text-indigo-500" size={24} /> Payment Gateways
+                                                <CreditCard className="text-emerald-500" size={24} /> Payment Gateways
                                             </h3>
                                             <p className="text-sm text-slate-500 mb-8">Toggle the payment methods you want to show on the checkout screen.</p>
 
                                             <div className="space-y-4">
-                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-emerald-200 transition-colors">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
                                                             <span className="font-black text-xl">₹</span>
                                                         </div>
                                                         <div>
                                                             <h4 className="text-sm font-bold text-slate-800">Cash on Delivery (COD)</h4>
-                                                            <p className="text-xs text-slate-500 mt-0.5">Allow users to pay upon receiving the items.</p>
+                                                            <p className="text-xs text-slate-500 mt-0.5">Allow users to pay upon receiving the fresh farm products.</p>
                                                         </div>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer">
@@ -295,7 +298,7 @@ const AdminSettings = () => {
                                                     </label>
                                                 </div>
 
-                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-emerald-200 transition-colors">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
                                                             <Smartphone size={20} />
@@ -311,9 +314,9 @@ const AdminSettings = () => {
                                                     </label>
                                                 </div>
 
-                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-colors">
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-emerald-200 transition-colors">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                                                        <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
                                                             <CreditCard size={20} />
                                                         </div>
                                                         <div>
@@ -336,18 +339,18 @@ const AdminSettings = () => {
                                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                         <div>
                                             <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                                <Bell className="text-indigo-500" size={24} /> Email Notifications
+                                                <Bell className="text-emerald-500" size={24} /> Email Notifications
                                             </h3>
 
                                             <div className="space-y-6">
                                                 <div className="flex items-start justify-between">
                                                     <div>
                                                         <h4 className="text-sm font-bold text-slate-800">Order Confirmations</h4>
-                                                        <p className="text-xs text-slate-500 mt-1 max-w-sm">Automatically send an email receipt to customers when they successfully place an order.</p>
+                                                        <p className="text-xs text-slate-500 mt-1 max-w-sm">Automatically send an email receipt to customers when they successfully place a farm order.</p>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer mt-1">
                                                         <input type="checkbox" name="orderEmails" checked={formData.orderEmails} onChange={handleChange} className="sr-only peer" />
-                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                                     </label>
                                                 </div>
 
@@ -358,7 +361,7 @@ const AdminSettings = () => {
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer mt-1">
                                                         <input type="checkbox" name="promotionalEmails" checked={formData.promotionalEmails} onChange={handleChange} className="sr-only peer" />
-                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                                     </label>
                                                 </div>
                                             </div>
@@ -366,16 +369,16 @@ const AdminSettings = () => {
 
                                         <div className="pt-8 border-t border-slate-100">
                                             <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                                <Mail className="text-indigo-500" size={24} /> Admin Alerts
+                                                <Mail className="text-emerald-500" size={24} /> Admin Alerts
                                             </h3>
 
                                             <div className="space-y-2">
                                                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Receive Alerts At</label>
                                                 <input
                                                     type="email" name="adminAlertsEmail" value={formData.adminAlertsEmail} onChange={handleChange}
-                                                    className="w-full md:w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                    className="w-full md:w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                                 />
-                                                <p className="text-[10px] text-slate-400 font-semibold px-2">New order notifications and contact form submissions will be sent to this email.</p>
+                                                <p className="text-[10px] text-slate-400 font-semibold px-2">New farm orders and customer inquiries will be sent to this email.</p>
                                             </div>
                                         </div>
                                     </motion.div>
