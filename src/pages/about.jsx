@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Building2, ShieldCheck, Globe, Users, ArrowUpRight, Instagram } from 'lucide-react';
+import { Building2, ShieldCheck, Globe, Users, ArrowUpRight, Instagram, Phone } from 'lucide-react';
 import ownerImg from '../assets/owner/swapnil.webp';
 
 const About = () => {
@@ -71,53 +71,21 @@ const About = () => {
             <p className="text-slate-500 text-base lg:text-lg font-medium leading-relaxed max-w-xl">
               "Mera maqsad sirf product bechna nahi, ek aisi legacy banana hai jahan quality aur honesty hamare business ka DNA ho. Susheela Upvan Khalilabad ki mitti se nikla ek global vision hai."
             </p>
-            <button className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200">
-              Connect <Instagram size={16} />
-            </button>
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+              <button className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200">
+                Connect <Instagram size={16} />
+              </button>
+              <a 
+                href="tel:+919123456789"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-100"
+              >
+                Call Now <Phone size={16} />
+              </a>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* 3. INVESTOR BOARD (Large Icons/Images) */}
-      <section className="container mx-auto px-6 mb-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex items-center gap-4 mb-12"
-        >
-          <div className="w-2 h-8 bg-emerald-600 rounded-full" />
-          <h3 className="text-2xl font-black text-slate-900 tracking-tighter uppercase">Board of Investors</h3>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {[
-            { name: "INVESTOR 1", role: "Strategic Partner" },
-            { name: "INVESTOR 2", role: "Growth Partner" }
-          ].map((investor, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.2 }}
-              whileHover={{ y: -10 }}
-              className="flex items-center gap-8 p-8 bg-white rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:border-emerald-100 transition-all group"
-            >
-              <div className="w-28 h-28 lg:w-36 lg:h-36 bg-slate-50 rounded-[2.5rem] overflow-hidden flex-shrink-0 relative border-2 border-slate-50 group-hover:border-emerald-50">
-                <div className="absolute inset-0 flex items-center justify-center opacity-10 font-black italic text-2xl">IMG</div>
-              </div>
-              <div className="flex-1">
-                <p className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter leading-none mb-2">{investor.name}</p>
-                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-4">{investor.role}</p>
-                <div className="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-emerald-600 group-hover:text-white flex items-center justify-center transition-colors">
-                  <ArrowUpRight size={20} />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
 
       {/* 4. BUSINESS CORE STATS (Horizontal & Compact) */}
       <motion.section

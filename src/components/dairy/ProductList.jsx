@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Plus, Minus, Verified, Sparkles, Check, Heart } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Verified, Sparkles, Check, Heart, Search, X } from 'lucide-react';
 import { products, categories } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,7 @@ const ProductList = () => {
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
   const [selectedTag, setSelectedTag] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
 
   const dairyProducts = products.filter(p => p.category === categories.DAIRY);
@@ -22,10 +23,15 @@ const ProductList = () => {
   // Get unique tags
   const allTags = ['All', ...new Set(dairyProducts.map(p => p.tag))];
 
-  // Filter products by tag  
-  const filteredProducts = selectedTag === 'All'
-    ? dairyProducts
-    : dairyProducts.filter(p => p.tag === selectedTag);
+  // Filter products by tag and search
+  const filteredProducts = dairyProducts.filter(p => {
+    const matchesTag = selectedTag === 'All' || p.tag === selectedTag;
+    const matchesSearch = searchQuery === '' || 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.tag?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTag && matchesSearch;
+  });
 
   // Pagination logic
   const itemsPerPage = 8;
@@ -88,31 +94,60 @@ const ProductList = () => {
   return (
     <section className="w-full bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-16 lg:mb-20"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-            <div>
-              <h3 className="text-3xl sm:text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase italic leading-tight">
-                The <span className="text-blue-600">Fresh</span> Edit.
-              </h3>
-              <p className="text-sm text-slate-500 font-semibold mt-3">
-                Purity Certified Dairy Products
-              </p>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200">
-              <Verified size={16} className="text-blue-600" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-blue-700">
-                Purity Certified
-              </span>
-            </div>
+        {/* Search Bar */}
+        <div className="mb-8 relative">
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400">
+            <Search size={20} />
           </div>
-        </motion.div>
+          <input
+            type="text"
+            placeholder="Search dairy products..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 text-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setPage(1);
+              }}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
+
+        {/* Tag Filter */}
+        <div className="mb-8 flex flex-wrap gap-2">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => {
+                setSelectedTag(tag);
+                setPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                selectedTag === tag
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+
+        {/* Results Count */}
+        {searchQuery && (
+          <p className="text-sm text-slate-500 mb-6">
+            Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} matching "{searchQuery}"
+          </p>
+        )}
 
         {/* Product Grid */}
         <motion.div

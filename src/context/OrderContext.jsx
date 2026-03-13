@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { realtimeDb } from '../firebase';
 import { ref, push, set, onValue, off } from 'firebase/database';
 import { useAuth } from './AuthContext';
 
@@ -41,7 +41,7 @@ export const OrderProvider = ({ children }) => {
         // If user is logged in, we try to sync with Firebase
         if (!user) return;
 
-        const ordersRef = ref(db, 'orders');
+        const ordersRef = ref(realtimeDb, 'orders');
         const handleData = (snapshot) => {
             try {
                 const data = snapshot.val();
@@ -75,7 +75,7 @@ export const OrderProvider = ({ children }) => {
 
     const placeOrder = async (orderData) => {
         const now = new Date();
-        const ordersRef = ref(db, 'orders');
+        const ordersRef = ref(realtimeDb, 'orders');
         const newOrderRef = push(ordersRef);
 
         const newOrder = {

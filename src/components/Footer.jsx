@@ -1,6 +1,6 @@
  import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Instagram, Mail, ArrowUpRight, ShieldCheck, MapPin } from 'lucide-react';
+import { Instagram, Mail, ArrowUpRight, ShieldCheck, MapPin, Phone } from 'lucide-react';
 
 const Footer = () => {
   const navigate = useNavigate();
@@ -22,11 +22,18 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <button className="flex items-center gap-3 bg-white/5 hover:bg-white hover:text-black transition-all px-5 py-3 rounded-2xl border border-white/10 group">
               <Instagram size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Instagram</span>
             </button>
+            <a 
+              href="tel:+919123456789"
+              className="flex items-center gap-3 bg-white/5 hover:bg-white hover:text-black transition-all px-5 py-3 rounded-2xl border border-white/10 group"
+            >
+              <Phone size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Call Now</span>
+            </a>
             <button className="flex items-center gap-3 bg-white/5 hover:bg-white hover:text-black transition-all px-5 py-3 rounded-2xl border border-white/10 group">
               <Mail size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Mail Us</span>
