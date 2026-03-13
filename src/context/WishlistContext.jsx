@@ -48,13 +48,13 @@ const wishlistReducer = (state, action) => {
 
 export const WishlistProvider = ({ children }) => {
     const [wishlistItems, dispatch] = useReducer(wishlistReducer, [], () => {
-        const saved = localStorage.getItem('shusila_wishlist');
+        const saved = localStorage.getItem('susheela_wishlist');
         return saved ? JSON.parse(saved) : [];
     });
 
     // Persist wishlist
     useEffect(() => {
-        localStorage.setItem('shusila_wishlist', JSON.stringify(wishlistItems));
+        localStorage.setItem('susheela_wishlist', JSON.stringify(wishlistItems));
     }, [wishlistItems]);
 
     const toggleWishlist = (product) => {

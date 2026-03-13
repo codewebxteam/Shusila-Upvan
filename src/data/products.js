@@ -91,7 +91,7 @@ export const products = [
         specifications: [
             { label: "Type", value: "A2 Desi Cow Milk" },
             { label: "Fat Content", value: "4.5% - 5%" },
-            { label: "Origin", value: "Shusila Upvan Farm" }
+            { label: "Origin", value: "Susheela Upvan Farm" }
         ],
         highlights: ["Antibiotic Free", "No Hormones", "Traditionally Processed"]
     },

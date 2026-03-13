@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DollarSign, ShoppingBag, Users, AlertCircle } from 'lucide-react';
-import { db } from '../../firebase';
+import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
 import {
     LineChart,

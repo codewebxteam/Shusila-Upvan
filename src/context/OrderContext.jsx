@@ -14,7 +14,7 @@ export const useOrders = () => {
 };
 
 export const OrderProvider = ({ children }) => {
-    const [orders, setOrders] = useState([]); // Start fresh
+    const [orders, setOrders ] = useState([]); 
     const { user } = useAuth();
 
     // One-time Reset (for the user's request)
@@ -23,7 +23,7 @@ export const OrderProvider = ({ children }) => {
         if (!hasReset) {
             localStorage.removeItem('local_orders');
             // If admin permissions allowed, we could clear Firebase here
-            // ref(db, 'orders').set(null); 
+            // ref(realtimeDb, 'orders').set(null); 
             localStorage.setItem('orders_reset_v1', 'true');
             setOrders([]);
         }

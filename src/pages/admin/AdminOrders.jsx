@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
+import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, remove } from 'firebase/database';
 import { Download, Eye, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import OrderTrackingModal from '../../components/admin/OrderTrackingModal';
 
 
 const AdminOrders = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     // Sync with Firebase
     useEffect(() => {
@@ -183,7 +185,11 @@ const AdminOrders = () => {
                                         <span className="text-sm font-semibold text-slate-500">{item.date}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <button className="text-slate-400 hover:text-indigo-600 transition-colors" title="View Details">
+                                        <button 
+                                            onClick={() => setSelectedOrder(item)}
+                                            className="text-slate-400 hover:text-indigo-600 transition-colors" 
+                                            title="View Details"
+                                        >
                                             <Eye size={18} strokeWidth={2.5} />
                                         </button>
                                     </td>
@@ -193,6 +199,13 @@ const AdminOrders = () => {
                     </table>
                 </div>
             </div>
+
+            {selectedOrder && (
+                <OrderTrackingModal 
+                    order={selectedOrder} 
+                    onClose={() => setSelectedOrder(null)} 
+                />
+            )}
 
         </div>
     );
