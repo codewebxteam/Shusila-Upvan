@@ -4,6 +4,7 @@ import React, {
   useReducer,
   useMemo,
   useEffect,
+  useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -79,21 +80,21 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems, user]);
 
-  const addToCart = (product, quantity = 1) => {
+  const addToCart = useCallback((product, quantity = 1) => {
     dispatch({ type: 'ADD_TO_CART', payload: { ...product, quantity } });
-  };
+  }, []);
 
-  const removeFromCart = (id, category) => {
+  const removeFromCart = useCallback((id, category) => {
     dispatch({ type: 'REMOVE_FROM_CART', payload: { id, category } });
-  };
+  }, []);
 
-  const updateQuantity = (id, category, quantity) => {
+  const updateQuantity = useCallback((id, category, quantity) => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, category, quantity } });
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' });
-  };
+  }, []);
 
   const cartCount = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.quantity, 0),

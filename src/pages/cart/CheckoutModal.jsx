@@ -70,17 +70,18 @@ const CheckoutModal = ({ onClose }) => {
         }
     };
 
-    const handlePlaceOrder = () => {
+    const handlePlaceOrder = async () => {
         const itemsToPass = [...cartItems];
-        placeOrder({
+        const orderData = {
             items: itemsToPass,
             subtotal,
             tax,
             grandTotal,
             ...formData
-        });
+        };
+        const newOrder = await placeOrder(orderData);
         onClose();
-        navigate('/success', { state: { items: itemsToPass } });
+        navigate('/success', { state: { items: itemsToPass, orderDetails: newOrder || orderData } });
     };
 
     const steps = [

@@ -1,125 +1,167 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle2, ShoppingBag, ArrowRight, Heart } from 'lucide-react';
+import { Check, Sparkles, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 const Success = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { cartItems, clearCart } = useCart();
+    const { clearCart } = useCart();
 
-    const [purchasedItems] = useState(location.state?.items || []);
+    useEffect(() => {
+        // Clear cart when landing on success page
+        clearCart();
+        window.scrollTo(0, 0);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const grandTotal = purchasedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const tax = grandTotal * 0.05;
-    const total = grandTotal + tax;
+    const orderDetails = location.state?.orderDetails || {};
+    
+    // Extract address data
+    const name = orderDetails.address?.fullName || orderDetails.fullName || 'Meraj Hussain';
+    const street = orderDetails.address?.street || orderDetails.street || '12th Main, 4th Cross';
+    const locality = orderDetails.address?.locality || orderDetails.locality || 'Indiranagar';
+    const city = orderDetails.address?.city || orderDetails.city || 'Bengaluru';
+    const state = orderDetails.address?.state || orderDetails.state || 'Karnataka';
+    const pincode = orderDetails.address?.pincode || orderDetails.pincode || '560001';
+    const mobile = orderDetails.address?.mobile || orderDetails.mobile || '9876543210';
+
+    // Calculate delivery date (2 days from now)
+    const getDeliveryDateStr = () => {
+        const orderDateStr = orderDetails.date;
+        const baseDate = orderDateStr ? new Date(orderDateStr) : new Date();
+        const deliveryDate = new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+        
+        const day = deliveryDate.getDate();
+        const suffix = (day % 10 === 1 && day !== 11) ? 'st' : (day % 10 === 2 && day !== 12) ? 'nd' : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+        
+        const weekday = deliveryDate.toLocaleDateString('en-US', { weekday: 'short' });
+        const month = deliveryDate.toLocaleDateString('en-US', { month: 'short' });
+        const year = deliveryDate.getFullYear().toString().slice(-2);
+        
+        return `${weekday}, ${month} ${day}${suffix} '${year}`;
+    };
+
+    const deliveryDateStr = getDeliveryDateStr();
 
     return (
-        <div className="min-h-screen bg-[#fdfdfd] flex flex-col items-center pt-32 pb-24 px-4 relative z-[70]">
-            <div className="max-w-3xl w-full text-center relative z-[80]">
-                <motion.div
-                    initial={{ scale: 0, rotate: -20 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                    className="w-24 h-24 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 border border-emerald-100 shadow-xl shadow-emerald-500/10"
-                >
-                    <CheckCircle2 size={40} className="text-emerald-600" />
-                </motion.div>
+        <div className="min-h-screen bg-[#f1f3f6] font-sans pb-16 pt-28 flex justify-center w-full">
+            
+            {/* Main Content Constraint wrapper (matches desktop Flipkart view) */}
+            <div className="w-full max-w-[1000px] flex flex-col gap-4 px-2">
 
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-none mb-4 italic"
-                >
-                    Order Successful.
-                </motion.h1>
-
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-slate-500 font-bold text-sm lg:text-base max-w-lg mx-auto mb-12 leading-relaxed"
-                >
-                    Your products are being prepared. You can manage your account settings in your profile.
-                </motion.p>
-
-                {/* Order Summary */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="bg-white rounded-[2rem] p-6 lg:p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 mb-12 text-left"
-                >
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 text-center sm:text-left">Order Summary</h3>
-
-                    <div className="space-y-6">
-                        {purchasedItems.map((item, idx) => (
-                            <div key={idx} className="flex items-center gap-4 group">
-                                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-50 rounded-2xl border border-slate-100 p-3 flex items-center justify-center shrink-0 group-hover:bg-emerald-50 group-hover:border-emerald-100 transition-all duration-500">
-                                    <img src={item.img} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
-                                </div>
-                                <div className="flex-grow flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
-                                    <div>
-                                        <h4 className="text-lg font-bold text-slate-900 mb-0.5">{item.name}</h4>
-                                        <p className="text-sm font-semibold text-slate-400">Qty: {item.quantity}</p>
-                                    </div>
-                                    <p className="text-xl font-black text-emerald-600">₹{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                                </div>
-                            </div>
-                        ))}
+                {/* Card 1: Success Banner (Top Section) */}
+                <div className="bg-white px-8 py-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] rounded-sm flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <h1 className="text-[24px] font-semibold text-[#212121] mb-4 tracking-tight">
+                            Thanks for shopping with us!
+                        </h1>
+                        <p className="text-[14px] text-[#212121] mb-2 font-medium">Delivery by {deliveryDateStr}</p>
+                        <button 
+                            onClick={() => navigate('/orders')} 
+                            className="text-[#2874f0] font-medium text-[14px] hover:underline self-start mt-1"
+                        >
+                            Track & manage order
+                        </button>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-dashed border-slate-200">
-                        <div className="space-y-3 mb-6">
-                            <div className="flex justify-between text-sm font-bold text-slate-500">
-                                <span>Subtotal</span>
-                                <span>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            </div>
-                            <div className="flex justify-between text-sm font-bold text-slate-500">
-                                <span>Tax (5%)</span>
-                                <span>₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            </div>
+                    <div className="relative shrink-0 w-[120px] h-[120px] flex items-center justify-center mr-8">
+                        {/* Green glowing rings */}
+                        <div className="absolute inset-2 bg-[#e5f7ed] rounded-full scale-[1.25]"></div>
+                        <div className="absolute inset-5 bg-[#cdefe0] rounded-full scale-[1.15]"></div>
+                        <div className="absolute inset-8 bg-[#26a541] rounded-full flex items-center justify-center z-10 shadow-sm">
+                            <Check size={40} strokeWidth={3} className="text-white ml-1" />
                         </div>
-                        <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-6">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Paid</p>
-                                <p className="text-3xl font-black text-slate-900 tracking-tighter">₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                            </div>
-                            <CheckCircle2 size={32} className="text-emerald-500 shrink-0" />
-                        </div>
+                        {/* Sparkles */}
+                        <Sparkles className="absolute top-0 right-4 text-[#26a541] animate-pulse" fill="#26a541" size={16} />
+                        <Sparkles className="absolute top-6 left-0 text-[#26a541] animate-pulse delay-100" fill="#26a541" size={20} />
+                        <Sparkles className="absolute bottom-4 left-2 text-[#26a541] animate-pulse delay-200" fill="#26a541" size={12} />
+                        <Sparkles className="absolute bottom-2 right-6 text-[#26a541] animate-pulse delay-300" fill="#26a541" size={18} />
                     </div>
-                </motion.div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/orders')}
-                        className="px-10 py-5 bg-slate-900 text-white rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] shadow-xl flex items-center justify-center gap-3 transition-all hover:bg-emerald-600"
-                    >
-                        Track Order <ArrowRight size={16} />
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/')}
-                        className="px-10 py-5 bg-white text-slate-900 border border-slate-200 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center justify-center gap-3 transition-all hover:bg-slate-50"
-                    >
-                        Return Home <ShoppingBag size={16} />
-                    </motion.button>
                 </div>
 
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    className="mt-20 flex items-center justify-center gap-2 text-slate-300"
-                >
-                    <Heart size={14} className="fill-slate-300" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Handcrafted with care for you.</span>
-                </motion.div>
+                {/* Ordered Items List (Short) */}
+                {orderDetails.items && orderDetails.items.length > 0 && (
+                    <div className="bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] rounded-sm px-6 py-4 flex flex-col gap-3">
+                        <h2 className="text-[14px] font-medium text-[#212121]">
+                            {orderDetails.items.length} Item{orderDetails.items.length > 1 ? 's' : ''} in this order
+                        </h2>
+                        <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-hide">
+                            {orderDetails.items.map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-3 bg-[#f8f9fa] p-2 rounded border border-[#f0f0f0] shrink-0 pr-4 w-[200px]">
+                                    <div className="w-12 h-12 bg-white rounded flex items-center justify-center p-1 border border-[#e0e0e0] shrink-0">
+                                        {item.img || item.image ? (
+                                             <img src={item.img || item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
+                                        ) : (
+                                            <div className="text-slate-400 text-[10px]">No image</div>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col overflow-hidden">
+                                        <p className="text-[13px] text-[#212121] font-medium truncate w-full">{item.name}</p>
+                                        <p className="text-[12px] text-slate-500">Qty: {item.quantity}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Card 3: Address / Delivery Details */}
+                <div className="bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] rounded-sm pb-2 mt-2">
+                    {/* Header */}
+                    <div className="px-6 py-4 border-b border-[#f0f0f0]">
+                        <p className="text-[14px] font-medium text-[#212121]">Delivery by {deliveryDateStr}</p>
+                    </div>
+
+                    {/* Address Body */}
+                    <div className="px-6 py-5 flex items-start justify-between">
+                        <div className="flex flex-col gap-2">
+                            <h3 className="text-[14px] font-medium text-[#212121]">{name}</h3>
+                            
+                            <div className="text-[14px] text-[#212121] leading-relaxed max-w-[400px]">
+                                <p>{street}</p>
+                                <p>{locality}</p>
+                                <p>{city}</p>
+                                <p>{state} - {pincode}</p>
+                            </div>
+                            
+                            <p className="text-[14px] text-[#212121] mt-2 font-medium text-slate-700">Phone number: {mobile}</p>
+                            
+                            <button 
+                                onClick={() => navigate('/orders')} 
+                                className="text-[#2874f0] text-[14px] font-medium mt-4 hover:underline self-start cursor-pointer transition-colors"
+                            >
+                                Change or Add number
+                            </button>
+                        </div>
+                        
+                        <button 
+                            onClick={() => navigate('/profile')} 
+                            className="px-5 py-2 border border-[#e0e0e0] rounded-[2px] bg-white text-[#2874f0] text-[14px] font-medium hover:shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] hover:bg-slate-50 transition-all cursor-pointer"
+                        >
+                            Change
+                        </button>
+                    </div>
+                </div>
+
+                {/* Action Buttons Container */}
+                <div className="flex items-center justify-between mt-4 mb-32 relative z-[100]">
+                    <button 
+                       onClick={() => navigate('/')} 
+                       className="px-8 py-3.5 bg-white text-[#212121] text-[14px] font-medium rounded-sm shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] hover:bg-slate-50 transition-colors border border-[#d3d3d3] drop-shadow-sm cursor-pointer active:scale-[0.98]"
+                    >
+                        CONTINUE SHOPPING
+                    </button>
+                    
+                     <button 
+                       onClick={() => navigate('/orders')} 
+                       className="flex items-center gap-2 px-6 py-3.5 bg-white text-[#212121] text-[14px] font-medium rounded-sm hover:text-[#2874f0] transition-colors cursor-pointer active:scale-[0.98]"
+                    >
+                        Send Order Details 
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
+
             </div>
         </div>
     );

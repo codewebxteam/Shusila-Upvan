@@ -12,6 +12,8 @@ const OrdersPage = () => {
     const { orders } = useOrders();
     const navigate = useNavigate();
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [isEditingPhone, setIsEditingPhone] = useState(false);
+    const [newPhone, setNewPhone] = useState('');
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -208,15 +210,71 @@ const OrdersPage = () => {
                                 </div>
 
                                 {/* Shipping Address Card */}
-                                <div className="bg-white p-4 shadow-sm">
+                                <div className="bg-white p-4 shadow-sm mt-2">
                                     <h4 className="text-[15px] font-medium text-gray-900 mb-2">Shipping Details</h4>
                                     <div className="text-[13px] text-gray-700 leading-relaxed">
-                                        <p className="font-medium text-gray-900 mb-1">{selectedOrder.shippingAddress?.fullName || 'Customer'}</p>
-                                        {selectedOrder.shippingAddress ? (
+                                        <p className="font-medium text-gray-900 mb-1">{selectedOrder.address?.fullName || selectedOrder.shippingAddress?.fullName || selectedOrder.fullName || selectedOrder.customer || 'Customer'}</p>
+                                        
+                                        {(selectedOrder.address || selectedOrder.shippingAddress || selectedOrder.street) ? (
                                             <>
-                                                <p>{selectedOrder.shippingAddress.addressLine1}</p>
-                                                <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} - <span className="font-medium">{selectedOrder.shippingAddress.pincode}</span></p>
-                                                <p className="mt-2 font-medium">Phone number: {selectedOrder.shippingAddress.phone}</p>
+                                                <p>{selectedOrder.address?.street || selectedOrder.shippingAddress?.addressLine1 || selectedOrder.street}</p>
+                                                <p>{selectedOrder.address?.locality || selectedOrder.shippingAddress?.locality || selectedOrder.locality}</p>
+                                                <p>
+                                                    {selectedOrder.address?.city || selectedOrder.shippingAddress?.city || selectedOrder.city},{' '} 
+                                                    {selectedOrder.address?.state || selectedOrder.shippingAddress?.state || selectedOrder.state} -{' '}
+                                                    <span className="font-medium">{selectedOrder.address?.pincode || selectedOrder.shippingAddress?.pincode || selectedOrder.pincode}</span>
+                                                </p>
+                                                <div className="mt-3 py-2 border-t border-gray-100 flex items-center justify-between">
+                                                    {isEditingPhone ? (
+                                                        <div className="flex items-center gap-2 w-full">
+                                                            <input 
+                                                                type="text" 
+                                                                value={newPhone}
+                                                                onChange={(e) => setNewPhone(e.target.value)}
+                                                                className="flex-1 border border-gray-300 rounded px-2 py-1 text-[13px] outline-none focus:border-[#2874f0]"
+                                                                placeholder="Enter new number"
+                                                                autoFocus
+                                                            />
+                                                            <button 
+                                                                onClick={() => {
+                                                                    // Update local state for visual feedback (Firebase sync would go here)
+                                                                    if(newPhone.trim()) {
+                                                                       const updatedOrder = {...selectedOrder};
+                                                                       if(updatedOrder.address) updatedOrder.address.mobile = newPhone;
+                                                                       else if(updatedOrder.shippingAddress) updatedOrder.shippingAddress.phone = newPhone;
+                                                                       else updatedOrder.mobile = newPhone;
+                                                                       setSelectedOrder(updatedOrder);
+                                                                    }
+                                                                    setIsEditingPhone(false);
+                                                                }}
+                                                                className="px-3 py-1 bg-[#2874f0] text-white rounded text-[12px] font-medium"
+                                                            >
+                                                                Save
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => setIsEditingPhone(false)}
+                                                                className="px-2 py-1 text-gray-500 text-[12px] hover:text-gray-700"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <p className="text-gray-800 font-medium tracking-wide text-[13px]">
+                                                                Phone number: {selectedOrder.address?.mobile || selectedOrder.shippingAddress?.phone || selectedOrder.mobile}
+                                                            </p>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setNewPhone(selectedOrder.address?.mobile || selectedOrder.shippingAddress?.phone || selectedOrder.mobile || '');
+                                                                    setIsEditingPhone(true);
+                                                                }}
+                                                                className="text-[#2874f0] text-[13px] font-medium hover:underline"
+                                                            >
+                                                                Change
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </>
                                         ) : (
                                             <p className="text-gray-500 italic">Address details unavailable for this mock order.</p>
