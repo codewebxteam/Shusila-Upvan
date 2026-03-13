@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-// Path maintained as per your structure
 import heroImg from '../../../assets/foundation/storefront.webp';
+import SearchBar from '../../../components/common/SearchBar';
 
 const Hero = () => {
   return (
@@ -85,6 +85,11 @@ const Hero = () => {
             </div>
           </div>
 
+        </div>
+
+        {/* Search Bar Section */}
+        <div className="mt-16 lg:mt-24">
+          <SearchBar />
         </div>
       </div>
     </section>

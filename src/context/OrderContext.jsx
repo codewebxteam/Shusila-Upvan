@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { realtimeDb as db } from '../firebase';
+import { realtimeDb } from '../firebase';
 import { ref, push, set, onValue, off } from 'firebase/database';
 import { useAuth } from './AuthContext';
 
@@ -14,7 +14,7 @@ export const useOrders = () => {
 };
 
 export const OrderProvider = ({ children }) => {
-    const [orders, setOrders] = useState([]); // Start fresh
+    const [orders, setOrders ] = useState([]); 
     const { user } = useAuth();
 
     // One-time Reset (for the user's request)
@@ -23,7 +23,7 @@ export const OrderProvider = ({ children }) => {
         if (!hasReset) {
             localStorage.removeItem('local_orders');
             // If admin permissions allowed, we could clear Firebase here
-            // ref(db, 'orders').set(null); 
+            // ref(realtimeDb, 'orders').set(null); 
             localStorage.setItem('orders_reset_v1', 'true');
             setOrders([]);
         }
@@ -41,7 +41,7 @@ export const OrderProvider = ({ children }) => {
         // If user is logged in, we try to sync with Firebase
         if (!user) return;
 
-        const ordersRef = ref(db, 'orders');
+        const ordersRef = ref(realtimeDb, 'orders');
         const handleData = (snapshot) => {
             try {
                 const data = snapshot.val();
@@ -75,11 +75,11 @@ export const OrderProvider = ({ children }) => {
 
     const placeOrder = async (orderData) => {
         const now = new Date();
-        const ordersRef = ref(db, 'orders');
+        const ordersRef = ref(realtimeDb, 'orders');
         const newOrderRef = push(ordersRef);
 
         const newOrder = {
-            id: `ORD${Math.random().toString(36).substr(2, 9).toUpperCase()} `,
+            id: `ORD${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
             date: now.toISOString(),
             status: 'Placed',
             customer: user?.displayName || user?.name || orderData.fullName,

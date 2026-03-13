@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Plus, Minus, Leaf, Sparkles, Check, Heart } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Leaf, Sparkles, Check, Heart, Search, X } from 'lucide-react';
 import { products, categories } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,7 @@ const ProductList = () => {
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
   const [selectedTag, setSelectedTag] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
 
   const mushroomProducts = products.filter(
@@ -24,10 +25,15 @@ const ProductList = () => {
   // Get unique tags
   const allTags = ['All', ...new Set(mushroomProducts.map(p => p.tag))];
 
-  // Filter products by tag
-  const filteredProducts = selectedTag === 'All' 
-    ? mushroomProducts
-    : mushroomProducts.filter(p => p.tag === selectedTag);
+  // Filter products by tag and search
+  const filteredProducts = mushroomProducts.filter(p => {
+    const matchesTag = selectedTag === 'All' || p.tag === selectedTag;
+    const matchesSearch = searchQuery === '' || 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.tag?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTag && matchesSearch;
+  });
 
   // Pagination logic
   const itemsPerPage = 8;
@@ -76,7 +82,7 @@ const ProductList = () => {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-16 lg:mb-20"
+          className="mb-12 lg:mb-16"
         >
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>
@@ -97,14 +103,45 @@ const ProductList = () => {
           </div>
         </motion.div>
 
+        {/* Search Bar */}
+        <div className="mb-8 relative">
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400">
+            <Search size={20} />
+          </div>
+          <input
+            type="text"
+            placeholder="Search mushroom varieties..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300 text-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setPage(1);
+              }}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
+
         {/* Category Filter Tabs */}
-        <div className="mb-12 flex flex-wrap gap-3">
+        <div className="mb-8 flex flex-wrap gap-3">
           {allTags.map((tag) => (
             <motion.button
               key={tag}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedTag(tag)}
+              onClick={() => {
+                setSelectedTag(tag);
+                setPage(1);
+              }}
               className={`px-6 py-2 rounded-full text-sm font-black uppercase transition-all ${
                 selectedTag === tag
                   ? 'bg-emerald-600 text-white shadow-lg'
@@ -115,6 +152,13 @@ const ProductList = () => {
             </motion.button>
           ))}
         </div>
+
+        {/* Results Count */}
+        {searchQuery && (
+          <p className="text-sm text-slate-500 mb-6">
+            Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} matching "{searchQuery}"
+          </p>
+        )}
 
         {/* Product Grid - Paginated, 8 per page */}
         <motion.div
