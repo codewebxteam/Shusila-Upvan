@@ -7,7 +7,8 @@ import {
     signInWithPopup,
     updateProfile
 } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, realtimeDb } from '../firebase';
+import { ref, update } from 'firebase/database';
 
 const AuthContext = createContext();
 
@@ -25,17 +26,27 @@ export const AuthProvider = ({ children }) => {
     const closeAuthModal = () => setIsAuthModalOpen(false);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 const isAdmin = currentUser.email === 'meraj786@gmail.com';
-                setUser({
+                const userData = {
                     id: currentUser.uid,
                     email: currentUser.email,
                     name: isAdmin ? 'Meraj Hussain' : (currentUser.displayName || currentUser.email.split('@')[0]),
                     photo: currentUser.photoURL,
                     role: isAdmin ? 'admin' : 'member',
-                    joinedAt: currentUser.metadata.creationTime
-                });
+                    joinedAt: currentUser.metadata.creationTime,
+                    lastLogin: new Date().toISOString()
+                };
+                setUser(userData);
+
+                // Persist user to Realtime Database for Admin Dashboard visibility
+                try {
+                    const userRef = ref(realtimeDb, `users/${currentUser.uid}`);
+                    await update(userRef, userData);
+                } catch (error) {
+                    console.error("Error persisting user to DB:", error);
+                }
             } else {
                 setUser(null);
             }

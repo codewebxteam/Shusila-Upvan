@@ -29,11 +29,16 @@ const AdminDashboard = () => {
         const productsRef = ref(db, 'products');
         const usersRef = ref(db, 'users');
 
-        const unsubOrders = onValue(ordersRef, (snap) => setOrders(Object.values(snap.val() || {})));
+        const unsubOrders = onValue(ordersRef, (snap) => {
+            setOrders(Object.values(snap.val() || {}));
+            setIsLoading(false);
+        }, (err) => {
+            console.error("Orders sync error:", err);
+            setIsLoading(false);
+        });
         const unsubProducts = onValue(productsRef, (snap) => setProducts(Object.values(snap.val() || {})));
         const unsubUsers = onValue(usersRef, (snap) => setUsers(Object.values(snap.val() || {})));
 
-        setIsLoading(false);
         return () => {
             unsubOrders();
             unsubProducts();
@@ -99,6 +104,40 @@ const AdminDashboard = () => {
                     <span className="text-indigo-600">Dashboard</span>
                 </div>
             </div>
+
+            {/* DEBUG PANEL - Visible only if no orders or manually triggered */}
+            {(!isLoading && orders.length === 0) && (
+                <div className="mb-8 p-6 bg-rose-50 border-2 border-rose-200 rounded-[2rem] shadow-lg shadow-rose-100/50 animate-pulse-slow">
+                    <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                            <AlertCircle size={24} strokeWidth={2.5} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-black text-rose-900 tracking-tight">System Connection Status</h3>
+                            <p className="text-sm font-bold text-rose-700/80 mb-4">No data found. This usually happens when the Firebase Database URL is incorrect.</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-white/60 p-4 rounded-xl border border-rose-100">
+                                    <p className="text-[10px] font-black uppercase text-rose-400 mb-1">Active Database URL:</p>
+                                    <code className="text-xs font-mono text-rose-600 break-all">
+                                        {db?._repoInternal?.repoInfo_?.host || "Connecting..."}
+                                    </code>
+                                </div>
+                                <div className="bg-white/60 p-4 rounded-xl border border-rose-100">
+                                    <p className="text-[10px] font-black uppercase text-rose-400 mb-1">Project ID:</p>
+                                    <code className="text-xs font-mono text-rose-600">{import.meta.env.VITE_FIREBASE_PROJECT_ID}</code>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 p-4 bg-white/40 rounded-xl border border-rose-100">
+                                <p className="text-[11px] font-bold text-rose-800">
+                                    💡 Tip: Open your Firebase Console &gt; Realtime Database &gt; Copy the URL and add it as <span className="font-black">VITE_FIREBASE_DATABASE_URL</span> in your <span className="font-black">.env</span> file.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -156,12 +156,12 @@ const OrderTrackingModal = ({ order, onClose }) => {
                     <div className="bg-white p-4 shadow-sm">
                         <h4 className="text-[15px] font-medium text-gray-900 mb-2">Shipping Details</h4>
                         <div className="text-[13px] text-gray-700 leading-relaxed">
-                            <p className="font-medium text-gray-900 mb-1">{order.shippingAddress?.fullName || order.customer || 'Customer Name'}</p>
-                            {order.shippingAddress ? (
+                            <p className="font-medium text-gray-900 mb-1">{order.shippingAddress?.fullName || order.address?.fullName || order.customer || 'Customer Name'}</p>
+                            {order.shippingAddress || order.address ? (
                                 <>
-                                    <p>{order.shippingAddress.addressLine1}</p>
-                                    <p>{order.shippingAddress.city}, {order.shippingAddress.state} - <span className="font-medium">{order.shippingAddress.pincode}</span></p>
-                                    <p className="mt-2 font-medium">Phone number: {order.shippingAddress.phone}</p>
+                                    <p>{order.shippingAddress?.street || order.address?.street}</p>
+                                    <p>{order.shippingAddress?.city || order.address?.city}, {order.shippingAddress?.state || order.address?.state} - <span className="font-medium">{order.shippingAddress?.pincode || order.address?.pincode}</span></p>
+                                    <p className="mt-2 font-medium">Phone number: {order.shippingAddress?.phone || order.address?.mobile}</p>
                                 </>
                             ) : (
                                 <p className="text-gray-500 italic">Address details unavailable.</p>

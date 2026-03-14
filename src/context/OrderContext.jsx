@@ -89,6 +89,8 @@ export const OrderProvider = ({ children }) => {
             subtotal: orderData.subtotal,
             tax: orderData.tax,
             grandTotal: orderData.grandTotal,
+            userId: user?.id || 'guest',
+            payment: orderData.paymentMethod || 'cod',
             address: {
                 fullName: orderData.fullName,
                 mobile: orderData.mobile,
@@ -97,6 +99,17 @@ export const OrderProvider = ({ children }) => {
                 city: orderData.city,
                 state: orderData.state,
                 pincode: orderData.pincode,
+            },
+            orderId: `ORD${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+            shippingAddress: {
+                fullName: orderData.fullName,
+                mobile: orderData.mobile,
+                street: orderData.street,
+                locality: orderData.locality,
+                city: orderData.city,
+                state: orderData.state,
+                pincode: orderData.pincode,
+                phone: orderData.mobile
             },
             timeline: [
                 { status: 'Placed', date: now.toISOString(), completed: true, desc: 'Your order has been placed successfully.' },

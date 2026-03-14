@@ -15,29 +15,31 @@ const AdminOrders = () => {
     // Sync with Firebase
     useEffect(() => {
         const ordersRef = ref(db, 'orders');
-        const unsubscribe = onValue(ordersRef, (snapshot) => {
+
+        const unsubOrders = onValue(ordersRef, (snapshot) => {
             try {
                 const data = snapshot.val();
                 if (data) {
                     const orderList = Object.keys(data).map(key => ({
                         ...data[key],
                         firebaseId: key,
-                        // Ensure ID is consistent
                         orderId: data[key].orderId || data[key].id || key
                     }));
                     setOrders(orderList.reverse());
                 } else {
                     setOrders([]);
                 }
+                setIsLoading(false);
             } catch (error) {
                 console.error("Error processing orders:", error);
+                setIsLoading(false);
             }
         }, (error) => {
             console.error("Firebase onValue error:", error);
+            setIsLoading(false);
         });
 
-        setIsLoading(false);
-        return () => unsubscribe();
+        return () => unsubOrders();
     }, []);
 
     const handleStatusChange = (firebaseId, newStatus) => {

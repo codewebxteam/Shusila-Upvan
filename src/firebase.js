@@ -10,23 +10,15 @@ const firebaseConfig = {
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    databaseURL: `https://${import.meta.env.VITE_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`
+    // ✅ Always use the explicit URL from .env to avoid wrong database connections
+    databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase services
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-
-// Initialize Firestore
 export const firestoreDb = getFirestore(app);
-
-// Initialize Realtime Database
 export const realtimeDb = getDatabase(app);
-
-// Export 'db' for compatibility
 export const db = firestoreDb;
-
 export default app;
