@@ -22,7 +22,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Success from "./pages/Success";
 
 // Context Providers
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 
@@ -34,6 +34,19 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminSettings from "./pages/admin/AdminSettings";
+
+// Protect Admin Routes
+const AdminProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return null; // or a loader
+  
+  if (!user || user.role !== 'admin') {
+     return <FoundationHome />; // Redirect unauthorized to home
+  }
+  
+  return children;
+};
 
 function AppContent() {
   const location = useLocation();
@@ -51,7 +64,7 @@ function AppContent() {
           <Route path="/" element={<FoundationHome />} />
           <Route path="/dairy" element={<DairyHome />} />
           <Route path="/mushroom" element={<MushroomHome />} />
-          <Route path="/about-us" element={<About />} />
+          <Route path="/about" element={<About />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cart" element={<CartPage />} />
@@ -63,7 +76,7 @@ function AppContent() {
           <Route path="/success" element={<Success />} />
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="reports" element={<AdminDashboard />} />

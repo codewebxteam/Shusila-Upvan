@@ -9,6 +9,7 @@ const Login = () => {
     const { login, loginWithGoogle } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isAdminLogin, setIsAdminLogin] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -24,11 +25,16 @@ const Login = () => {
         }
 
         try {
-            const success = await login(email, password);
-            if (success) {
-                navigate('/');
+            const result = await login(email, password);
+            if (result.success) {
+                // Redirect admin to dashboard, others to home
+                if (email === 'meraj786@gmail.com') {
+                    navigate('/admin');
+                } else {
+                    navigate('/');
+                }
             } else {
-                setError('Invalid email or password');
+                setError(result.message || 'Invalid email or password');
             }
         } catch (err) {
             setError('An error occurred during login');
@@ -64,9 +70,27 @@ const Login = () => {
                             SUSHEELA <span className="text-emerald-600 italic">UPVAN</span>
                         </span>
                     </motion.div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight italic">Welcome Back.</h2>
-                    <p className="text-slate-500 font-semibold mt-2">Sign in to your account</p>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight italic">
+                        {isAdminLogin ? 'Admin Portal.' : 'Welcome Back.'}
+                    </h2>
+                    <p className="text-slate-500 font-semibold mt-2">
+                        {isAdminLogin ? 'Sign in to dashboard' : 'Sign in to your account'}
+                    </p>
                     {error && <p className="text-red-500 text-[10px] font-black uppercase tracking-widest mt-4">{error}</p>}
+                </div>
+
+                {/* Admin Toggle */}
+                <div className="flex justify-center mb-10">
+                    <button
+                        type="button"
+                        onClick={() => setIsAdminLogin(!isAdminLogin)}
+                        className={`text-[10px] uppercase font-black tracking-widest px-6 py-2.5 rounded-full border-2 transition-all duration-300 ${isAdminLogin
+                                ? 'border-emerald-500 bg-emerald-50 text-emerald-600 shadow-lg shadow-emerald-500/10'
+                                : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                            }`}
+                    >
+                        {isAdminLogin ? 'Admin Mode Active' : 'Switch to Admin Portal'}
+                    </button>
                 </div>
 
                 <form className="space-y-5" onSubmit={handleSubmit}>

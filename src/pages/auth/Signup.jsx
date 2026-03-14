@@ -39,11 +39,11 @@ const Signup = () => {
         }
 
         try {
-            const success = await signup(name, email, password);
-            if (success) {
+            const result = await signup(name, email, password);
+            if (result.success) {
                 navigate('/');
             } else {
-                setError('Signup failed. Email might already be in use.');
+                setError(result.message || 'Signup failed. Email might already be in use.');
             }
         } catch (err) {
             setError('An error occurred during signup');

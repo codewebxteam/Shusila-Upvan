@@ -31,27 +31,29 @@ const AuthModal = ({ isOpen, onClose, initialView = 'login' }) => {
 
         try {
             if (view === 'login') {
-                const success = await login(formData.email, formData.password);
-                if (success) {
+                const result = await login(formData.email, formData.password);
+                if (result.success) {
                     onClose();
-                    // If login succeeds and admin toggle is checked (or hardcoded email match)
-                    if (isAdminLogin && formData.email === 'admin@gmail.com') {
+                    // Redirect admin to dashboard, others to home (if logic requires)
+                    if (formData.email === 'meraj786@gmail.com') {
                         navigate('/admin');
-                    } else if (isAdminLogin) {
-                        // Normally you'd check roles here, we'll just navigate for demo
-                        navigate('/admin');
+                    } else {
+                        navigate('/');
                     }
                 }
-                else setError('Invalid email or password');
+                else setError(result.message || 'Invalid email or password');
             } else {
                 if (formData.password !== formData.confirmPassword) {
                     setError('Passwords do not match');
                     setIsLoading(false);
                     return;
                 }
-                const success = await signup(formData.name, formData.email, formData.password);
-                if (success) onClose();
-                else setError('Signup failed. Email might already be in use.');
+                const result = await signup(formData.name, formData.email, formData.password);
+                if (result.success) {
+                    onClose();
+                    navigate('/');
+                }
+                else setError(result.message || 'Signup failed. Email might already be in use.');
             }
         } catch (err) {
             setError('An unexpected error occurred');
@@ -63,9 +65,14 @@ const AuthModal = ({ isOpen, onClose, initialView = 'login' }) => {
     const handleGoogleLogin = async () => {
         setError('');
         setIsLoading(true);
-        const success = await loginWithGoogle();
-        if (success) onClose();
-        else setError('Google Login failed');
+        const result = await loginWithGoogle();
+        if (result.success) {
+            onClose();
+            // Google login usually goes to home unless they are the admin
+            // (Assuming admin doesn't use Google login or we check role later)
+            navigate('/');
+        }
+        else setError(result.message || 'Google Login failed');
         setIsLoading(false);
     };
 

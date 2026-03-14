@@ -86,11 +86,6 @@ const Hero = () => {
           </div>
 
         </div>
-
-        {/* Search Bar Section */}
-        <div className="mt-16 lg:mt-24">
-          <SearchBar />
-        </div>
       </div>
     </section>
   );

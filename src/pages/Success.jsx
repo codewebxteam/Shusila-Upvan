@@ -9,8 +9,7 @@ const Success = () => {
     const { clearCart } = useCart();
 
     useEffect(() => {
-        // Clear cart when landing on success page
-        clearCart();
+        // Scroll to top when landing on success page
         window.scrollTo(0, 0);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

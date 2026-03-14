@@ -27,12 +27,13 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
+                const isAdmin = currentUser.email === 'meraj786@gmail.com';
                 setUser({
                     id: currentUser.uid,
                     email: currentUser.email,
-                    name: currentUser.displayName || currentUser.email.split('@')[0],
+                    name: isAdmin ? 'Meraj Hussain' : (currentUser.displayName || currentUser.email.split('@')[0]),
                     photo: currentUser.photoURL,
-                    role: 'member', // Default role
+                    role: isAdmin ? 'admin' : 'member',
                     joinedAt: currentUser.metadata.creationTime
                 });
             } else {
@@ -46,10 +47,24 @@ export const AuthProvider = ({ children }) => {
     const login = useCallback(async (email, password) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            return true;
+            return { success: true };
         } catch (error) {
-            console.error("Login Error:", error.message);
-            return false;
+            console.error("Login Error:", error.code, error.message);
+            let errorMessage = 'Invalid email or password';
+            
+            if (error.code === 'auth/user-not-found') {
+                errorMessage = 'Account not found. Please sign up first.';
+            } else if (error.code === 'auth/wrong-password') {
+                errorMessage = 'Incorrect password. Please try again.';
+            } else if (error.code === 'auth/invalid-credential') {
+                errorMessage = 'Invalid credentials. Check email/password or sign up if new.';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Please enter a valid email address.';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many attempts. Access temporarily blocked. Please wait a few minutes.';
+            }
+            
+            return { success: false, message: `${errorMessage} (${error.code})`, code: error.code };
         }
     }, []);
 
@@ -57,10 +72,16 @@ export const AuthProvider = ({ children }) => {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(userCredential.user, { displayName: name });
-            return true;
+            return { success: true };
         } catch (error) {
-            console.error("Signup Error:", error.message);
-            return false;
+            console.error("Signup Error:", error.code, error.message);
+            let errorMessage = 'Signup failed. Please try again.';
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'This email is already registered. Try logging in.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'Password is too weak. Use at least 6 characters.';
+            }
+            return { success: false, message: errorMessage };
         }
     }, []);
 
@@ -109,3 +130,5 @@ export const useAuth = () => {
     }
     return context;
 };
+
+export default AuthContext;

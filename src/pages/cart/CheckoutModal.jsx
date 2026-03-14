@@ -31,6 +31,8 @@ const CheckoutModal = ({ onClose }) => {
 
     const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
     const [isWalletDropdownOpen, setIsWalletDropdownOpen] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState(null);
 
     const banks = [
         { id: 'sbi', name: 'State Bank of India', icon: 'https://cdn.iconscout.com/icon/free/png-256/free-sbi-3629051-3030232.png' },
@@ -71,17 +73,29 @@ const CheckoutModal = ({ onClose }) => {
     };
 
     const handlePlaceOrder = async () => {
-        const itemsToPass = [...cartItems];
-        const orderData = {
-            items: itemsToPass,
-            subtotal,
-            tax,
-            grandTotal,
-            ...formData
-        };
-        const newOrder = await placeOrder(orderData);
-        onClose();
-        navigate('/success', { state: { items: itemsToPass, orderDetails: newOrder || orderData } });
+        setIsProcessing(true);
+        setError(null);
+        try {
+            const itemsToPass = [...cartItems];
+            const orderData = {
+                items: itemsToPass,
+                subtotal,
+                tax,
+                grandTotal,
+                ...formData
+            };
+            const newOrder = await placeOrder(orderData);
+
+            setOrderPlaced(true);
+            setIsProcessing(false);
+
+            onClose();
+            navigate('/success', { state: { items: itemsToPass, orderDetails: newOrder || orderData } });
+        } catch (err) {
+            console.error("Order completion error:", err);
+            setError("Something went wrong while placing your order. Please try again.");
+            setIsProcessing(false);
+        }
     };
 
     const steps = [
@@ -791,13 +805,33 @@ const CheckoutModal = ({ onClose }) => {
                             </motion.button>
                         ) : (
                             <motion.button
-                                whileHover={{ scale: 1.02, y: -2 }}
-                                whileTap={{ scale: 0.98 }}
+                                whileHover={!isProcessing ? { scale: 1.02, y: -2 } : {}}
+                                whileTap={!isProcessing ? { scale: 0.98 } : {}}
                                 onClick={handlePlaceOrder}
-                                className="flex items-center gap-3 px-16 py-4 bg-[#00e676] text-[#111827] rounded-full text-[16px] font-bold uppercase tracking-wider shadow-xl shadow-emerald-200/50 hover:bg-white transition-all shadow-sm"
+                                disabled={isProcessing}
+                                className={`flex items-center gap-3 px-16 py-4 rounded-full text-[16px] font-bold uppercase tracking-wider transition-all shadow-sm ${isProcessing
+                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                        : 'bg-[#00e676] text-[#111827] shadow-emerald-200/50 hover:bg-white active:scale-95'
+                                    }`}
                             >
-                                PLACE ORDER (₹{grandTotal.toLocaleString('en-IN')})
+                                {isProcessing ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin transition-all" />
+                                        PROCESSING...
+                                    </>
+                                ) : (
+                                    <>PLACE ORDER (₹{grandTotal.toLocaleString('en-IN')})</>
+                                )}
                             </motion.button>
+                        )}
+                        {error && (
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="absolute bottom-24 right-8 text-xs font-bold text-red-500 bg-red-50 px-4 py-2 rounded-xl border border-red-100"
+                            >
+                                {error}
+                            </motion.p>
                         )}
                     </div>
                 </div>

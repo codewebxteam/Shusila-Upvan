@@ -4,12 +4,11 @@ import React, {
   useReducer,
   useMemo,
   useEffect,
+  useRef,
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
-
 const CartContext = createContext();
-
 const cartReducer = (state, action) => {
   switch (action.type) {
     case 'SET_CART':
@@ -63,21 +62,38 @@ export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [cartItems, dispatch] = useReducer(cartReducer, []);
 
-  // Load cart when user changes
+  // Track whether the cart has been loaded for the current user.
+  // We must NOT save to localStorage until after the initial load,
+  // otherwise we'd overwrite the saved cart with [] on login.
+  const isLoadedRef = useRef(false);
+
+  // When user changes (login / logout), load their saved cart
   useEffect(() => {
+    isLoadedRef.current = false; // Reset before loading
+
     if (user) {
-      const saved = localStorage.getItem(`susheela_cart_${user.id}`);
+      const key = `susheela_cart_${user.id}`;
+      const saved = localStorage.getItem(key);
       dispatch({ type: 'SET_CART', payload: saved ? JSON.parse(saved) : [] });
     } else {
+      // Logged out – clear from view but don't touch localStorage
       dispatch({ type: 'SET_CART', payload: [] });
     }
+
+    // Mark as loaded after dispatching
+    // Use a microtask so the reducer has processed SET_CART first
+    Promise.resolve().then(() => {
+      isLoadedRef.current = true;
+    });
   }, [user]);
 
-  // Persist cart
+  // Persist cart to localStorage whenever it changes — but ONLY after load
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(`susheela_cart_${user.id}`, JSON.stringify(cartItems));
-    }
+    if (!isLoadedRef.current) return; // Skip the initial empty state
+    if (!user) return;               // Don't save when logged out
+
+    const key = `susheela_cart_${user.id}`;
+    localStorage.setItem(key, JSON.stringify(cartItems));
   }, [cartItems, user]);
 
   const addToCart = useCallback((product, quantity = 1) => {
@@ -112,20 +128,12 @@ export const CartProvider = ({ children }) => {
   );
 
   const mushroomTotal = useMemo(
-    () =>
-      mushroomItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      ),
+    () => mushroomItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [mushroomItems]
   );
 
   const dairyTotal = useMemo(
-    () =>
-      dairyItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      ),
+    () => dairyItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [dairyItems]
   );
 
