@@ -29,7 +29,8 @@ const ProductList = () => {
           img: data[key].img || data[key].image || 'https://images.unsplash.com/photo-1550583794-a2b7142647ec?w=500',
           unit: data[key].unit || 'Kg'
         }))
-        .filter(p => p.category?.toLowerCase().includes('dairy'));
+        .filter(p => String(p.category || '').toLowerCase().includes('dairy'));
+      console.log("🥛 Fetched Firebase Dairy Products:", list.length, list);
       setFirebaseProducts(list);
     }, (error) => {
       console.error("Dairy DB Error:", error);
@@ -42,12 +43,12 @@ const ProductList = () => {
   const [page, setPage] = useState(1);
 
   const dairyProducts = [
-    ...products.filter((p) => p.category === categories.DAIRY),
-    ...firebaseProducts
+    ...[...firebaseProducts].reverse(),
+    ...products.filter((p) => p.category === categories.DAIRY)
   ];
 
   // Get unique tags
-  const allTags = ['All', ...new Set(dairyProducts.map(p => p.tag))];
+  const allTags = ['All', ...new Set(dairyProducts.map(p => p.tag).filter(Boolean))];
 
   // Filter products by tag and search
   const filteredProducts = dairyProducts.filter(p => {
@@ -190,7 +191,7 @@ const ProductList = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {paginatedProducts.map((item) => (
-            <div key={item.id}>
+            <div key={item.id} className="group relative bg-slate-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl border border-slate-100 hover:border-blue-200 cursor-pointer transition-all">
               {/* Wishlist Button */}
               <button
                 onClick={(e) => handleWishlistToggle(e, item)}

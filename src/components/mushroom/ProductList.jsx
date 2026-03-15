@@ -29,7 +29,8 @@ const ProductList = () => {
           img: data[key].img || data[key].image || 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?w=500',
           unit: data[key].unit || 'Kg'
         }))
-        .filter(p => p.category?.toLowerCase().includes('mushroom'));
+        .filter(p => String(p.category || '').toLowerCase().includes('mushroom'));
+      console.log("🍄 Fetched Firebase Mushroom Products:", list.length, list);
       setFirebaseProducts(list);
     }, (error) => {
       console.error("Mushroom DB Error:", error);
@@ -42,13 +43,13 @@ const ProductList = () => {
   const [page, setPage] = useState(1);
 
   const mushroomProducts = [
-    ...products.filter((p) => p.category === categories.MUSHROOM),
-    ...firebaseProducts
+    ...[...firebaseProducts].reverse(),
+    ...products.filter((p) => p.category === categories.MUSHROOM)
   ];
   console.log("🍄 Mushroom Grid Products:", mushroomProducts.length, "Static:", products.filter((p) => p.category === categories.MUSHROOM).length, "Firebase:", firebaseProducts.length);
 
   // Get unique tags
-  const allTags = ['All', ...new Set(mushroomProducts.map(p => p.tag))];
+  const allTags = ['All', ...new Set(mushroomProducts.map(p => p.tag).filter(Boolean))];
 
   // Filter products by tag and search
   const filteredProducts = mushroomProducts.filter(p => {

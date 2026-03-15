@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { PackageSearch, AlertTriangle, TrendingDown, BoxSelect, PackageCheck, X, Plus, Upload } from 'lucide-react';
+import { PackageSearch, AlertTriangle, TrendingDown, BoxSelect, PackageCheck, X, Plus, Upload, Trash2 } from 'lucide-react';
 import { realtimeDb as db } from '../../firebase';
-import { ref, onValue, update, push, set } from 'firebase/database';
+import { ref, onValue, update, push, set, remove } from 'firebase/database';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const AdminInventory = () => {
@@ -15,28 +15,129 @@ const AdminInventory = () => {
         name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
     });
     const [syncError, setSyncError] = useState(null);
+    const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+    const [isClearing, setIsClearing] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [editProduct, setEditProduct] = useState({
+        name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
+    });
+
+    const handleClearEntireList = async () => {
+        setIsClearing(true);
+        try {
+            await remove(ref(db, 'products'));
+            // Close instantly!
+            setIsClearModalOpen(false);
+        } catch (err) {
+            console.error("Clear list failed:", err);
+            alert("❌ Failed to clear inventory: " + err.message);
+        } finally {
+            setIsClearing(false);
+        }
+    };
 
     const handleUpdateClick = (item) => {
         setSelectedItem(item);
-        setNewStock(item.stock.toString());
+        setEditProduct({
+            name: item.name || '',
+            price: item.price || '',
+            discount: item.discount || 0,
+            description: item.description || '',
+            stock: item.stock || '',
+            category: item.category || 'Dairy Product',
+            specification: item.specification || '',
+            highlights: item.highlights || '',
+            image: null
+        });
         setIsUpdateModalOpen(true);
     };
 
-    const handleStockUpdate = (e) => {
-        e.preventDefault();
-        const stockNum = parseInt(newStock, 10);
-        if (isNaN(stockNum) || stockNum < 0) return;
+    const handleEditInputChange = (e) => {
+        const { name, value } = e.target;
+        setEditProduct(prev => ({ ...prev, [name]: value }));
+    };
 
+    const handleEditImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setEditProduct(prev => ({ ...prev, image: file }));
+        }
+    };
+
+    const handleProductUpdate = async (e) => {
+        e.preventDefault();
+        if (isPublishing) return;
+        setIsPublishing(true);
+
+        const stockNum = parseInt(editProduct.stock, 10);
         let status = 'Active';
         if (stockNum === 0) status = 'Out of Stock';
         else if (stockNum < 10) status = 'Low Stock';
 
-        update(ref(db, `products/${selectedItem.firebaseId}`), {
+        let icon = '📦';
+        if (editProduct.category === 'Mushroom Product') icon = '🍄';
+        else if (editProduct.category === 'Dairy Product') icon = '🥛';
+
+        let imageUrl = selectedItem.img || '';
+        if (editProduct.image) {
+            try {
+                const storage = getStorage();
+                const imageRef = sRef(storage, `products/${Date.now()}_${editProduct.name.replace(/\s+/g, '_')}`);
+                const snapshot = await uploadBytes(imageRef, editProduct.image);
+                imageUrl = await getDownloadURL(snapshot.ref);
+            } catch (err) {
+                console.error("Storage upload failed:", err);
+            }
+        }
+
+        const productData = {
+            name: editProduct.name,
+            category: editProduct.category,
+            price: parseFloat(editProduct.price),
             stock: stockNum,
-            status: status
-        });
-        setIsUpdateModalOpen(false);
-        setSelectedItem(null);
+            status: status,
+            icon: icon,
+            img: imageUrl,
+            description: editProduct.description,
+            specification: editProduct.specification,
+            highlights: editProduct.highlights,
+            discount: editProduct.discount || 0,
+            updatedAt: new Date().toISOString()
+        };
+
+        try {
+            await update(ref(db, `products/${selectedItem.firebaseId}`), productData);
+            setIsUpdateModalOpen(false);
+            setSelectedItem(null);
+        } catch (err) {
+            console.error("Update product failed:", err);
+            alert("❌ Failed to update product: " + err.message);
+        } finally {
+            setIsPublishing(false);
+        }
+    };
+
+    const handleDeleteClick = (item) => {
+        setItemToDelete(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleProductDelete = async () => {
+        if (!itemToDelete) return;
+        setIsDeleting(true);
+        try {
+            await remove(ref(db, `products/${itemToDelete.firebaseId}`));
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+        } catch (err) {
+            console.error("Delete product failed:", err);
+            alert("❌ Failed to delete product: " + err.message);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const handleInputChange = (e) => {
@@ -53,7 +154,10 @@ const AdminInventory = () => {
 
     const handleAddProductSubmit = async (e) => {
         e.preventDefault();
-        
+
+        if (isPublishing) return;
+        setIsPublishing(true);
+
         if (!newProduct.name || !newProduct.price || !newProduct.stock) {
             alert('Please fill in required fields (Name, Price, Quantity)');
             return;
@@ -97,14 +201,15 @@ const AdminInventory = () => {
 
         try {
             await push(ref(db, 'products'), productData);
-            alert("✅ Product Added Successfully to Database!");
-            setIsAddModalOpen(false);
+            setIsAddModalOpen(false); // Close instantly!
             setNewProduct({
                 name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
             });
         } catch (err) {
             console.error("Add product failed:", err);
             alert("❌ Failed to add product: " + err.message + "\n\nThis is usually due to Firebase Database Rules blocking write access on '/products'.");
+        } finally {
+            setIsPublishing(false);
         }
     };
 
@@ -151,13 +256,23 @@ const AdminInventory = () => {
                         <span className="text-indigo-600">Inventory</span>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 px-5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-indigo-500/30 shrink-0"
-                >
-                    <Plus size={18} strokeWidth={2.5} />
-                    Restock / Add New Item
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        type="button"
+                        onClick={() => setIsClearModalOpen(true)}
+                        className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white py-2.5 px-5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-rose-500/30 shrink-0"
+                    >
+                        <Trash2 size={18} strokeWidth={2.5} />
+                        Clear Entire List
+                    </button>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 px-5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-indigo-500/30 shrink-0"
+                    >
+                        <Plus size={18} strokeWidth={2.5} />
+                        Restock / Add New Item
+                    </button>
+                </div>
             </div>
 
             {/* Summary Cards */}
@@ -244,31 +359,38 @@ const AdminInventory = () => {
                                         <span className="text-sm font-semibold text-slate-600">{item.category}</span>
                                     </td>
                                     <td className="py-4 px-6 text-center">
-                                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${
-                                            item.stock === 0 ? 'bg-red-100 text-red-600' : 
-                                            item.stock < 10 ? 'bg-amber-100 text-amber-600' : 
-                                            'bg-emerald-100 text-emerald-600'
-                                        }`}>
+                                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${item.stock === 0 ? 'bg-red-100 text-red-600' :
+                                                item.stock < 10 ? 'bg-amber-100 text-amber-600' :
+                                                    'bg-emerald-100 text-emerald-600'
+                                            }`}>
                                             {item.stock}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 text-center">
-                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${
-                                            item.stock === 0 ? 'text-red-600 bg-red-50' : 
-                                            item.stock < 10 ? 'text-amber-600 bg-amber-50' : 
-                                            'text-emerald-600 bg-emerald-50'
-                                        }`}>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${item.stock === 0 ? 'text-red-600 bg-red-50' :
+                                                item.stock < 10 ? 'text-amber-600 bg-amber-50' :
+                                                    'text-emerald-600 bg-emerald-50'
+                                            }`}>
                                             {item.stock === 0 ? 'Out of Stock' : item.stock < 10 ? 'Low Stock' : 'In Stock'}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 text-right">
-                                        <button 
-                                            onClick={() => handleUpdateClick(item)}
-                                            className="inline-flex items-center justify-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-500/20"
-                                        >
-                                            <PackageSearch size={14} strokeWidth={3} />
-                                            Update
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => handleUpdateClick(item)}
+                                                className="inline-flex items-center justify-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-500/20"
+                                            >
+                                                <PackageSearch size={14} strokeWidth={3} />
+                                                Update
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteClick(item)}
+                                                className="inline-flex items-center justify-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white py-2 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-md shadow-rose-500/20"
+                                            >
+                                                <Trash2 size={14} strokeWidth={3} />
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -277,56 +399,190 @@ const AdminInventory = () => {
                 </div>
             </div>
 
-            {/* Update Stock Modal Overlay */}
+            {/* Update Product Modal Overlay */}
             {isUpdateModalOpen && selectedItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in"
-                        onClick={() => setIsUpdateModalOpen(false)}
-                    ></div>
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsUpdateModalOpen(false)}></div>
 
-                    {/* Modal Content */}
-                    <div className="bg-white rounded-3xl w-full max-w-md relative z-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in">
-                        <div className="border-b border-slate-100 p-6 flex items-center justify-between">
+                    <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative z-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in custom-scrollbar">
+                        <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 p-6 flex items-center justify-between z-20">
                             <div>
-                                <h2 className="text-xl font-black text-slate-800">Update Stock</h2>
-                                <p className="text-sm font-medium text-slate-500 mt-1">{selectedItem.name}</p>
+                                <h2 className="text-2xl font-black text-slate-800">Update Product</h2>
+                                <p className="text-sm font-medium text-slate-500 mt-1">Modify the details of the selected item.</p>
                             </div>
                             <button
                                 onClick={() => setIsUpdateModalOpen(false)}
                                 className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
                             >
-                                <X size={20} strokeWidth={2.5} />
+                                <X size={24} strokeWidth={2.5} />
                             </button>
                         </div>
 
-                        <form onSubmit={handleStockUpdate} className="p-6">
-                            <div className="mb-6">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">New Stock Quantity <span className="text-rose-500">*</span></label>
-                                <input
-                                    type="number"
-                                    value={newStock}
-                                    onChange={(e) => setNewStock(e.target.value)}
-                                    min="0"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
-                                    required
-                                />
+                        <form onSubmit={handleProductUpdate} className="p-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                                {/* Left Column: Image Upload */}
+                                <div className="lg:col-span-1 space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Product Image (Leave empty to keep current)</label>
+                                        <div className="border-2 border-dashed border-slate-200 rounded-2xl h-64 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group relative overflow-hidden">
+                                            {editProduct.image ? (
+                                                <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center">
+                                                    <span className="text-4xl mb-2">📸</span>
+                                                    <span className="text-sm font-semibold text-slate-600 px-4 text-center truncate w-full">
+                                                        {editProduct.image.name}
+                                                    </span>
+                                                </div>
+                                            ) : selectedItem.img ? (
+                                                <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center">
+                                                    <img src={selectedItem.img} alt={selectedItem.name} className="w-3/4 h-3/4 object-contain" />
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center text-slate-400 group-hover:text-indigo-500 transition-colors">
+                                                    <Upload size={32} className="mb-3" />
+                                                    <span className="text-sm font-semibold">Click to upload new image</span>
+                                                    <span className="text-xs font-medium mt-1">SVG, PNG, JPG or GIF</span>
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleEditImageChange}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Highlights (Comma separated)</label>
+                                        <textarea
+                                            name="highlights"
+                                            value={editProduct.highlights}
+                                            onChange={handleEditInputChange}
+                                            rows="4"
+                                            placeholder="e.g. Organic, Freshly Picked, Rich in Calcium"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all resize-none custom-scrollbar"
+                                        ></textarea>
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Details */}
+                                <div className="lg:col-span-2 space-y-6">
+                                    {/* Row 1 */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Product Name <span className="text-rose-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={editProduct.name}
+                                            onChange={handleEditInputChange}
+                                            placeholder="e.g. Fresh Cow Milk"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* Row 2: Category & Quantity */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Category <span className="text-rose-500">*</span></label>
+                                            <select
+                                                name="category"
+                                                value={editProduct.category}
+                                                onChange={handleEditInputChange}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all appearance-none"
+                                            >
+                                                <option value="Dairy Product">Dairy Product</option>
+                                                <option value="Mushroom Product">Mushroom Product</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Quantity (Stock) <span className="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                name="stock"
+                                                value={editProduct.stock}
+                                                onChange={handleEditInputChange}
+                                                min="0"
+                                                placeholder="e.g. 100"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Row 3: Pricing */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Price (₹) <span className="text-rose-500">*</span></label>
+                                            <input
+                                                type="number"
+                                                name="price"
+                                                value={editProduct.price}
+                                                onChange={handleEditInputChange}
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Discount (%)</label>
+                                            <input
+                                                type="number"
+                                                name="discount"
+                                                value={editProduct.discount}
+                                                onChange={handleEditInputChange}
+                                                min="0"
+                                                max="100"
+                                                placeholder="0"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder:font-medium"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Row 4: Description */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Description</label>
+                                        <textarea
+                                            name="description"
+                                            value={editProduct.description}
+                                            onChange={handleEditInputChange}
+                                            rows="3"
+                                            placeholder="Enter complete product description..."
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all resize-none custom-scrollbar"
+                                        ></textarea>
+                                    </div>
+
+                                    {/* Row 5: Specification */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Specifications</label>
+                                        <textarea
+                                            name="specification"
+                                            value={editProduct.specification}
+                                            onChange={handleEditInputChange}
+                                            rows="3"
+                                            placeholder="Brand: Susheela Upvan\nWeight: 500g\nStorage: Keep Refrigerated"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all resize-none custom-scrollbar"
+                                        ></textarea>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="flex items-center justify-end gap-3 mt-8">
+                            <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-end gap-4">
                                 <button
                                     type="button"
                                     onClick={() => setIsUpdateModalOpen(false)}
-                                    className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                                    className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30"
+                                    disabled={isPublishing}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30 disabled:opacity-75 flex items-center gap-2"
                                 >
-                                    Update Stock
+                                    {isPublishing ? 'Updating...' : 'Update Product'}
                                 </button>
                             </div>
                         </form>
@@ -334,7 +590,49 @@ const AdminInventory = () => {
                 </div>
             )}
 
+            {/* Delete Single Product Confirmation Modal */}
+            {isDeleteModalOpen && itemToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={() => !isDeleting && setIsDeleteModalOpen(false)}></div>
+
+                    <div className="bg-white rounded-3xl w-full max-w-md relative z-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in p-6">
+                        <div className="flex items-center gap-4 mb-4 text-rose-600">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600">
+                                <Trash2 size={24} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-slate-800">Delete Product?</h2>
+                                <p className="text-sm font-medium text-slate-500 mt-1">{itemToDelete.name}</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-600 font-medium mb-6">
+                            Are you sure you want to delete this product from the inventory? This action cannot be undone.
+                        </p>
+
+                        <div className="flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                disabled={isDeleting}
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeleting}
+                                onClick={handleProductDelete}
+                                className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-rose-600/30 disabled:opacity-70 flex items-center gap-2"
+                            >
+                                {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Add New Product Modal Overlay */}
+
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsAddModalOpen(false)}></div>
@@ -511,9 +809,10 @@ const AdminInventory = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30"
+                                    disabled={isPublishing}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30 disabled:opacity-75 flex items-center gap-2"
                                 >
-                                    Publish Product
+                                    {isPublishing ? 'Publishing...' : 'Publish Product'}
                                 </button>
                             </div>
                         </form>
@@ -521,7 +820,49 @@ const AdminInventory = () => {
                 </div>
             )}
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            {/* Clear Entire List Confirmation Modal */}
+            {isClearModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={() => !isClearing && setIsClearModalOpen(false)}></div>
+
+                    <div className="bg-white rounded-3xl w-full max-w-md relative z-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in p-6">
+                        <div className="flex items-center gap-4 mb-4 text-rose-600">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600">
+                                <Trash2 size={24} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-slate-800">Clear Entire Inventory?</h2>
+                                <p className="text-sm font-medium text-slate-500 mt-1">This action cannot be undone.</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-600 font-medium mb-6">
+                            Are you sure you want to delete all products from the inventory? This will remove all items from the database list immediately.
+                        </p>
+
+                        <div className="flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                disabled={isClearing}
+                                onClick={() => setIsClearModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isClearing}
+                                onClick={handleClearEntireList}
+                                className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-rose-600/30 disabled:opacity-70 flex items-center gap-2"
+                            >
+                                {isClearing ? 'Clearing...' : 'Yes, Clear All'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(10px); }
                     to { opacity: 1; transform: translateY(0); }
@@ -548,7 +889,7 @@ const AdminInventory = () => {
                         <p className="text-sm text-slate-600 font-medium mb-6">
                             Your Firebase Realtime Database is rejecting reads. This is caused by locking Rules in your online Firebase Console account.
                         </p>
-                        
+
                         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-6">
                             <p className="text-xs font-black text-slate-700 mb-2">Step-by-Step Fix Instructions:</p>
                             <ol className="text-xs font-bold text-slate-600 list-decimal pl-4 space-y-3">
@@ -557,7 +898,7 @@ const AdminInventory = () => {
                                 <li>Go to the <span className="text-slate-900 font-extrabold">Rules</span> tab at the top-center</li>
                                 <li>Replace everything with this code accurately:
                                     <pre className="bg-slate-900 text-emerald-400 p-3 rounded-lg mt-1 font-mono text-[10px] select-all shadow-inner">
-{`{
+                                        {`{
   "rules": {
     ".read": true,
     ".write": true
@@ -568,7 +909,7 @@ const AdminInventory = () => {
                                 <li>Click the blue <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-black">Publish</span> button at top right!</li>
                             </ol>
                         </div>
-                        
+
                         <button onClick={() => setSyncError(null)} className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-98">
                             Close and Retry Connection
                         </button>
