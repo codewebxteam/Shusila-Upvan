@@ -14,7 +14,46 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- Preloader -->
+    <style>
+      #root:empty .preloader {
+        display: flex;
+      }
+      .preloader {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        font-family: 'Outfit', sans-serif;
+      }
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #f1f5f9;
+        border-top-color: #059669; /* emerald-600 */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+    <div class="preloader">
+      <div class="spinner"></div>
+      <div style="margin-top: 16px; font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.05em;">
+        SUSHEELA <span style="color: #059669; font-style: italic;">UPVAN</span>
+      </div>
+      <div style="font-size: 7px; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.4em; margin-top: 4px;">
+        Loading...
+      </div>
+    </div>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

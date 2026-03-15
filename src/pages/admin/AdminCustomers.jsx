@@ -12,39 +12,86 @@ const AdminCustomers = () => {
     const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
     useEffect(() => {
-        // Fetch Users and Orders to calculate stats
         const usersRef = ref(db, 'users');
         const ordersRef = ref(db, 'orders');
 
-        const unsubUsers = onValue(usersRef, (userSnap) => {
-            const usersData = userSnap.val() || {};
+        // Listen to orders for real-time aggregation and robust fallback
+        const unsubOrders = onValue(ordersRef, (orderSnap) => {
+            const ordersData = orderSnap.val() || {};
+            const ordersList = Object.keys(ordersData).map(key => ({
+                ...ordersData[key],
+                firebaseId: key
+            }));
 
-            // Listen to orders to get real-time stats for users
-            onValue(ordersRef, (orderSnap) => {
-                const ordersData = orderSnap.val() || {};
-                const ordersList = Object.values(ordersData);
+            // Fetch users for fallback or enrichment
+            onValue(usersRef, (userSnap) => {
+                const usersData = userSnap.val() || {};
+                const customerMap = {};
 
-                const customerList = Object.keys(usersData).map(uid => {
-                    const userOrders = ordersList.filter(o => o.userId === uid);
-                    const totalSpent = userOrders.reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+                // 1. Process from Orders (Ensures customers with orders show up immediately)
+                ordersList.forEach(order => {
+                    const uid = order.userId || `guest_${order.firebaseId}`;
+                    
+                    if (!customerMap[uid]) {
+                        const orderName = order.customer || order.address?.name || 'Anonymous';
+                        const userName = usersData[uid]?.displayName || usersData[uid]?.name;
+                        
+                        const orderEmail = order.email || order.address?.email;
+                        const userEmail = usersData[uid]?.email;
 
-                    return {
-                        id: uid,
-                        customer: usersData[uid].displayName || usersData[uid].name || 'Anonymous',
-                        email: usersData[uid].email || 'N/A',
-                        orders: userOrders.length,
-                        spent: `₹${totalSpent.toLocaleString()}`,
-                        joined: usersData[uid].createdAt ? new Date(usersData[uid].createdAt).toLocaleDateString() : 'N/A',
-                        status: userOrders.length > 5 ? 'VIP' : 'Active'
-                    };
+                        customerMap[uid] = {
+                            id: uid,
+                            customer: orderName !== 'Anonymous' ? orderName : (userName || 'Anonymous'),
+                            email: orderEmail || userEmail || 'N/A',
+                            orders: 0,
+                            spent: 0,
+                            joined: usersData[uid]?.joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
+                            address: order.address ? `${order.address.street}, ${order.address.locality}, ${order.address.city}` : 'No Address',
+                            status: 'Active',
+                            _rawJoinedDate: usersData[uid]?.joinedAt || null
+                        };
+                    }
+
+                    customerMap[uid].orders += 1;
+                    customerMap[uid].spent += (order.grandTotal || order.amount || 0);
+                    
+                    if (order.address && customerMap[uid].address === 'No Address') {
+                         customerMap[uid].address = `${order.address.street}, ${order.address.locality}, ${order.address.city}`;
+                    }
                 });
+
+                // 2. Add users from usersData who haven't ordered yet
+                Object.keys(usersData).forEach(uid => {
+                    if (!customerMap[uid]) {
+                        customerMap[uid] = {
+                            id: uid,
+                            customer: usersData[uid].displayName || usersData[uid].name || 'Anonymous',
+                            email: usersData[uid].email || 'N/A',
+                            orders: 0,
+                            spent: 0,
+                            joined: usersData[uid].joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
+                            address: 'No Address',
+                            status: 'Active',
+                            _rawJoinedDate: usersData[uid].joinedAt || null
+                        };
+                    }
+                });
+
+                const customerList = Object.values(customerMap).map(item => ({
+                    ...item,
+                    spent: `₹${item.spent.toLocaleString()}`,
+                    status: item.orders > 5 ? 'VIP' : 'Active'
+                }));
 
                 setCustomers(customerList);
                 setIsLoading(false);
-            }, { onlyOnce: true }); // Avoid nested persistent listeners if possible, but for admin it's okay
+            }, { onlyOnce: true });
+        }, (error) => {
+            console.error("Orders listener error:", error);
+            setIsLoading(false);
         });
 
-        return () => unsubUsers();
+        return () => unsubOrders();
     }, []);
 
     // Helper to style the Status pill
@@ -254,7 +301,10 @@ const AdminCustomers = () => {
                                         <span className="font-bold text-slate-700 text-sm block">{item.customer}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className="text-sm font-medium text-slate-500">{item.email}</span>
+                                        <span className="text-sm font-medium text-slate-700">{item.email}</span>
+                                        {item.address !== 'No Address' && (
+                                            <span className="text-[10px] font-semibold text-slate-400 block mt-0.5 tracking-tight">{item.address}</span>
+                                        )}
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className="text-sm font-semibold text-slate-700">{item.orders}</span>

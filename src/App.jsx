@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import Header from "./components/header";
 import Footer from "./components/Footer";
 import FloatingCartButton from "./components/common/FloatingCartButton";
+import Loader from "./components/common/Loader";
 
 // Pages
 import FoundationHome from "./pages/foundation/home";
@@ -39,7 +40,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 const AdminProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
-  if (loading) return null; // or a loader
+  if (loading) return <Loader />;
   
   if (!user || user.role !== 'admin') {
      return <FoundationHome />; // Redirect unauthorized to home

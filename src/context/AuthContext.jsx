@@ -9,6 +9,8 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, realtimeDb } from '../firebase';
 import { ref, update } from 'firebase/database';
+import Loader from '../components/common/Loader';
+
 
 const AuthContext = createContext();
 
@@ -41,12 +43,10 @@ export const AuthProvider = ({ children }) => {
                 setUser(userData);
 
                 // Persist user to Realtime Database for Admin Dashboard visibility
-                try {
-                    const userRef = ref(realtimeDb, `users/${currentUser.uid}`);
-                    await update(userRef, userData);
-                } catch (error) {
+                const userRef = ref(realtimeDb, `users/${currentUser.uid}`);
+                update(userRef, userData).catch(error => {
                     console.error("Error persisting user to DB:", error);
-                }
+                });
             } else {
                 setUser(null);
             }
@@ -83,6 +83,19 @@ export const AuthProvider = ({ children }) => {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(userCredential.user, { displayName: name });
+            
+            // Explicitly force update DB with correct name to avoid race condition with onAuthStateChanged
+            const userData = {
+                id: userCredential.user.uid,
+                email: userCredential.user.email,
+                name: name,
+                role: 'member',
+                joinedAt: userCredential.user.metadata.creationTime || new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+            const userRef = ref(realtimeDb, `users/${userCredential.user.uid}`);
+            await update(userRef, userData);
+
             return { success: true };
         } catch (error) {
             console.error("Signup Error:", error.code, error.message);
@@ -129,10 +142,11 @@ export const AuthProvider = ({ children }) => {
             openAuthModal,
             closeAuthModal
         }}>
-            {!loading && children}
+            {loading ? <Loader /> : children}
         </AuthContext.Provider>
     );
 };
+
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
