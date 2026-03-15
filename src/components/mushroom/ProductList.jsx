@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Leaf, Sparkles, Check, Heart, Search, X } from 'lucide-react';
 import { products, categories } from '../../data/products';
+import { realtimeDb as db } from '../../firebase';
+import { ref, onValue } from 'firebase/database';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -14,13 +16,36 @@ const ProductList = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
+  const [firebaseProducts, setFirebaseProducts] = useState([]);
+
+  useEffect(() => {
+    const productsRef = ref(db, 'products');
+    const unsubscribe = onValue(productsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const list = Object.keys(data)
+        .map(key => ({
+          ...data[key],
+          id: key,
+          img: data[key].img || data[key].image || 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?w=500',
+          unit: data[key].unit || 'Kg'
+        }))
+        .filter(p => p.category?.toLowerCase().includes('mushroom'));
+      setFirebaseProducts(list);
+    }, (error) => {
+      console.error("Mushroom DB Error:", error);
+      alert("⚠️ Website Mushroom Database Error: " + error.message + "\n\nThis means your rules still lock visitors from reading products branch!");
+    });
+    return () => unsubscribe();
+  }, []);
   const [selectedTag, setSelectedTag] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
 
-  const mushroomProducts = products.filter(
-    (p) => p.category === categories.MUSHROOM
-  );
+  const mushroomProducts = [
+    ...products.filter((p) => p.category === categories.MUSHROOM),
+    ...firebaseProducts
+  ];
+  console.log("🍄 Mushroom Grid Products:", mushroomProducts.length, "Static:", products.filter((p) => p.category === categories.MUSHROOM).length, "Firebase:", firebaseProducts.length);
 
   // Get unique tags
   const allTags = ['All', ...new Set(mushroomProducts.map(p => p.tag))];
@@ -71,6 +96,13 @@ const ProductList = () => {
       return;
     }
     toggleWishlist(item);
+  };
+
+  const isNewProduct = (item) => {
+    if (!item.createdAt) return false;
+    const createdDate = new Date(item.createdAt);
+    const diffTime = Math.abs(new Date() - createdDate);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) <= 7;
   };
 
   return (
@@ -189,6 +221,11 @@ const ProductList = () => {
 
               {/* Image */}
               <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-emerald-50 to-transparent mb-6 flex items-center justify-center overflow-hidden">
+                {isNewProduct(item) && (
+                  <div className="absolute top-3 left-3 z-20 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-sm">
+                    NEW
+                  </div>
+                )}
                 <motion.img
                   src={item.img}
                   alt={item.name}

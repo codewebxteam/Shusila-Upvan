@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, remove } from 'firebase/database';
-import { Download, Eye, Trash2 } from 'lucide-react';
+import { Download, Eye, Trash2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import OrderTrackingModal from '../../components/admin/OrderTrackingModal';
+import OrderTrackingModal from './OrderTrackingModal';
 
 
 const AdminOrders = () => {
@@ -45,6 +45,16 @@ const AdminOrders = () => {
     const handleStatusChange = (firebaseId, newStatus) => {
         const orderRef = ref(db, `orders/${firebaseId}`);
         update(orderRef, { status: newStatus });
+    };
+
+    const handleCancelOrder = (firebaseId) => {
+        if (window.confirm('Are you sure you want to Cancel this order on ground of Out of Stock?')) {
+            const orderRef = ref(db, `orders/${firebaseId}`);
+            update(orderRef, {
+                status: 'Cancelled',
+                cancelReason: 'Current out of stock'
+            });
+        }
     };
 
     const handleClearOrders = () => {
@@ -172,28 +182,42 @@ const AdminOrders = () => {
                                             value={item.status}
                                             onChange={(e) => handleStatusChange(item.firebaseId, e.target.value)}
                                             className={`text-xs font-bold py-1.5 px-3 rounded-full border focus:outline-none appearance-none cursor-pointer pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:8px_8px] bg-[right_10px_center] ${item.status === 'Delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                item.status === 'Shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                                    item.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                                        'bg-slate-50 text-slate-700 border-slate-200'
+                                                    item.status === 'Shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                        item.status === 'Confirmed' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                                            item.status === 'Placed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                                item.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                                    'bg-slate-50 text-slate-700 border-slate-200'
                                                 }`}
                                         >
-                                            <option value="Delivered">Delivered</option>
+                                            <option value="Placed">Order Placed</option>
+                                            <option value="Confirmed">Order Confirmed</option>
                                             <option value="Shipped">Shipped</option>
-                                            <option value="Pending">Pending</option>
-                                            <option value="Processing">Processing</option>
+                                            <option value="Delivered">Delivered</option>
+                                            <option value="Cancelled">Cancelled</option>
                                         </select>
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className="text-sm font-semibold text-slate-500">{item.date}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <button 
-                                            onClick={() => setSelectedOrder(item)}
-                                            className="text-slate-400 hover:text-indigo-600 transition-colors" 
-                                            title="View Details"
-                                        >
-                                            <Eye size={18} strokeWidth={2.5} />
-                                        </button>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => setSelectedOrder(item)}
+                                                className="text-slate-400 hover:text-indigo-600 transition-colors"
+                                                title="View Details"
+                                            >
+                                                <Eye size={18} strokeWidth={2.5} />
+                                            </button>
+                                            {item.status !== 'Cancelled' && item.status !== 'Delivered' && (
+                                                <button
+                                                    onClick={() => handleCancelOrder(item.firebaseId)}
+                                                    className="text-slate-400 hover:text-red-500 transition-colors"
+                                                    title="Cancel Order (Out of Stock)"
+                                                >
+                                                    <X size={18} strokeWidth={2.5} />
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -203,9 +227,9 @@ const AdminOrders = () => {
             </div>
 
             {selectedOrder && (
-                <OrderTrackingModal 
-                    order={selectedOrder} 
-                    onClose={() => setSelectedOrder(null)} 
+                <OrderTrackingModal
+                    order={selectedOrder}
+                    onClose={() => setSelectedOrder(null)}
                 />
             )}
 

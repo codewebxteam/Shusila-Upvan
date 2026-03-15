@@ -19,6 +19,8 @@ const AdminPayments = () => {
 
     // UI Dropdown toggles
     const [activeDropdown, setActiveDropdown] = useState(null);
+    const [revenuePeriod, setRevenuePeriod] = useState('Today');
+    const [showRevenueDropdown, setShowRevenueDropdown] = useState(false);
 
     const toggleDropdown = (name) => {
         setActiveDropdown(prev => prev === name ? null : name);
@@ -68,7 +70,7 @@ const AdminPayments = () => {
 
             if (o.status !== 'Failed' && o.status !== 'Refunded') {
                 totalRevenue += amount;
-                if (o.paymentMethod === 'COD') codPayments += amount;
+                if (o.payment?.toUpperCase() === 'COD') codPayments += amount;
                 else onlinePayments += amount;
 
                 if (oDate >= startOfToday) todayRevenue += amount;
@@ -104,9 +106,9 @@ const AdminPayments = () => {
         // Method
         if (filterMethod !== 'All') {
             if (filterMethod === 'Online') {
-                result = result.filter(o => o.paymentMethod !== 'COD');
+                result = result.filter(o => o.payment?.toUpperCase() !== 'COD');
             } else {
-                result = result.filter(o => o.paymentMethod === filterMethod);
+                result = result.filter(o => o.payment?.toUpperCase() === filterMethod.toUpperCase());
             }
         }
 
@@ -188,7 +190,7 @@ const AdminPayments = () => {
                 `#${o.firebaseId.slice(-6).toUpperCase()}`,
                 o.shippingAddress?.fullName || 'Anonymous',
                 `₹${o.grandTotal}`,
-                o.paymentMethod || 'N/A',
+                o.payment || 'N/A',
                 o.status || 'N/A',
                 new Date(o.date).toLocaleDateString()
             ];
@@ -213,9 +215,9 @@ const AdminPayments = () => {
 
     // Helper to style the Method pill
     const getMethodStyle = (method) => {
-        switch (method) {
+        switch (method?.toUpperCase()) {
             case 'UPI': return 'bg-blue-50 text-blue-600 border-blue-200';
-            case 'Card': return 'bg-indigo-50 text-indigo-600 border-indigo-200';
+            case 'CARD': return 'bg-indigo-50 text-indigo-600 border-indigo-200';
             case 'COD': return 'bg-slate-100 text-slate-600 border-slate-200';
             default: return 'bg-slate-100 text-slate-600 border-slate-200';
         }
@@ -245,59 +247,72 @@ const AdminPayments = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
                 {/* Total Revenue */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹{(stats.totalRevenue / 100000).toFixed(2)}L</h3>
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden group border-b-4 border-b-slate-500">
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹{stats.totalRevenue.toLocaleString()}</h3>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Wallet size={16} /> Total Revenue
                     </p>
                 </div>
 
                 {/* Online Payments */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-indigo-100 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out z-0"></div>
-                    <div className="relative z-10 flex flex-col justify-center h-full">
-                        <h3 className="text-[2.2rem] font-black text-indigo-600 group-hover:text-white transition-colors tracking-tight mb-1">₹{(stats.onlinePayments / 1000).toFixed(1)}K</h3>
-                        <p className="text-sm font-bold text-indigo-400 group-hover:text-indigo-200 transition-colors uppercase tracking-widest flex items-center gap-2">
-                            <CreditCard size={16} /> Online Payments
-                        </p>
-                    </div>
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden group border-b-4 border-b-indigo-500">
+                    <h3 className="text-[2.2rem] font-black text-indigo-600 tracking-tight mb-1">₹{stats.onlinePayments.toLocaleString()}</h3>
+                    <p className="text-sm font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                        <CreditCard size={16} /> Online Payments
+                    </p>
                 </div>
 
                 {/* COD Payments */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹{(stats.codPayments / 1000).toFixed(1)}K</h3>
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden group border-b-4 border-b-emerald-500">
+                    <h3 className="text-[2.2rem] font-black text-slate-800 tracking-tight mb-1">₹{stats.codPayments.toLocaleString()}</h3>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Receipt size={16} /> COD Payments
                     </p>
                 </div>
 
                 {/* Pending Refunds */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative overflow-hidden group border-b-4 border-b-rose-500">
                     <h3 className="text-[2.2rem] font-black text-rose-500 tracking-tight mb-1">{stats.pendingRefunds}</h3>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <RefreshCcw size={16} /> Pending Refunds
                     </p>
                 </div>
-            </div>
 
-            {/* Quick Revenue Filters */}
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-                <div className="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Today's Rev:</span>
-                    <span className="text-sm font-bold text-slate-800">₹{stats.todayRevenue.toLocaleString()}</span>
-                </div>
-                <div className="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-                    <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                    <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Week's Rev:</span>
-                    <span className="text-sm font-bold text-slate-800">₹{stats.weekRevenue.toLocaleString()}</span>
-                </div>
-                <div className="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Month's Rev:</span>
-                    <span className="text-sm font-bold text-slate-800">₹{stats.monthRevenue.toLocaleString()}</span>
+                {/* Period Revenue */}
+                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative border-b-4 border-b-blue-500">
+                    <div className="flex justify-between items-start mb-1">
+                        <h3 className="text-[2rem] font-black text-slate-800 tracking-tight">
+                            ₹{revenuePeriod === 'Today' ? stats.todayRevenue.toLocaleString() : 
+                              revenuePeriod === 'Week' ? stats.weekRevenue.toLocaleString() : 
+                              stats.monthRevenue.toLocaleString()}
+                        </h3>
+                        <div className="relative">
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setShowRevenueDropdown(!showRevenueDropdown); }}
+                                className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors"
+                            >
+                                {revenuePeriod} <ChevronDown size={12} />
+                            </button>
+                            {showRevenueDropdown && (
+                                <div className="absolute right-0 mt-1 w-28 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-30">
+                                    {['Today', 'Week', 'Month'].map(opt => (
+                                        <button 
+                                            key={opt} 
+                                            onClick={() => { setRevenuePeriod(opt); setShowRevenueDropdown(false); }}
+                                            className={`w-full text-left px-3 py-1.5 text-xs font-bold ${revenuePeriod === opt ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <Calendar size={16} className="text-blue-500" /> Revenue
+                    </p>
                 </div>
             </div>
 
@@ -435,8 +450,8 @@ const AdminPayments = () => {
                                         <span className="text-sm font-bold text-slate-700">₹{o.grandTotal}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getMethodStyle(o.paymentMethod)}`}>
-                                            {o.paymentMethod || 'N/A'}
+                                        <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getMethodStyle(o.payment)}`}>
+                                            {o.payment || 'N/A'}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6">

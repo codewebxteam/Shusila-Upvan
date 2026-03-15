@@ -126,6 +126,7 @@ export const OrderProvider = ({ children }) => {
             await set(newOrderRef, newOrder);
         } catch (error) {
             console.error("Firebase order save failed, but saved locally:", error);
+            alert("⚠️ Warning: Order placed on website didn't sync into database due to permission rules!\n" + error.message);
         }
 
         return { ...newOrder, firebaseId: newOrderRef.key };

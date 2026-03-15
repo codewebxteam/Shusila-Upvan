@@ -279,7 +279,8 @@ const AdminLayout = () => {
             </div>
 
             {/* Global scrollbar style for admin area */}
-            <style jsx global>{`
+            {/* Global scrollbar style for admin area */}
+            <style dangerouslySetInnerHTML={{ __html: `
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
                     height: 6px;
@@ -294,7 +295,7 @@ const AdminLayout = () => {
                 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
                     background-color: #94a3b8;
                 }
-            `}</style>
+            ` }} />
         </div>
     );
 };

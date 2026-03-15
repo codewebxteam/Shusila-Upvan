@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DollarSign, ShoppingBag, Users, AlertCircle } from 'lucide-react';
 import { realtimeDb as db } from '../../firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, push, set } from 'firebase/database';
 import {
     LineChart,
     Line,
@@ -24,13 +24,46 @@ const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const placeTestOrder = async () => {
+        try {
+            const refOrder = ref(db, 'orders');
+            const newRef = push(refOrder);
+            await set(newRef, {
+                orderId: "TEST" + Math.floor(Math.random() * 1000),
+                customer: "Test User",
+                email: "test@example.com",
+                grandTotal: 1500,
+                payment: "COD",
+                status: "Placed",
+                date: new Date().toISOString(),
+                shippingAddress: { fullName: "Test User", street: "Test Road", city: "Test City", state: "TS", pincode: "110001", mobile: "9876543210" }
+            });
+            alert("Test Order placed successfully! If the database is connected they will load immediately.");
+        } catch (err) {
+            console.error("Test order failed:", err);
+            alert("Failed to place test order. Check console logs.");
+        }
+    };
+
     useEffect(() => {
         const ordersRef = ref(db, 'orders');
         const productsRef = ref(db, 'products');
         const usersRef = ref(db, 'users');
 
         const unsubOrders = onValue(ordersRef, (snap) => {
-            setOrders(Object.values(snap.val() || {}));
+            const data = snap.val();
+            console.log("[Dashboard] Raw Orders Data snapped:", data ? Object.keys(data).length : "NULL");
+            if (data) {
+                const list = Object.keys(data).map(key => ({
+                    ...data[key],
+                    firebaseId: key,
+                    orderId: data[key].orderId || data[key].id || key
+                }));
+                console.log("[Dashboard] Parsed Orders list length:", list.length);
+                setOrders(list);
+            } else {
+                setOrders([]);
+            }
             setIsLoading(false);
         }, (err) => {
             console.error("Orders sync error:", err);
@@ -49,11 +82,18 @@ const AdminDashboard = () => {
     // Derived Statistics
     const stats = useMemo(() => {
         const totalSales = orders.reduce((sum, o) => sum + (o.grandTotal || 0), 0);
-        const pendingOrders = orders.filter(o => o.status === 'Pending').length;
+        const pendingOrders = orders.filter(o =>
+            o.status?.toUpperCase() === 'PENDING' ||
+            o.status?.toUpperCase() === 'PLACED' ||
+            o.status?.toUpperCase() === 'PROCESSING'
+        ).length;
+        const uniqueEmails = new Set(orders.map(o => o.email).filter(Boolean));
+        const totalCustomers = Math.max(users.length, uniqueEmails.size);
+
         return {
             totalSales,
             totalOrders: orders.length,
-            totalCustomers: users.length,
+            totalCustomers,
             pendingOrders
         };
     }, [orders, users]);
@@ -134,91 +174,98 @@ const AdminDashboard = () => {
                                     💡 Tip: Open your Firebase Console &gt; Realtime Database &gt; Copy the URL and add it as <span className="font-black">VITE_FIREBASE_DATABASE_URL</span> in your <span className="font-black">.env</span> file.
                                 </p>
                             </div>
+
+                            <button 
+                                onClick={placeTestOrder}
+                                className="mt-4 flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-md shadow-emerald-500/20"
+                            >
+                                Generate Test Order in Database
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {/* Total Sales */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="text-3xl font-black text-slate-800">₹{stats.totalSales.toLocaleString()}</h3>
-                            <p className="text-sm font-semibold text-slate-500 mt-1">Total Sales</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                            <DollarSign size={24} strokeWidth={2.5} />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-emerald-500">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        <span>+12.5% live data</span>
-                    </div>
-                </div>
-
-                {/* Total Orders */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="text-3xl font-black text-slate-800">{stats.totalOrders}</h3>
-                            <p className="text-sm font-semibold text-slate-500 mt-1">Total Orders</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                            <ShoppingBag size={24} strokeWidth={2.5} />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-emerald-500">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        <span>+8.2% live data</span>
-                    </div>
-                </div>
-
-                {/* Total Customers */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="text-3xl font-black text-slate-800">{stats.totalCustomers}</h3>
-                            <p className="text-sm font-semibold text-slate-500 mt-1">Total Customers</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                            <Users size={24} strokeWidth={2.5} />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-emerald-500">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        <span>+15.3% live data</span>
-                    </div>
-                </div>
-
-                {/* Pending Orders */}
-                <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="text-3xl font-black text-slate-800">{stats.pendingOrders}</h3>
-                            <p className="text-sm font-semibold text-slate-500 mt-1">Pending Orders</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
-                            <AlertCircle size={24} strokeWidth={2.5} />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-rose-500">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
-                        </svg>
-                        <span>Real-time tracking</span>
-                    </div>
-                </div>
+{/* Stats Cards */ }
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {/* Total Sales */}
+    <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
+        <div className="flex justify-between items-start">
+            <div>
+                <h3 className="text-3xl font-black text-slate-800">₹{stats.totalSales.toLocaleString()}</h3>
+                <p className="text-sm font-semibold text-slate-500 mt-1">Total Sales</p>
             </div>
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                <DollarSign size={24} strokeWidth={2.5} />
+            </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-500">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <span>+12.5% live data</span>
+        </div>
+    </div>
 
-            {/* Charts Section */}
+    {/* Total Orders */}
+    <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
+        <div className="flex justify-between items-start">
+            <div>
+                <h3 className="text-3xl font-black text-slate-800">{stats.totalOrders}</h3>
+                <p className="text-sm font-semibold text-slate-500 mt-1">Total Orders</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                <ShoppingBag size={24} strokeWidth={2.5} />
+            </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-500">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <span>+8.2% live data</span>
+        </div>
+    </div>
+
+    {/* Total Customers */}
+    <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
+        <div className="flex justify-between items-start">
+            <div>
+                <h3 className="text-3xl font-black text-slate-800">{stats.totalCustomers}</h3>
+                <p className="text-sm font-semibold text-slate-500 mt-1">Total Customers</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                <Users size={24} strokeWidth={2.5} />
+            </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-500">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <span>+15.3% live data</span>
+        </div>
+    </div>
+
+    {/* Pending Orders */}
+    <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between h-40">
+        <div className="flex justify-between items-start">
+            <div>
+                <h3 className="text-3xl font-black text-slate-800">{stats.pendingOrders}</h3>
+                <p className="text-sm font-semibold text-slate-500 mt-1">Pending Orders</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+                <AlertCircle size={24} strokeWidth={2.5} />
+            </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-rose-500">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
+            </svg>
+            <span>Real-time tracking</span>
+        </div>
+    </div>
+</div>
+
+{/* Charts Section */ }
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Sales Overview Chart */}
                 <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100">
@@ -285,7 +332,7 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            <style jsx global>{`
+            <style dangerouslySetInnerHTML={{ __html: `
                  @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(10px); }
                     to { opacity: 1; transform: translateY(0); }
@@ -293,8 +340,8 @@ const AdminDashboard = () => {
                 .animate-fade-in {
                     animation: fadeIn 0.4s ease-out forwards;
                 }
-            `}</style>
-        </div>
+            ` }} />
+        </div >
     );
 };
 

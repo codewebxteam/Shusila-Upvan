@@ -6,6 +6,8 @@ import { ref, onValue } from 'firebase/database';
 const AdminCustomers = () => {
     const [customers, setCustomers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [usersData, setUsersData] = useState({});
+    const [ordersData, setOrdersData] = useState({});
     const [sortBy, setSortBy] = useState('Newest Customers');
     const [timeFilter, setTimeFilter] = useState('All Time');
     const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -15,84 +17,97 @@ const AdminCustomers = () => {
         const usersRef = ref(db, 'users');
         const ordersRef = ref(db, 'orders');
 
-        // Listen to orders for real-time aggregation and robust fallback
-        const unsubOrders = onValue(ordersRef, (orderSnap) => {
-            const ordersData = orderSnap.val() || {};
-            const ordersList = Object.keys(ordersData).map(key => ({
-                ...ordersData[key],
-                firebaseId: key
-            }));
+        const unsubUsers = onValue(usersRef, (snap) => {
+            setUsersData(snap.val() || {});
+        }, (err) => console.error("Users listener error:", err));
 
-            // Fetch users for fallback or enrichment
-            onValue(usersRef, (userSnap) => {
-                const usersData = userSnap.val() || {};
-                const customerMap = {};
-
-                // 1. Process from Orders (Ensures customers with orders show up immediately)
-                ordersList.forEach(order => {
-                    const uid = order.userId || `guest_${order.firebaseId}`;
-                    
-                    if (!customerMap[uid]) {
-                        const orderName = order.customer || order.address?.name || 'Anonymous';
-                        const userName = usersData[uid]?.displayName || usersData[uid]?.name;
-                        
-                        const orderEmail = order.email || order.address?.email;
-                        const userEmail = usersData[uid]?.email;
-
-                        customerMap[uid] = {
-                            id: uid,
-                            customer: orderName !== 'Anonymous' ? orderName : (userName || 'Anonymous'),
-                            email: orderEmail || userEmail || 'N/A',
-                            orders: 0,
-                            spent: 0,
-                            joined: usersData[uid]?.joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
-                            address: order.address ? `${order.address.street}, ${order.address.locality}, ${order.address.city}` : 'No Address',
-                            status: 'Active',
-                            _rawJoinedDate: usersData[uid]?.joinedAt || null
-                        };
-                    }
-
-                    customerMap[uid].orders += 1;
-                    customerMap[uid].spent += (order.grandTotal || order.amount || 0);
-                    
-                    if (order.address && customerMap[uid].address === 'No Address') {
-                         customerMap[uid].address = `${order.address.street}, ${order.address.locality}, ${order.address.city}`;
-                    }
-                });
-
-                // 2. Add users from usersData who haven't ordered yet
-                Object.keys(usersData).forEach(uid => {
-                    if (!customerMap[uid]) {
-                        customerMap[uid] = {
-                            id: uid,
-                            customer: usersData[uid].displayName || usersData[uid].name || 'Anonymous',
-                            email: usersData[uid].email || 'N/A',
-                            orders: 0,
-                            spent: 0,
-                            joined: usersData[uid].joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
-                            address: 'No Address',
-                            status: 'Active',
-                            _rawJoinedDate: usersData[uid].joinedAt || null
-                        };
-                    }
-                });
-
-                const customerList = Object.values(customerMap).map(item => ({
-                    ...item,
-                    spent: `₹${item.spent.toLocaleString()}`,
-                    status: item.orders > 5 ? 'VIP' : 'Active'
-                }));
-
-                setCustomers(customerList);
-                setIsLoading(false);
-            }, { onlyOnce: true });
-        }, (error) => {
-            console.error("Orders listener error:", error);
+        const unsubOrders = onValue(ordersRef, (snap) => {
+            setOrdersData(snap.val() || {});
             setIsLoading(false);
+        }, (err) => console.error("Orders listener error:", err));
+
+        return () => {
+            unsubUsers();
+            unsubOrders();
+        };
+    }, []);
+
+    useEffect(() => {
+        const customerMap = {};
+        const ordersList = Object.keys(ordersData).map(key => ({
+            ...ordersData[key],
+            firebaseId: key
+        }));
+
+        // 1. Process from Orders
+        ordersList.forEach(order => {
+            const uid = order.userId || `guest_${order.firebaseId}`;
+            if (!customerMap[uid]) {
+                const orderName = order.customer || order.address?.name || 'Anonymous';
+                const userName = usersData[uid]?.displayName || usersData[uid]?.name;
+                const orderEmail = order.email || order.address?.email;
+                const userEmail = usersData[uid]?.email;
+
+                customerMap[uid] = {
+                    id: uid,
+                    customer: orderName !== 'Anonymous' ? orderName : (userName || 'Anonymous'),
+                    email: orderEmail || userEmail || 'N/A',
+                    orders: 0,
+                    spent: 0,
+                    joined: usersData[uid]?.joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
+                    address: order.address ? `${order.address.street}, ${order.address.locality}, ${order.address.city}` : 'No Address',
+                    status: 'Active',
+                    _rawJoinedDate: usersData[uid]?.joinedAt || null,
+                    _earliestOrderDate: order.date ? new Date(order.date).getTime() : Infinity
+                };
+            } else {
+                if (order.date) {
+                    const orderTime = new Date(order.date).getTime();
+                    if (orderTime < customerMap[uid]._earliestOrderDate) {
+                        customerMap[uid]._earliestOrderDate = orderTime;
+                    }
+                }
+            }
+            customerMap[uid].orders += 1;
+            customerMap[uid].spent += (order.grandTotal || order.amount || 0);
+            if (order.address && customerMap[uid].address === 'No Address') {
+                customerMap[uid].address = `${order.address.street}, ${order.address.locality}, ${order.address.city}`;
+            }
         });
 
-        return () => unsubOrders();
-    }, []);
+        // 2. Add users from usersData who haven't ordered yet
+        Object.keys(usersData).forEach(uid => {
+            if (!customerMap[uid]) {
+                customerMap[uid] = {
+                    id: uid,
+                    customer: usersData[uid].displayName || usersData[uid].name || 'Anonymous',
+                    email: usersData[uid].email || 'N/A',
+                    orders: 0,
+                    spent: 0,
+                    joined: usersData[uid].joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
+                    address: 'No Address',
+                    status: 'Active',
+                    _rawJoinedDate: usersData[uid].joinedAt || null,
+                    _earliestOrderDate: Infinity
+                };
+            }
+        });
+
+        const customerList = Object.values(customerMap).map(item => {
+            let joinedStr = item.joined;
+            if (joinedStr === 'N/A' && item._earliestOrderDate !== Infinity) {
+                joinedStr = new Date(item._earliestOrderDate).toLocaleDateString();
+            }
+            return {
+                ...item,
+                joined: joinedStr,
+                spent: `₹${item.spent.toLocaleString()}`,
+                status: item.orders > 5 ? 'VIP' : 'Active'
+            };
+        });
+
+        setCustomers(customerList);
+    }, [usersData, ordersData]);
 
     // Helper to style the Status pill
     const getStatusStyle = (status) => {
@@ -302,9 +317,7 @@ const AdminCustomers = () => {
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className="text-sm font-medium text-slate-700">{item.email}</span>
-                                        {item.address !== 'No Address' && (
-                                            <span className="text-[10px] font-semibold text-slate-400 block mt-0.5 tracking-tight">{item.address}</span>
-                                        )}
+
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className="text-sm font-semibold text-slate-700">{item.orders}</span>

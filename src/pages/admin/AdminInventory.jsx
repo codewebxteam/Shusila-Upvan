@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { PackageSearch, AlertTriangle, TrendingDown, BoxSelect, PackageCheck, X, Plus, Upload } from 'lucide-react';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, push, set } from 'firebase/database';
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const AdminInventory = () => {
     const [products, setProducts] = useState([]);
@@ -13,6 +14,7 @@ const AdminInventory = () => {
     const [newProduct, setNewProduct] = useState({
         name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
     });
+    const [syncError, setSyncError] = useState(null);
 
     const handleUpdateClick = (item) => {
         setSelectedItem(item);
@@ -49,7 +51,7 @@ const AdminInventory = () => {
         }
     };
 
-    const handleAddProductSubmit = (e) => {
+    const handleAddProductSubmit = async (e) => {
         e.preventDefault();
         
         if (!newProduct.name || !newProduct.price || !newProduct.stock) {
@@ -66,6 +68,18 @@ const AdminInventory = () => {
         if (newProduct.category === 'Mushroom Product') icon = '🍄';
         else if (newProduct.category === 'Dairy Product') icon = '🥛';
 
+        let imageUrl = '';
+        if (newProduct.image) {
+            try {
+                const storage = getStorage();
+                const imageRef = sRef(storage, `products/${Date.now()}_${newProduct.name.replace(/\s+/g, '_')}`);
+                const snapshot = await uploadBytes(imageRef, newProduct.image);
+                imageUrl = await getDownloadURL(snapshot.ref);
+            } catch (err) {
+                console.error("Storage upload failed:", err);
+            }
+        }
+
         const productData = {
             name: newProduct.name,
             category: newProduct.category,
@@ -73,6 +87,7 @@ const AdminInventory = () => {
             stock: stockNum,
             status: status,
             icon: icon,
+            img: imageUrl,
             description: newProduct.description,
             specification: newProduct.specification,
             highlights: newProduct.highlights,
@@ -80,11 +95,17 @@ const AdminInventory = () => {
             createdAt: new Date().toISOString()
         };
 
-        push(ref(db, 'products'), productData);
-        setIsAddModalOpen(false);
-        setNewProduct({
-            name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
-        });
+        try {
+            await push(ref(db, 'products'), productData);
+            alert("✅ Product Added Successfully to Database!");
+            setIsAddModalOpen(false);
+            setNewProduct({
+                name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
+            });
+        } catch (err) {
+            console.error("Add product failed:", err);
+            alert("❌ Failed to add product: " + err.message + "\n\nThis is usually due to Firebase Database Rules blocking write access on '/products'.");
+        }
     };
 
     useEffect(() => {
@@ -97,6 +118,10 @@ const AdminInventory = () => {
             }));
             setProducts(productList);
             setIsLoading(false);
+        }, (error) => {
+            console.error("Products sync error:", error);
+            setIsLoading(false);
+            setSyncError(error);
         });
         return () => unsubscribe();
     }, []);
@@ -182,11 +207,11 @@ const AdminInventory = () => {
                 </div>
             </div>
 
-            {/* Low Stock Alerts Table */}
+            {/* Products Inventory Table */}
             <div className="bg-white rounded-[1.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
                 <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-                    <AlertTriangle className="text-amber-500" size={24} />
-                    <h2 className="text-lg font-bold text-slate-800">Critical Alerts</h2>
+                    <PackageSearch className="text-indigo-500" size={24} />
+                    <h2 className="text-lg font-bold text-slate-800">All Products</h2>
                 </div>
 
                 <div className="w-full overflow-x-auto">
@@ -203,9 +228,9 @@ const AdminInventory = () => {
                         <tbody className="divide-y divide-slate-100">
                             {isLoading ? (
                                 <tr><td colSpan="5" className="py-10 text-center text-slate-400 font-black uppercase tracking-widest text-xs">Syncing inventory...</td></tr>
-                            ) : [...stats.outOfStock, ...stats.lowStock].length === 0 ? (
-                                <tr><td colSpan="5" className="py-10 text-center text-emerald-500 font-black uppercase tracking-widest text-xs">All products healthy</td></tr>
-                            ) : [...stats.outOfStock, ...stats.lowStock].map((item) => (
+                            ) : products.length === 0 ? (
+                                <tr><td colSpan="5" className="py-10 text-center text-slate-400 font-black uppercase tracking-widest text-xs">No products in inventory</td></tr>
+                            ) : products.map((item) => (
                                 <tr key={item.firebaseId} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
@@ -219,13 +244,21 @@ const AdminInventory = () => {
                                         <span className="text-sm font-semibold text-slate-600">{item.category}</span>
                                     </td>
                                     <td className="py-4 px-6 text-center">
-                                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${item.stock === 0 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${
+                                            item.stock === 0 ? 'bg-red-100 text-red-600' : 
+                                            item.stock < 10 ? 'bg-amber-100 text-amber-600' : 
+                                            'bg-emerald-100 text-emerald-600'
+                                        }`}>
                                             {item.stock}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 text-center">
-                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${item.stock === 0 ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50'}`}>
-                                            {item.stock === 0 ? 'Out of Stock' : 'Low Stock'}
+                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${
+                                            item.stock === 0 ? 'text-red-600 bg-red-50' : 
+                                            item.stock < 10 ? 'text-amber-600 bg-amber-50' : 
+                                            'text-emerald-600 bg-emerald-50'
+                                        }`}>
+                                            {item.stock === 0 ? 'Out of Stock' : item.stock < 10 ? 'Low Stock' : 'In Stock'}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 text-right">
@@ -488,7 +521,7 @@ const AdminInventory = () => {
                 </div>
             )}
 
-            <style jsx global>{`
+            <style dangerouslySetInnerHTML={{ __html: `
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(10px); }
                     to { opacity: 1; transform: translateY(0); }
@@ -496,7 +529,52 @@ const AdminInventory = () => {
                 .animate-fade-in {
                     animation: fadeIn 0.4s ease-out forwards;
                 }
-            `}</style>
+            ` }} />
+
+            {/* ERROR DIAGNOSTICS MODAL */}
+            {syncError && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-md animate-fade-in" onClick={() => setSyncError(null)}></div>
+                    <div className="bg-white rounded-3xl w-full max-w-lg relative z-10 shadow-2xl p-6 border-2 border-rose-200 animate-fade-in">
+                        <div className="flex items-center gap-4 mb-4 text-red-600">
+                            <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
+                                <AlertTriangle size={24} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-slate-900 leading-tight">Database Access Blocked</h2>
+                                <p className="text-xs font-bold text-slate-500">{syncError.message}</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-600 font-medium mb-6">
+                            Your Firebase Realtime Database is rejecting reads. This is caused by locking Rules in your online Firebase Console account.
+                        </p>
+                        
+                        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-6">
+                            <p className="text-xs font-black text-slate-700 mb-2">Step-by-Step Fix Instructions:</p>
+                            <ol className="text-xs font-bold text-slate-600 list-decimal pl-4 space-y-3">
+                                <li>Open your <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-indigo-600 underline font-black">Firebase Console</a> website</li>
+                                <li>Click <span className="text-slate-900 font-extrabold">Realtime Database</span> on top of left sidebar</li>
+                                <li>Go to the <span className="text-slate-900 font-extrabold">Rules</span> tab at the top-center</li>
+                                <li>Replace everything with this code accurately:
+                                    <pre className="bg-slate-900 text-emerald-400 p-3 rounded-lg mt-1 font-mono text-[10px] select-all shadow-inner">
+{`{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}`}
+                                    </pre>
+                                </li>
+                                <li>Click the blue <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-black">Publish</span> button at top right!</li>
+                            </ol>
+                        </div>
+                        
+                        <button onClick={() => setSyncError(null)} className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-98">
+                            Close and Retry Connection
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

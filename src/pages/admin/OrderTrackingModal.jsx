@@ -8,20 +8,22 @@ const OrderTrackingModal = ({ order, onClose }) => {
     // Determine current step index
     let currentStepIndex = 0;
     const isCancelled = order.status === 'Cancelled';
-    
+
     switch (order.status) {
-        case 'Pending':
-        case 'Processing':
-            currentStepIndex = 1; // Passed Order Confirmed
+        case 'Placed':
+            currentStepIndex = 0;
+            break;
+        case 'Confirmed':
+            currentStepIndex = 1;
             break;
         case 'Shipped':
-            currentStepIndex = 2; // Passed Shipped
+            currentStepIndex = 2;
             break;
         case 'Delivered':
-            currentStepIndex = 3; // Passed Delivered
+            currentStepIndex = 3;
             break;
         case 'Cancelled':
-            currentStepIndex = -1; // Special case
+            currentStepIndex = -1;
             break;
         default:
             currentStepIndex = 0;
@@ -33,26 +35,26 @@ const OrderTrackingModal = ({ order, onClose }) => {
 
     const normalSteps = [
         {
-            title: 'Order Confirmed',
+            title: 'Order Placed',
             description: format(baseDate, 'EEE, do MMM'),
             isCompleted: currentStepIndex >= 0,
             hasLine: true,
         },
         {
+            title: 'Order Confirmed',
+            description: currentStepIndex >= 1 ? 'Verified and preparing' : 'Pending',
+            isCompleted: currentStepIndex >= 1,
+            hasLine: true,
+        },
+        {
             title: 'Shipped',
-            description: currentStepIndex >= 2 ? format(new Date(baseDate.getTime() + 86400000 * 2), 'EEE, do MMM') : 'Pending',
+            description: currentStepIndex >= 2 ? 'On the way' : 'Pending',
             isCompleted: currentStepIndex >= 2,
             hasLine: true,
         },
         {
-            title: 'Out For Delivery',
-            description: currentStepIndex >= 3 ? format(new Date(baseDate.getTime() + 86400000 * 3), 'EEE, do MMM') : 'Pending',
-            isCompleted: currentStepIndex >= 3,
-            hasLine: true,
-        },
-        {
             title: 'Delivered',
-            description: currentStepIndex >= 3 ? format(new Date(baseDate.getTime() + 86400000 * 4), 'EEE, do MMM') : 'Pending',
+            description: currentStepIndex >= 3 ? 'Delivered successfully' : 'Pending',
             isCompleted: currentStepIndex >= 3,
             hasLine: false,
         }
@@ -60,14 +62,14 @@ const OrderTrackingModal = ({ order, onClose }) => {
 
     const cancelledSteps = [
         {
-            title: 'Order Confirmed',
+            title: 'Order Placed',
             description: format(baseDate, 'EEE, do MMM'),
             isCompleted: true,
             hasLine: true,
         },
         {
             title: 'Cancelled',
-            description: 'Your order has been cancelled',
+            description: order.cancelReason || 'Your order has been cancelled',
             isCompleted: true,
             isCancelledNode: true,
             hasLine: false,
@@ -79,7 +81,7 @@ const OrderTrackingModal = ({ order, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-0 animate-fade-in" onClick={onClose}>
             {/* Modal Container */}
-            <div 
+            <div
                 className="bg-[#f1f3f6] w-full max-w-[450px] sm:h-auto h-[90vh] overflow-y-auto sm:rounded-sm shadow-2xl relative flex flex-col font-sans"
                 onClick={(e) => e.stopPropagation()}
             >
@@ -108,8 +110,6 @@ const OrderTrackingModal = ({ order, onClose }) => {
                     <div className="bg-white p-6 shadow-sm">
                         <div className="relative">
                             {steps.map((step, index) => {
-                                // For the line connecting to the next node: it's green if the NEXT node is completed, otherwise gray.
-                                // In the cancelled state, we color the cancel node red.
                                 const isCompleted = step.isCompleted;
                                 const isNextCompleted = steps[index + 1]?.isCompleted;
                                 const isCancelledNode = step.isCancelledNode;
@@ -119,7 +119,7 @@ const OrderTrackingModal = ({ order, onClose }) => {
 
                                 return (
                                     <div key={index} className="flex gap-4 relative min-h-[70px]">
-                                        
+
                                         {/* Left Side: Icon & Line */}
                                         <div className="flex flex-col items-center w-6">
                                             {/* Dot */}
@@ -127,10 +127,10 @@ const OrderTrackingModal = ({ order, onClose }) => {
                                                 <div className={`w-3 h-3 rounded-full z-10 relative ${dotColor}`}></div>
                                                 {/* Optional: Add a subtle ping animation to the active step */}
                                                 {!isCancelled && isCompleted && !isNextCompleted && step.hasLine && (
-                                                   <div className="absolute inset-0 bg-[#26a541] rounded-full animate-ping opacity-20"></div> 
+                                                    <div className="absolute inset-0 bg-[#26a541] rounded-full animate-ping opacity-20"></div>
                                                 )}
                                             </div>
-                                            
+
                                             {/* Line */}
                                             {step.hasLine && (
                                                 <div className={`w-[2px] h-full absolute top-4 bottom-[-10px] ${lineColor}`}></div>
@@ -169,7 +169,7 @@ const OrderTrackingModal = ({ order, onClose }) => {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Bottom padding for mobile */}
                 <div className="pb-4 bg-white"></div>
             </div>
