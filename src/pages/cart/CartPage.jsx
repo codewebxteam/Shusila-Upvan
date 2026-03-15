@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Trash2, Plus, Minus, Sprout, Milk, ArrowRight, ShoppingCart, X, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +14,28 @@ const CartPage = () => {
         removeFromCart, updateQuantity, clearCart
     } = useCart();
     const [showCheckout, setShowCheckout] = useState(false);
+
+    // Confirmation dialog state
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false, title: '', message: '', onConfirm: null,
+    });
+
+    const openConfirm = ({ title, message, onConfirm }) =>
+        setConfirmDialog({ isOpen: true, title, message, onConfirm });
+    const closeConfirm = () =>
+        setConfirmDialog((d) => ({ ...d, isOpen: false }));
+
+    const handleRemoveItem = (id, category, name) => openConfirm({
+        title: 'Remove from Cart?',
+        message: `Are you sure you want to remove "${name}" from your cart?`,
+        onConfirm: () => { removeFromCart(id, category); closeConfirm(); },
+    });
+
+    const handleClearCart = () => openConfirm({
+        title: 'Clear Entire Cart?',
+        message: 'This will remove all items from your cart. Are you sure?',
+        onConfirm: () => { clearCart(); closeConfirm(); },
+    });
 
     // Empty Cart State - Flipkart Style Refined
     if (cartItems.length === 0) {
@@ -116,7 +139,7 @@ const CartPage = () => {
                 </div>
 
                 <button
-                    onClick={() => removeFromCart(item.id, item.category)}
+                    onClick={() => handleRemoveItem(item.id, item.category, item.name)}
                     className="w-10 h-10 flex items-center justify-center rounded-2xl bg-[#fff2f2] text-[#ff6b6b] hover:bg-[#ff6b6b] hover:text-white transition-all shadow-sm shrink-0"
                 >
                     <Trash2 size={16} strokeWidth={2.5} />
@@ -145,7 +168,7 @@ const CartPage = () => {
 
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={clearCart}
+                                onClick={handleClearCart}
                                 className="px-6 py-2.5 bg-slate-50 text-slate-400 text-[14px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 hover:text-red-500 transition-all border border-slate-100"
                             >
                                 Clear Entire Cart
@@ -299,6 +322,16 @@ const CartPage = () => {
             <AnimatePresence>
                 {showCheckout && <CheckoutModal onClose={() => setShowCheckout(false)} />}
             </AnimatePresence>
+
+            {/* Confirm Dialog */}
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmText="Yes, Remove"
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={closeConfirm}
+            />
         </>
     );
 };
