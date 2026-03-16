@@ -810,8 +810,8 @@ const CheckoutModal = ({ onClose }) => {
                                 onClick={handlePlaceOrder}
                                 disabled={isProcessing}
                                 className={`flex items-center gap-3 px-16 py-4 rounded-full text-[16px] font-bold uppercase tracking-wider transition-all shadow-sm ${isProcessing
-                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                        : 'bg-[#00e676] text-[#111827] shadow-emerald-200/50 hover:bg-white active:scale-95'
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    : 'bg-[#00e676] text-[#111827] shadow-emerald-200/50 hover:bg-white active:scale-95'
                                     }`}
                             >
                                 {isProcessing ? (
