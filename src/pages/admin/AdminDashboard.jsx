@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DollarSign, ShoppingBag, Users, AlertCircle } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, push, set } from 'firebase/database';
 import {
@@ -23,6 +24,12 @@ const AdminDashboard = () => {
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Excel Export State
+    const [exportSource, setExportSource] = useState('AdminOrder');
+    const [exportTime, setExportTime] = useState('All Time');
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
 
     const placeTestOrder = async () => {
         try {
@@ -78,6 +85,99 @@ const AdminDashboard = () => {
             unsubUsers();
         };
     }, []);
+
+    const handleExportExcel = () => {
+        let filteredData = [];
+        let headers = [];
+
+        const now = new Date();
+        const getDateLimit = (period) => {
+            const d = new Date();
+            switch (period) {
+                case 'Weekly': return new Date(d.setDate(d.getDate() - 7)).getTime();
+                case 'Monthly': return new Date(d.setMonth(d.getMonth() - 1)).getTime();
+                case 'Yearly': return new Date(d.setFullYear(d.getFullYear() - 1)).getTime();
+                case 'Custom': return { start: customStartDate ? new Date(customStartDate).getTime() : 0, end: customEndDate ? new Date(customEndDate).getTime() : Infinity };
+                default: return 0;
+            }
+        };
+
+        const limit = getDateLimit(exportTime);
+
+        if (exportSource === 'AdminOrder' || exportSource === 'AdminPayment') {
+            filteredData = orders.filter(o => {
+                if (!o.date) return false;
+                const oDate = new Date(o.date).getTime();
+                if (exportTime === 'Custom') {
+                    return oDate >= limit.start && oDate <= limit.end;
+                }
+                return exportTime === 'All Time' ? true : oDate >= limit;
+            });
+
+            if (exportSource === 'AdminOrder') {
+                headers = [["Order ID", "Customer", "Email", "Total", "Payment", "Status", "Date"]];
+                filteredData = filteredData.map(o => [
+                    o.orderId || o.id || 'N/A',
+                    o.shippingAddress?.fullName || 'Anonymous',
+                    o.email || 'N/A',
+                    `₹${o.grandTotal || 0}`,
+                    o.payment || 'N/A',
+                    o.status || 'N/A',
+                    new Date(o.date).toLocaleDateString()
+                ]);
+            } else {
+                headers = [["Order ID", "Date", "Amount", "Method", "Status"]];
+                filteredData = filteredData.map(o => [
+                    o.orderId || o.id || 'N/A',
+                    new Date(o.date).toLocaleDateString(),
+                    `₹${o.grandTotal || 0}`,
+                    o.payment || 'N/A',
+                    o.status || 'N/A'
+                ]);
+            }
+        } 
+        else if (exportSource === 'AdminCustomer') {
+            const customerMap = {};
+            orders.forEach(order => {
+                const uid = order.userId || `guest_${order.firebaseId}`;
+                if (!customerMap[uid]) {
+                    customerMap[uid] = { name: order.shippingAddress?.fullName || 'Anonymous', email: order.email || 'N/A', orders: 0, spent: 0, joined: 'N/A' };
+                }
+                customerMap[uid].orders += 1;
+                customerMap[uid].spent += (order.grandTotal || 0);
+            });
+            
+            users.forEach(u => {
+                const uid = u.id || u.uid;
+                if (!customerMap[uid]) {
+                    customerMap[uid] = { name: u.displayName || u.name || 'Anonymous', email: u.email || 'N/A', orders: 0, spent: 0, joined: u.joinedAt ? new Date(u.joinedAt).toLocaleDateString() : 'N/A' };
+                } else if (u.joinedAt) {
+                    customerMap[uid].joined = new Date(u.joinedAt).toLocaleDateString();
+                }
+            });
+
+            filteredData = Object.values(customerMap);
+            headers = [["Name", "Email", "Total Orders", "Total Spent", "Joined Date"]];
+            filteredData = filteredData.map(c => [c.name, c.email, c.orders, `₹${c.spent}`, c.joined]);
+        }
+        else if (exportSource === 'AdminInventory') {
+            filteredData = products;
+            headers = [["Name", "Category", "Price", "Stock", "Status"]];
+            filteredData = filteredData.map(p => [
+                p.name, p.category, `₹${p.price}`, p.stock, p.status || (p.stock > 0 ? 'In Stock' : 'Out of Stock')
+            ]);
+        }
+
+        if (filteredData.length === 0) {
+            alert("No data found for the selected filters.");
+            return;
+        }
+
+        const ws = XLSX.utils.aoa_to_sheet([...headers, ...filteredData]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFile(wb, `${exportSource}_${exportTime.replace(' ', '_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    };
 
     // Derived Statistics
     const stats = useMemo(() => {
@@ -142,6 +242,77 @@ const AdminDashboard = () => {
                     <span className="hover:text-indigo-600 cursor-pointer transition-colors">Home</span>
                     <span>/</span>
                     <span className="text-indigo-600">Dashboard</span>
+                </div>
+            </div>
+
+            {/* Excel Export Toolbar */}
+            <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 mb-8 flex flex-wrap items-center justify-between gap-4 animate-fade-in">
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase text-slate-400 tracking-widest">Excel Export:</span>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Source Filter */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Data Source</label>
+                        <select 
+                            value={exportSource} 
+                            onChange={(e) => setExportSource(e.target.value)}
+                            className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                            <option value="AdminOrder">Orders</option>
+                            <option value="AdminCustomer">Customers</option>
+                            <option value="AdminPayment">Payments</option>
+                            <option value="AdminInventory">Inventory</option>
+                        </select>
+                    </div>
+
+                    {/* Time Filter */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Time Period</label>
+                        <select 
+                            value={exportTime} 
+                            onChange={(e) => setExportTime(e.target.value)}
+                            className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                            <option value="All Time">All Time</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Yearly">Yearly</option>
+                            <option value="Custom">Custom Range</option>
+                        </select>
+                    </div>
+
+                    {/* Custom Date Range Inputs */}
+                    {exportTime === 'Custom' && (
+                        <>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Start Date</label>
+                                <input 
+                                    type="date" 
+                                    value={customStartDate} 
+                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                    className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-700"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-black uppercase text-slate-400">End Date</label>
+                                <input 
+                                    type="date" 
+                                    value={customEndDate} 
+                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                    className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-700"
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <button 
+                        onClick={handleExportExcel}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-md shadow-emerald-500/20 transition-all self-end"
+                    >
+                        Export Excel
+                    </button>
                 </div>
             </div>
 

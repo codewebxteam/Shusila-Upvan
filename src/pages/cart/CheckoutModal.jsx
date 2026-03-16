@@ -43,12 +43,23 @@ const CheckoutModal = ({ onClose }) => {
         { id: 'pnb', name: 'Punjab National Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Punjab_National_Bank_Logo.svg/2560px-Punjab_National_Bank_Logo.svg.png' },
         { id: 'bob', name: 'Bank of Baroda', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Bank_of_Baroda_Logo.svg/2560px-Bank_of_Baroda_Logo.svg.png' },
         { id: 'idbi', name: 'IDBI Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/IDBI_Bank_Logo.svg/2560px-IDBI_Bank_Logo.svg.png' },
+        { id: 'indusind', name: 'IndusInd Bank', icon: 'https://logo.clearbit.com/indusind.com' },
+        { id: 'canara', name: 'Canara Bank', icon: 'https://logo.clearbit.com/canarabank.com' },
+        { id: 'union', name: 'Union Bank of India', icon: 'https://logo.clearbit.com/unionbankofindia.co.in' },
+        { id: 'federal', name: 'Federal Bank', icon: 'https://logo.clearbit.com/federalbank.co.in' },
+        { id: 'yes', name: 'YES Bank', icon: 'https://logo.clearbit.com/yesbank.in' },
+        { id: 'central', name: 'Central Bank of India', icon: 'https://logo.clearbit.com/centralbankofindia.co.in' },
+        { id: 'indian', name: 'Indian Bank', icon: 'https://logo.clearbit.com/indianbank.in' },
+        { id: 'boi', name: 'Bank of India', icon: 'https://logo.clearbit.com/bankofindia.co.in' },
     ];
 
     const wallets = [
         { id: 'paytm', name: 'Paytm', icon: 'https://logos-world.net/wp-content/uploads/2020/11/Paytm-Logo.png' },
         { id: 'phonepe', name: 'PhonePe', icon: 'https://logos-world.net/wp-content/uploads/2020/11/PhonePe-Logo.png' },
         { id: 'amazon', name: 'Amazon Pay', icon: 'https://logos-world.net/wp-content/uploads/2021/04/Amazon-Pay-Logo.png' },
+        { id: 'mobikwik', name: 'MobiKwik', icon: 'https://logo.clearbit.com/mobikwik.com' },
+        { id: 'freecharge', name: 'Freecharge', icon: 'https://logo.clearbit.com/freecharge.in' },
+        { id: 'airtel', name: 'Airtel Money', icon: 'https://logo.clearbit.com/airtel.in' },
     ];
 
     const savedAddresses = [
@@ -618,20 +629,21 @@ const CheckoutModal = ({ onClose }) => {
                                                 </button>
 
                                                 {isBankDropdownOpen && (
-                                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-3 z-20 max-h-[300px] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2">
-                                                        {banks.map(bank => (
-                                                            <button
-                                                                key={bank.id}
-                                                                onClick={() => { setFormData(prev => ({ ...prev, selectedBank: bank.id })); setIsBankDropdownOpen(false); }}
-                                                                className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all ${formData.selectedBank === bank.id ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-600'}`}
-                                                            >
-                                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white p-1 shrink-0 border border-slate-100">
-                                                                    <img src={bank.icon} alt={bank.name} className="w-full h-full object-contain" />
-                                                                </div>
-                                                                <span className="text-sm font-bold">{bank.name}</span>
-                                                                {formData.selectedBank === bank.id && <CheckCircle2 size={16} className="ml-auto" />}
-                                                            </button>
-                                                        ))}
+                                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-4 z-20 max-h-[350px] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2">
+                                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                            {banks.map(bank => (
+                                                                <button
+                                                                    key={bank.id}
+                                                                    onClick={() => { setFormData(prev => ({ ...prev, selectedBank: bank.id })); setIsBankDropdownOpen(false); }}
+                                                                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center ${formData.selectedBank === bank.id ? 'border-emerald-500 bg-emerald-50/50 text-emerald-700' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50 text-slate-600'}`}
+                                                                >
+                                                                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-white p-2 mb-1.5 flex items-center justify-center border border-slate-100/80 shadow-sm">
+                                                                        <img src={bank.icon} alt={bank.name} className="w-full h-full object-contain" />
+                                                                    </div>
+                                                                    <span className="text-[10px] font-black leading-tight tracking-tight uppercase">{bank.name}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -665,20 +677,21 @@ const CheckoutModal = ({ onClose }) => {
                                                 </button>
 
                                                 {isWalletDropdownOpen && (
-                                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-3 z-20 animate-in fade-in slide-in-from-top-2">
-                                                        {wallets.map(wallet => (
-                                                            <button
-                                                                key={wallet.id}
-                                                                onClick={() => { setFormData(prev => ({ ...prev, selectedWallet: wallet.id })); setIsWalletDropdownOpen(false); }}
-                                                                className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all ${formData.selectedWallet === wallet.id ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-600'}`}
-                                                            >
-                                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white p-1 shrink-0 border border-slate-100">
-                                                                    <img src={wallet.icon} alt={wallet.name} className="w-full h-full object-contain" />
-                                                                </div>
-                                                                <span className="text-sm font-bold">{wallet.name}</span>
-                                                                {formData.selectedWallet === wallet.id && <CheckCircle2 size={16} className="ml-auto" />}
-                                                            </button>
-                                                        ))}
+                                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-4 z-20 animate-in fade-in slide-in-from-top-2">
+                                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                            {wallets.map(wallet => (
+                                                                <button
+                                                                    key={wallet.id}
+                                                                    onClick={() => { setFormData(prev => ({ ...prev, selectedWallet: wallet.id })); setIsWalletDropdownOpen(false); }}
+                                                                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center ${formData.selectedWallet === wallet.id ? 'border-emerald-500 bg-emerald-50/50 text-emerald-700' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50 text-slate-600'}`}
+                                                                >
+                                                                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-white p-2 mb-1.5 flex items-center justify-center border border-slate-100/80 shadow-sm">
+                                                                        <img src={wallet.icon} alt={wallet.name} className="w-full h-full object-contain" />
+                                                                    </div>
+                                                                    <span className="text-[10px] font-black leading-tight tracking-tight uppercase">{wallet.name}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

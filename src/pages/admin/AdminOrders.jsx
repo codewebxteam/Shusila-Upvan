@@ -56,6 +56,29 @@ const AdminOrders = () => {
             });
         }
     };
+    
+    // Auto-update order status based on date
+    useEffect(() => {
+        if (orders.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            orders.forEach(order => {
+                const deliveryDate = order.deliveryDate;
+                if (!deliveryDate) return;
+
+                const isPast = deliveryDate < today;
+                const isToday = deliveryDate === today;
+
+                // Rule 1: Delivered if past deliveryDate
+                if (isPast && order.status !== 'Delivered' && order.status !== 'Cancelled') {
+                    handleStatusChange(order.firebaseId, 'Delivered');
+                }
+                // Rule 2: Shipped if deliveryDate is today
+                else if (isToday && (order.status === 'Placed' || order.status === 'Confirmed')) {
+                    handleStatusChange(order.firebaseId, 'Shipped');
+                }
+            });
+        }
+    }, [orders]);
 
     const handleClearOrders = () => {
         if (window.confirm('Are you sure you want to clear all order history? This cannot be undone.')) {
