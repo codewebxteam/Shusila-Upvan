@@ -4,6 +4,46 @@ import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, push, set, remove } from 'firebase/database';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
+const compressImage = (file, maxWidth = 800, maxHeight = 800, quality = 0.7) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
+};
+
 const AdminInventory = () => {
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -85,8 +125,9 @@ const AdminInventory = () => {
         if (editProduct.image) {
             try {
                 const storage = getStorage();
-                const imageRef = sRef(storage, `products/${Date.now()}_${editProduct.name.replace(/\s+/g, '_')}`);
-                const snapshot = await uploadBytes(imageRef, editProduct.image);
+                const imageRef = sRef(storage, `products/${Date.now()}_${editProduct.name.replace(/\s+/g, '_')}.jpg`);
+                const compressedImage = await compressImage(editProduct.image);
+                const snapshot = await uploadBytes(imageRef, compressedImage, { contentType: 'image/jpeg' });
                 imageUrl = await getDownloadURL(snapshot.ref);
             } catch (err) {
                 console.error("Storage upload failed:", err);
@@ -176,8 +217,9 @@ const AdminInventory = () => {
         if (newProduct.image) {
             try {
                 const storage = getStorage();
-                const imageRef = sRef(storage, `products/${Date.now()}_${newProduct.name.replace(/\s+/g, '_')}`);
-                const snapshot = await uploadBytes(imageRef, newProduct.image);
+                const imageRef = sRef(storage, `products/${Date.now()}_${newProduct.name.replace(/\s+/g, '_')}.jpg`);
+                const compressedImage = await compressImage(newProduct.image);
+                const snapshot = await uploadBytes(imageRef, compressedImage, { contentType: 'image/jpeg' });
                 imageUrl = await getDownloadURL(snapshot.ref);
             } catch (err) {
                 console.error("Storage upload failed:", err);
@@ -360,16 +402,16 @@ const AdminInventory = () => {
                                     </td>
                                     <td className="py-4 px-6 text-center">
                                         <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${item.stock === 0 ? 'bg-red-100 text-red-600' :
-                                                item.stock < 10 ? 'bg-amber-100 text-amber-600' :
-                                                    'bg-emerald-100 text-emerald-600'
+                                            item.stock < 10 ? 'bg-amber-100 text-amber-600' :
+                                                'bg-emerald-100 text-emerald-600'
                                             }`}>
                                             {item.stock}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 text-center">
                                         <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${item.stock === 0 ? 'text-red-600 bg-red-50' :
-                                                item.stock < 10 ? 'text-amber-600 bg-amber-50' :
-                                                    'text-emerald-600 bg-emerald-50'
+                                            item.stock < 10 ? 'text-amber-600 bg-amber-50' :
+                                                'text-emerald-600 bg-emerald-50'
                                             }`}>
                                             {item.stock === 0 ? 'Out of Stock' : item.stock < 10 ? 'Low Stock' : 'In Stock'}
                                         </span>

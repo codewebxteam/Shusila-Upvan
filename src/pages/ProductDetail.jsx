@@ -9,6 +9,8 @@ import { useWishlist } from '../context/WishlistContext';
 import ShareModal from '../components/common/ShareModal';
 import RecommendedProducts from '../components/product/RecommendedProducts';
 import { useEffect } from 'react';
+import { realtimeDb as db } from '../firebase';
+import { ref, onValue } from 'firebase/database';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -16,15 +18,91 @@ const ProductDetail = () => {
     const { addToCart } = useCart();
     const { user, openAuthModal } = useAuth();
     const { toggleWishlist, isInWishlist } = useWishlist();
-    const product = getProductById(id);
+    
+    const [product, setProduct] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [activeTab, setActiveTab] = useState('description');
     const [isAdded, setIsAdded] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+        let unsubscribe = () => {};
+
+        const staticProduct = getProductById(id);
+        
+        if (staticProduct) {
+            setProduct(staticProduct);
+            setIsLoading(false);
+        } else {
+            setIsLoading(true);
+            const productRef = ref(db, `products/${id}`);
+            unsubscribe = onValue(productRef, (snapshot) => {
+                if (!isMounted) return;
+                const data = snapshot.val();
+                if (data) {
+                    // Parse highlights
+                    let parsedHighlights = [];
+                    if (typeof data.highlights === 'string') {
+                        parsedHighlights = data.highlights.split(',').map(h => h.trim()).filter(Boolean);
+                    } else if (Array.isArray(data.highlights)) {
+                        parsedHighlights = data.highlights;
+                    }
+
+                    // Parse specifications
+                    let parsedSpecs = [];
+                    const specsText = data.specification || data.specifications;
+                    if (typeof specsText === 'string') {
+                        parsedSpecs = specsText.split('\n').map(line => {
+                            const parts = line.split(':');
+                            if (parts.length >= 2) {
+                                return { label: parts[0].trim(), value: parts.slice(1).join(':').trim() };
+                            }
+                            return null;
+                        }).filter(Boolean);
+                    } else if (Array.isArray(specsText)) {
+                        parsedSpecs = specsText;
+                    }
+
+                    setProduct({
+                        ...data,
+                        id: id,
+                        img: data.img || 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?w=500',
+                        unit: data.unit || 'Kg',
+                        highlights: parsedHighlights,
+                        specifications: parsedSpecs,
+                        longDescription: data.description || ''
+                    });
+                } else {
+                    setProduct(null);
+                }
+                setIsLoading(false);
+            }, (error) => {
+                console.error("Fetch product error:", error);
+                setIsLoading(false);
+            });
+        }
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
+    }, [id]);
+
+    useEffect(() => {
         window.scrollTo(0, 0);
     }, [id]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <div className="text-center">
+                    <h2 className="text-2xl font-black text-slate-900 mb-4">Loading Product Details...</h2>
+                </div>
+            </div>
+        );
+    }
 
     if (!product) {
         return (

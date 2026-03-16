@@ -118,12 +118,12 @@ export const CartProvider = ({ children }) => {
   );
 
   const mushroomItems = useMemo(
-    () => cartItems.filter((item) => item.category?.toLowerCase() === 'mushroom'),
+    () => cartItems.filter((item) => item.category?.toLowerCase().includes('mushroom')),
     [cartItems]
   );
 
   const dairyItems = useMemo(
-    () => cartItems.filter((item) => item.category?.toLowerCase() === 'dairy'),
+    () => cartItems.filter((item) => item.category?.toLowerCase().includes('dairy')),
     [cartItems]
   );
 

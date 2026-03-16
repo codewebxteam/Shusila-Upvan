@@ -99,11 +99,11 @@ const CartPage = () => {
             {/* Product Info */}
             <div className="flex-1 min-w-0 text-center sm:text-left">
                 <div className="flex flex-wrap items-center gap-2 mb-2 justify-center sm:justify-start">
-                    <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${item.category === 'mushroom'
+                    <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${item.category?.toLowerCase().includes('mushroom')
                         ? 'bg-emerald-100 text-emerald-700'
                         : 'bg-blue-100 text-blue-700'
                         }`}>
-                        {item.category === 'mushroom' ? 'MUSHROOM' : 'DAIRY'}
+                        {item.category?.toLowerCase().includes('mushroom') ? 'MUSHROOM' : 'DAIRY'}
                     </span>
                     <span className="text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-slate-100 text-slate-500">
                         {item.tag}
