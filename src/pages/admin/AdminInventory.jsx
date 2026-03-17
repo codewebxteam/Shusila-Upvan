@@ -4,13 +4,11 @@ import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, push, set, remove } from 'firebase/database';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const compressImage = (file, maxWidth = 800, maxHeight = 800, quality = 0.7) => {
+const compressImage = (file, maxWidth = 500, maxHeight = 500, quality = 0.6) => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.readAsDataURL(file);
         reader.onload = (event) => {
             const img = new Image();
-            img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
@@ -34,13 +32,14 @@ const compressImage = (file, maxWidth = 800, maxHeight = 800, quality = 0.7) => 
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                canvas.toBlob((blob) => {
-                    resolve(blob);
-                }, 'image/jpeg', quality);
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(dataUrl);
             };
             img.onerror = reject;
+            img.src = event.target.result;
         };
         reader.onerror = reject;
+        reader.readAsDataURL(file);
     });
 };
 
@@ -124,13 +123,14 @@ const AdminInventory = () => {
         let imageUrl = selectedItem.img || '';
         if (editProduct.image) {
             try {
-                const storage = getStorage();
-                const imageRef = sRef(storage, `products/${Date.now()}_${editProduct.name.replace(/\s+/g, '_')}.jpg`);
                 const compressedImage = await compressImage(editProduct.image);
-                const snapshot = await uploadBytes(imageRef, compressedImage, { contentType: 'image/jpeg' });
-                imageUrl = await getDownloadURL(snapshot.ref);
+                if (!compressedImage) throw new Error("Image processing failed.");
+                imageUrl = compressedImage; // Base64 string saved directly in Realtime DB
             } catch (err) {
-                console.error("Storage upload failed:", err);
+                console.error("Image processing failed:", err);
+                alert("❌ Image Processing Failed: " + err.message);
+                setIsPublishing(false);
+                return;
             }
         }
 
@@ -216,13 +216,14 @@ const AdminInventory = () => {
         let imageUrl = '';
         if (newProduct.image) {
             try {
-                const storage = getStorage();
-                const imageRef = sRef(storage, `products/${Date.now()}_${newProduct.name.replace(/\s+/g, '_')}.jpg`);
                 const compressedImage = await compressImage(newProduct.image);
-                const snapshot = await uploadBytes(imageRef, compressedImage, { contentType: 'image/jpeg' });
-                imageUrl = await getDownloadURL(snapshot.ref);
+                if (!compressedImage) throw new Error("Image processing failed.");
+                imageUrl = compressedImage; // Base64 string saved directly in Realtime DB
             } catch (err) {
-                console.error("Storage upload failed:", err);
+                console.error("Image processing failed:", err);
+                alert("❌ Image Processing Failed: " + err.message);
+                setIsPublishing(false);
+                return;
             }
         }
 
