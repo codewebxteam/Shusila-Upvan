@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Phone, Ban, Users, UserPlus, Star, Landmark, Filter, ChevronDown, Calendar } from 'lucide-react';
 import { realtimeDb as db } from '../../firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, update, push } from 'firebase/database';
 
 const AdminCustomers = () => {
     const [customers, setCustomers] = useState([]);
@@ -12,6 +12,49 @@ const AdminCustomers = () => {
     const [timeFilter, setTimeFilter] = useState('All Time');
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+    const [isMsgModalOpen, setIsMsgModalOpen] = useState(false);
+    const [msgText, setMsgText] = useState('');
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+    const handleBlockToggle = (uid) => {
+        if (!uid || uid.startsWith('guest_')) {
+            alert('Guest customers cannot be blocked directly.');
+            return;
+        }
+        const isBlocked = usersData[uid]?.blocked || false;
+        if (window.confirm(`Are you sure you want to ${isBlocked ? 'Unblock' : 'Block'} this customer?`)) {
+            const userRef = ref(db, `users/${uid}`);
+            update(userRef, { blocked: !isBlocked });
+        }
+    };
+
+    const handleSendMessage = async () => {
+        if (!msgText.trim() || !selectedCustomer) return;
+        const uid = selectedCustomer.id;
+        
+        if (uid.startsWith('guest_')) {
+            alert('Cannot send message to guest customer back-end records.');
+            return;
+        }
+
+        try {
+            const msgRef = ref(db, `users/${uid}/messages`);
+            const newMsgRef = push(msgRef);
+            await update(newMsgRef, {
+                message: msgText,
+                timestamp: new Date().toISOString(),
+                sender: 'Admin',
+                read: false
+            });
+            alert('Message sent successfully!');
+            setMsgText('');
+            setIsMsgModalOpen(false);
+            setSelectedCustomer(null);
+        } catch (error) {
+            console.error("Error sending message:", error);
+            alert("Failed to send message: " + error.message);
+        }
+    };
 
     useEffect(() => {
         const usersRef = ref(db, 'users');
@@ -102,7 +145,7 @@ const AdminCustomers = () => {
                 ...item,
                 joined: joinedStr,
                 spent: `₹${item.spent.toLocaleString()}`,
-                status: item.orders > 5 ? 'VIP' : 'Active'
+                status: usersData[item.id]?.blocked ? 'Blocked' : (item.orders > 5 ? 'VIP' : 'Active')
             };
         });
 
@@ -115,6 +158,7 @@ const AdminCustomers = () => {
             case 'Active': return 'bg-emerald-100 text-emerald-700';
             case 'VIP': return 'bg-[#fef08a] text-[#854d0e]';
             case 'Inactive': return 'bg-slate-100 text-slate-600';
+            case 'Blocked': return 'bg-red-100 text-red-700';
             default: return 'bg-slate-100 text-slate-600';
         }
     };
@@ -335,10 +379,18 @@ const AdminCustomers = () => {
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
-                                            <button className="text-slate-400 hover:text-slate-600 transition-colors" title="Message">
+                                            <button 
+                                                onClick={() => { setSelectedCustomer(item); setIsMsgModalOpen(true); }}
+                                                className="text-slate-400 hover:text-indigo-600 transition-colors" 
+                                                title="Message"
+                                            >
                                                 <Mail size={16} strokeWidth={2.5} />
                                             </button>
-                                            <button className="text-slate-400 hover:text-red-500 transition-colors" title="Block">
+                                            <button 
+                                                onClick={() => handleBlockToggle(item.id)}
+                                                className={`${usersData[item.id]?.blocked ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-500'} transition-colors`} 
+                                                title={usersData[item.id]?.blocked ? "Unblock" : "Block"}
+                                            >
                                                 <Ban size={16} strokeWidth={2.5} />
                                             </button>
                                         </div>
@@ -349,6 +401,37 @@ const AdminCustomers = () => {
                     </table>
                 </div>
             </div>
+            {/* Message Modal */}
+            {isMsgModalOpen && selectedCustomer && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4" onClick={() => setIsMsgModalOpen(false)}>
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-lg font-black text-slate-800 mb-2">Message to {selectedCustomer.customer}</h3>
+                        <p className="text-xs text-slate-400 mb-4">This message will be sent to the user's inbox.</p>
+                        
+                        <textarea 
+                            className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                            placeholder="Type your message here..."
+                            value={msgText}
+                            onChange={(e) => setMsgText(e.target.value)}
+                        />
+                        
+                        <div className="flex justify-end gap-3 mt-5">
+                            <button 
+                                onClick={() => setIsMsgModalOpen(false)} 
+                                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleSendMessage} 
+                                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200 transition-colors"
+                            >
+                                Send Message
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

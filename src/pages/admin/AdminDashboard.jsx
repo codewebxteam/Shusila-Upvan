@@ -421,7 +421,7 @@ const AdminDashboard = () => {
         <div className="flex justify-between items-start">
             <div>
                 <h3 className="text-3xl font-black text-slate-800">{stats.pendingOrders}</h3>
-                <p className="text-sm font-semibold text-slate-500 mt-1">Pending Orders</p>
+                <p className="text-sm font-semibold text-slate-500 mt-1">Orders Placed</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
                 <AlertCircle size={24} strokeWidth={2.5} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-import { isToday, isThisWeek, isThisMonth, isThisYear, parseISO, isValid } from 'date-fns';
+import { isToday, isThisWeek, isThisMonth, isThisYear, parseISO, isValid, differenceInDays, format } from 'date-fns';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, remove } from 'firebase/database';
 import { Download, Eye, Trash2, X } from 'lucide-react';
@@ -46,9 +46,29 @@ const AdminOrders = () => {
         return () => unsubOrders();
     }, []);
 
-    const handleStatusChange = (firebaseId, newStatus) => {
-        const orderRef = ref(db, `orders/${firebaseId}`);
-        update(orderRef, { status: newStatus });
+    const handleStatusChange = (order, newStatus) => {
+        const orderRef = ref(db, `orders/${order.firebaseId}`);
+
+        // Update timeline if it exists
+        let updatedTimeline = order.timeline ? [...order.timeline] : [];
+        const statusMap = { 'Placed': 0, 'Confirmed': 1, 'Shipped': 2, 'Delivered': 3 };
+        const targetIndex = statusMap[newStatus];
+
+        if (updatedTimeline.length > 0 && targetIndex !== undefined) {
+            updatedTimeline = updatedTimeline.map((step, idx) => {
+                if (idx <= targetIndex) {
+                    return { ...step, completed: true };
+                }
+                return step;
+            });
+        }
+
+        const updates = { status: newStatus };
+        if (updatedTimeline.length > 0) {
+            updates.timeline = updatedTimeline;
+        }
+
+        update(orderRef, updates);
     };
 
     const handleCancelOrder = (firebaseId) => {
@@ -60,25 +80,30 @@ const AdminOrders = () => {
             });
         }
     };
-    
-    // Auto-update order status based on date
+
+    // Auto-update order status based on creation date
     useEffect(() => {
         if (orders.length > 0) {
-            const today = new Date().toISOString().split('T')[0];
             orders.forEach(order => {
-                const deliveryDate = order.deliveryDate;
-                if (!deliveryDate) return;
+                if (order.status === 'Cancelled' || order.status === 'Delivered') return;
+                if (!order.date) return;
 
-                const isPast = deliveryDate < today;
-                const isToday = deliveryDate === today;
+                const orderDate = parseISO(order.date);
+                if (!isValid(orderDate)) return;
 
-                // Rule 1: Delivered if past deliveryDate
-                if (isPast && order.status !== 'Delivered' && order.status !== 'Cancelled') {
-                    handleStatusChange(order.firebaseId, 'Delivered');
-                }
-                // Rule 2: Shipped if deliveryDate is today
-                else if (isToday && (order.status === 'Placed' || order.status === 'Confirmed')) {
-                    handleStatusChange(order.firebaseId, 'Shipped');
+                const daysPassed = differenceInDays(new Date(), orderDate);
+                let calculatedStatus = 'Placed';
+
+                if (daysPassed >= 4) calculatedStatus = 'Delivered';
+                else if (daysPassed >= 2) calculatedStatus = 'Shipped';
+                else if (daysPassed >= 1) calculatedStatus = 'Confirmed';
+
+                const statusHierarchy = { 'Placed': 0, 'Confirmed': 1, 'Shipped': 2, 'Delivered': 3 };
+                const currentRank = statusHierarchy[order.status] || 0;
+                const targetRank = statusHierarchy[calculatedStatus] || 0;
+
+                if (targetRank > currentRank) {
+                    handleStatusChange(order, calculatedStatus);
                 }
             });
         }
@@ -94,7 +119,7 @@ const AdminOrders = () => {
     // Calculate stats
     const stats = {
         total: orders.length,
-        pending: orders.filter(o => o.status === 'Pending').length,
+        placed: orders.filter(o => o.status === 'Placed').length,
         delivered: orders.filter(o => o.status === 'Delivered').length,
         cancelled: orders.filter(o => o.status === 'Cancelled').length
     };
@@ -102,7 +127,7 @@ const AdminOrders = () => {
     const filteredOrders = useMemo(() => {
         return orders.filter(order => {
             const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
-            
+
             let matchesDate = true;
             if (dateFilter !== 'All Time' && order.date) {
                 const orderDate = parseISO(order.date);
@@ -169,10 +194,10 @@ const AdminOrders = () => {
                     <p className="text-sm font-bold text-slate-400">Total Orders</p>
                 </div>
 
-                {/* Pending Orders */}
+                {/* Orders Placed */}
                 <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center">
-                    <h3 className="text-[2.2rem] font-black text-amber-500 tracking-tight mb-1">{stats.pending}</h3>
-                    <p className="text-sm font-bold text-slate-400">Pending Orders</p>
+                    <h3 className="text-[2.2rem] font-black text-amber-500 tracking-tight mb-1">{stats.placed}</h3>
+                    <p className="text-sm font-bold text-slate-400">Orders Placed</p>
                 </div>
 
                 {/* Delivered */}
@@ -195,22 +220,22 @@ const AdminOrders = () => {
 
                     <div className="flex items-center gap-3 flex-wrap">
                         {/* Status Filter */}
-                        <select 
-                            value={statusFilter} 
+                        <select
+                            value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="bg-white border border-slate-200 text-sm font-bold text-slate-700 py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:10px_10px] bg-[right_12px_center]"
                         >
                             <option value="All">All Status</option>
                             <option value="Delivered">Delivered</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Processing">Processing</option>
+                            <option value="Placed">Order Placed</option>
+                            <option value="Confirmed">Order Confirmed</option>
                             <option value="Shipped">Shipped</option>
                             <option value="Cancelled">Cancelled</option>
                         </select>
 
                         {/* Date Filter */}
-                        <select 
-                            value={dateFilter} 
+                        <select
+                            value={dateFilter}
                             onChange={(e) => setDateFilter(e.target.value)}
                             className="bg-white border border-slate-200 text-sm font-bold text-slate-700 py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:10px_10px] bg-[right_12px_center]"
                         >
@@ -221,7 +246,7 @@ const AdminOrders = () => {
                             <option value="This Year">This Year</option>
                         </select>
 
-                        <button 
+                        <button
                             onClick={handleExportExcel}
                             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-xl font-bold text-sm transition-colors shadow-sm shadow-indigo-100"
                         >
@@ -262,13 +287,13 @@ const AdminOrders = () => {
                                     <td className="py-4 px-6">
                                         <select
                                             value={item.status}
-                                            onChange={(e) => handleStatusChange(item.firebaseId, e.target.value)}
+                                            onChange={(e) => handleStatusChange(item, e.target.value)}
                                             className={`text-xs font-bold py-1.5 px-3 rounded-full border focus:outline-none appearance-none cursor-pointer pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:8px_8px] bg-[right_10px_center] ${item.status === 'Delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                    item.status === 'Shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                                        item.status === 'Confirmed' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                                            item.status === 'Placed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                                item.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
-                                                                    'bg-slate-50 text-slate-700 border-slate-200'
+                                                item.status === 'Shipped' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                    item.status === 'Confirmed' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                                        item.status === 'Placed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                            item.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                                'bg-slate-50 text-slate-700 border-slate-200'
                                                 }`}
                                         >
                                             <option value="Placed">Order Placed</option>
@@ -279,7 +304,9 @@ const AdminOrders = () => {
                                         </select>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className="text-sm font-semibold text-slate-500">{item.date}</span>
+                                        <span className="text-sm font-semibold text-slate-500">
+                                            {item.date && isValid(parseISO(item.date)) ? format(parseISO(item.date), 'dd MMM yyyy, hh:mm a') : item.date || 'N/A'}
+                                        </span>
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
