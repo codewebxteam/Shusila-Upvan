@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart, Star, ArrowRight } from 'lucide-react';
 import { products } from '../../data/products';
+import { realtimeDb as db } from '../../firebase';
+import { ref, onValue } from 'firebase/database';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -13,8 +15,39 @@ const RecommendedProducts = ({ currentProductId, category }) => {
     const { user, openAuthModal } = useAuth();
     const { toggleWishlist, isInWishlist } = useWishlist();
 
-    const recommended = products
-        .filter(p => p.category === category && p.id !== currentProductId)
+    const [firebaseProducts, setFirebaseProducts] = useState([]);
+
+    useEffect(() => {
+        const productsRef = ref(db, 'products');
+        const unsubscribe = onValue(productsRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            const list = Object.keys(data).map(key => ({
+                ...data[key],
+                id: key,
+                img: data[key].img || data[key].image || 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?w=500',
+                unit: data[key].unit || 'Kg'
+            }));
+            setFirebaseProducts(list);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const isMushroom = String(category || '').toLowerCase().includes('mushroom');
+    const isDairy = String(category || '').toLowerCase().includes('dairy');
+
+    const allProducts = [
+        ...firebaseProducts,
+        ...products
+    ];
+
+    const recommended = allProducts
+        .filter(p => {
+            if (p.id === currentProductId) return false;
+            const pCat = String(p.category || '').toLowerCase();
+            if (isMushroom) return pCat.includes('mushroom');
+            if (isDairy) return pCat.includes('dairy');
+            return pCat === String(category || '').toLowerCase();
+        })
         .slice(0, 4);
 
     if (recommended.length === 0) return null;
@@ -49,7 +82,7 @@ const RecommendedProducts = ({ currentProductId, category }) => {
                     </p>
                 </div>
                 <button
-                    onClick={() => navigate(category === 'Mushroom' ? '/mushroom' : '/dairy')}
+                    onClick={() => navigate(category?.toLowerCase().includes('mushroom') ? '/mushroom' : '/dairy')}
                     className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors group"
                 >
                     View All Products
