@@ -15,7 +15,9 @@ import {
     Settings,
     Search,
     Bell,
-    Mail
+    Mail,
+    Menu,
+    X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -27,6 +29,7 @@ const AdminLayout = () => {
     const [messages, setMessages] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showMessages, setShowMessages] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         const ordersRef = ref(db, 'orders');
@@ -58,6 +61,10 @@ const AdminLayout = () => {
         };
     }, []);
 
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [location.pathname]);
+
     // Close dropdowns on outside click
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -85,11 +92,18 @@ const AdminLayout = () => {
     };
 
     return (
-        <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+        <div className="flex h-screen bg-slate-50 overflow-hidden font-sans relative">
+            {/* Backdrop for mobile */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
             {/* Sidebar */}
-            <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+            <aside className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative transition-transform duration-200 ease-in-out`}>
                 {/* Logo Area */}
-                <div className="h-20 flex items-center px-6 border-b border-slate-100 shrink-0">
+                <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-400 flex items-center justify-center text-white font-black shadow-lg shadow-emerald-500/30">
                             SU
@@ -98,6 +112,13 @@ const AdminLayout = () => {
                             Admin <span className="text-emerald-600 font-bold">Panel</span>
                         </span>
                     </div>
+                    {/* Close button for mobile */}
+                    <button 
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg md:hidden"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
 
                 {/* Navigation Items */}
@@ -128,7 +149,15 @@ const AdminLayout = () => {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
                 {/* Top Header */}
-                <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] z-[50] shrink-0">
+                <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] z-[40] shrink-0 gap-3">
+                    {/* Hamburger Toggle */}
+                    <button 
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="p-1.5 -ml-1 text-slate-500 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 md:hidden flex items-center justify-center shrink-0"
+                    >
+                        <Menu size={20} />
+                    </button>
+
                     {/* Search Bar */}
                     <div className="flex-1 max-w-xl relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -140,7 +169,7 @@ const AdminLayout = () => {
                     </div>
 
                     {/* Right Toolbar */}
-                    <div className="flex items-center gap-6 pl-6">
+                    <div className="flex items-center gap-3 md:gap-6 pl-4 md:pl-6 border-l border-slate-100 md:border-l-none">
                         {/* Notifications */}
                         <div className="flex items-center gap-4 relative">
                             {/* Bell Dropdown */}
@@ -273,7 +302,7 @@ const AdminLayout = () => {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto p-8 custom-scrollbar relative">
+                <main className="flex-1 overflow-auto p-4 md:p-8 custom-scrollbar relative">
                     <Outlet />
                 </main>
             </div>
