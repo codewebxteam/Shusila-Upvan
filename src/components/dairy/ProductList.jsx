@@ -203,7 +203,7 @@ const ProductList = ({ priceRange, sortOrder }) => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {paginatedProducts.map((item) => (
-            <div key={item.id} className="group relative bg-slate-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl border border-slate-100 hover:border-blue-200 cursor-pointer transition-all">
+            <div key={item.id} onClick={() => navigate(`/product/${item.id}`)} className="group relative bg-slate-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl border border-slate-100 hover:border-blue-200 cursor-pointer transition-all">
               {/* Wishlist Button */}
               <button
                 onClick={(e) => handleWishlistToggle(e, item)}
@@ -220,8 +220,7 @@ const ProductList = ({ priceRange, sortOrder }) => {
 
               {/* Image */}
               <div
-                className="relative aspect-square rounded-2xl bg-gradient-to-br from-blue-50 to-transparent mb-6 flex items-center justify-center overflow-hidden cursor-pointer"
-                onClick={() => navigate(`/product/${item.id}`)}
+                className="relative aspect-square rounded-2xl bg-gradient-to-br from-blue-50 to-transparent mb-6 flex items-center justify-center overflow-hidden"
               >
                 {isNewProduct(item) && (
                   <div className="absolute top-3 left-3 z-20 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-sm">
@@ -261,6 +260,7 @@ const ProductList = ({ priceRange, sortOrder }) => {
                 {/* Quantity */}
                 <div
                   className="flex items-center justify-between bg-white rounded-xl p-3 border border-slate-200"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <span className="text-xs font-bold text-slate-500 uppercase">
                     Qty

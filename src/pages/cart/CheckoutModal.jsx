@@ -70,12 +70,9 @@ const CheckoutModal = ({ onClose }) => {
         { id: 'airtel', name: 'Airtel Money', icon: 'https://logo.clearbit.com/airtel.in' },
     ];
 
-    const savedAddresses = [
-        { id: 1, name: 'Ajeet Kumar', mobile: '9876543210', pincode: '800001', locality: 'Boring Road', street: 'Flat 402, Shanti Complex', city: 'Patna', state: 'Bihar', type: 'Home' },
-        { id: 2, name: 'Ajeet Kumar', mobile: '9876543210', pincode: '560001', locality: 'Indiranagar', street: '12th Main, 4th Cross', city: 'Bengaluru', state: 'Karnataka', type: 'Work' }
-    ];
-
-    const [isAddingNew, setIsAddingNew] = useState(false);
+    const savedAddresses = [];
+                         
+    const [isAddingNew, setIsAddingNew] = useState(savedAddresses.length === 0);
     const [orderPlaced, setOrderPlaced] = useState(false);
 
     const handleChange = (e) => {
@@ -94,12 +91,28 @@ const CheckoutModal = ({ onClose }) => {
 
     const handleNextStep = () => {
         if (step === 1) {
-            if (!formData.fullName || !formData.fullName.trim() || !formData.mobile || !formData.mobile.trim()) {
+            if (!formData.fullName || !formData.fullName.trim()) {
                 setError("Personal details are mandatory to fill.");
+                setTimeout(() => {
+                    document.getElementById('fullNameInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById('fullNameInput')?.focus();
+                }, 100);
+                return;
+            }
+            if (!formData.mobile || !formData.mobile.trim()) {
+                setError("Personal details are mandatory to fill.");
+                setTimeout(() => {
+                    document.getElementById('mobileInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById('mobileInput')?.focus();
+                }, 100);
                 return;
             }
             if (formData.mobile.trim().length !== 10) {
                 setError("Please enter a valid 10-digit mobile number.");
+                setTimeout(() => {
+                    document.getElementById('mobileInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById('mobileInput')?.focus();
+                }, 100);
                 return;
             }
         }
@@ -284,9 +297,9 @@ const CheckoutModal = ({ onClose }) => {
 
                         {/* Mini Segments */}
                         <div className="space-y-4">
-                            <div className="bg-white/60 p-5 rounded-3xl border border-[#f1efe1] flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
-                                    <CheckCircle2 size={20} />
+                            <div className={`p-5 rounded-3xl border flex items-center gap-4 transition-all ${error && (!formData.fullName?.trim() || !formData.mobile?.trim() || formData.mobile?.trim().length !== 10) && step === 1 ? 'border-red-200 bg-red-50' : 'border-[#f1efe1] bg-white/60'}`}>
+                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${error && (!formData.fullName?.trim() || !formData.mobile?.trim() || formData.mobile?.trim().length !== 10) && step === 1 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                    {error && (!formData.fullName?.trim() || !formData.mobile?.trim() || formData.mobile?.trim().length !== 10) && step === 1 ? <AlertCircle size={20} /> : <CheckCircle2 size={20} />}
                                 </div>
                                 <div className="leading-tight">
                                     <p className="text-xs font-bold text-[#3a3f30]">Personal Details</p>
@@ -303,7 +316,7 @@ const CheckoutModal = ({ onClose }) => {
 
                         {/* Step 1: Personal Info */}
                         {step === 1 && (
-                            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl">
+                            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl pb-16">
                                 <div className="mb-10">
                                     <h3 className="text-[24px] sm:text-[32px] font-bold text-[#3a3f30] tracking-tight mb-2 leading-none">Personal Information.</h3>
                                     <p className="text-[12px] text-[#878787] uppercase font-bold tracking-widest">Provide your reachability details</p>
@@ -314,8 +327,8 @@ const CheckoutModal = ({ onClose }) => {
                                         <label className="text-[13px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name *</label>
                                         <input
                                             name="fullName" value={formData.fullName} onChange={handleChange}
-                                            placeholder="Enter your full name"
-                                            className="w-full px-6 py-4 bg-white border border-slate-100 rounded-3xl text-[16px] font-bold focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm"
+                                            placeholder="Enter your full name" id="fullNameInput"
+                                            className={`w-full px-6 py-4 bg-white border rounded-3xl text-[16px] font-bold focus:outline-none transition-all shadow-sm ${error && !formData.fullName?.trim() ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/5' : 'border-slate-100 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5'}`}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -324,8 +337,8 @@ const CheckoutModal = ({ onClose }) => {
                                             <span className="absolute left-6 top-1/2 -translate-y-1/2 text-[16px] font-black text-slate-300 tracking-tighter">+91</span>
                                             <input
                                                 name="mobile" value={formData.mobile} onChange={handleChange}
-                                                placeholder="10-digit mobile number"
-                                                className="w-full pl-16 pr-6 py-4 bg-white border border-slate-100 rounded-3xl text-[16px] font-bold focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm"
+                                                placeholder="10-digit mobile number" id="mobileInput"
+                                                className={`w-full pl-16 pr-6 py-4 bg-white border rounded-3xl text-[16px] font-bold focus:outline-none transition-all shadow-sm ${error && (!formData.mobile?.trim() || formData.mobile?.trim().length !== 10) ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/5' : 'border-slate-100 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5'}`}
                                             />
                                         </div>
                                     </div>
@@ -343,7 +356,7 @@ const CheckoutModal = ({ onClose }) => {
 
                         {/* Step 2: Delivery Address (Flipkart Style) */}
                         {step === 2 && (
-                            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="max-w-3xl w-full">
+                            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="max-w-3xl w-full pb-16">
                                 <div className="mb-8">
                                     <h3 className="text-[24px] sm:text-[32px] font-bold text-[#3a3f30] tracking-tight mb-2 leading-none">Delivery Address</h3>
                                     <p className="text-[12px] text-[#878787] uppercase font-bold tracking-widest">Select where you want your fresh produce delivered</p>
@@ -824,22 +837,6 @@ const CheckoutModal = ({ onClose }) => {
                         >
                             <ChevronLeft size={14} /> Back
                         </button>
-                        {step < 3 ? (
-                            <button
-                                onClick={handleNextStep}
-                                className="px-5 py-2.5 bg-[#111827] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all sm:hidden flex items-center gap-1 shadow-sm"
-                            >
-                                Continue <ChevronRight size={12} />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handlePlaceOrder}
-                                disabled={isProcessing}
-                                className="px-5 py-2.5 bg-[#111827] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all sm:hidden flex items-center gap-1 shadow-sm"
-                            >
-                                {isProcessing ? 'Processing...' : 'Place Order'}
-                            </button>
-                        )}
                         <button
                             onClick={onClose}
                             className="hidden sm:block px-6 py-4 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 transition-colors"
@@ -847,6 +844,23 @@ const CheckoutModal = ({ onClose }) => {
                             Cancel
                         </button>
                     </div>
+
+                    {step < 3 ? (
+                        <button
+                            onClick={handleNextStep}
+                            className="px-5 py-2.5 bg-[#111827] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all sm:hidden flex items-center gap-1 shadow-sm"
+                        >
+                            Continue <ChevronRight size={12} />
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handlePlaceOrder}
+                            disabled={isProcessing}
+                            className="px-5 py-2.5 bg-[#111827] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all sm:hidden flex items-center gap-1 shadow-sm"
+                        >
+                            {isProcessing ? 'Processing...' : 'Place Order'}
+                        </button>
+                    )}
 
                     <div className="hidden sm:flex items-center gap-6">
                         <div className="hidden sm:flex flex-col items-end leading-none">
