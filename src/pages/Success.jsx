@@ -9,13 +9,12 @@ const Success = () => {
     const { clearCart } = useCart();
 
     useEffect(() => {
-        // Scroll to top when landing on success page
         window.scrollTo(0, 0);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        clearCart();
     }, []);
 
     const orderDetails = location.state?.orderDetails || {};
-    
+
     // Extract address data
     const name = orderDetails.address?.fullName || orderDetails.fullName || 'Meraj Hussain';
     const street = orderDetails.address?.street || orderDetails.street || '12th Main, 4th Cross';
@@ -30,14 +29,14 @@ const Success = () => {
         const orderDateStr = orderDetails.date;
         const baseDate = orderDateStr ? new Date(orderDateStr) : new Date();
         const deliveryDate = new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000);
-        
+
         const day = deliveryDate.getDate();
         const suffix = (day % 10 === 1 && day !== 11) ? 'st' : (day % 10 === 2 && day !== 12) ? 'nd' : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
-        
+
         const weekday = deliveryDate.toLocaleDateString('en-US', { weekday: 'short' });
         const month = deliveryDate.toLocaleDateString('en-US', { month: 'short' });
         const year = deliveryDate.getFullYear().toString().slice(-2);
-        
+
         return `${weekday}, ${month} ${day}${suffix} '${year}`;
     };
 
@@ -45,7 +44,7 @@ const Success = () => {
 
     return (
         <div className="min-h-screen bg-[#f1f3f6] font-sans pb-16 pt-28 flex justify-center w-full">
-            
+
             {/* Main Content Constraint wrapper (matches desktop Flipkart view) */}
             <div className="w-full max-w-[1000px] flex flex-col gap-4 px-2">
 
@@ -56,8 +55,8 @@ const Success = () => {
                             Thanks for shopping with us!
                         </h1>
                         <p className="text-[14px] text-[#212121] mb-2 font-medium">Delivery by {deliveryDateStr}</p>
-                        <button 
-                            onClick={() => navigate('/orders')} 
+                        <button
+                            onClick={() => navigate('/orders')}
                             className="text-[#2874f0] font-medium text-[14px] hover:underline self-start mt-1"
                         >
                             Track & manage order
@@ -90,7 +89,7 @@ const Success = () => {
                                 <div key={idx} className="flex items-center gap-3 bg-[#f8f9fa] p-2 rounded border border-[#f0f0f0] shrink-0 pr-4 w-[200px]">
                                     <div className="w-12 h-12 bg-white rounded flex items-center justify-center p-1 border border-[#e0e0e0] shrink-0">
                                         {item.img || item.image ? (
-                                             <img src={item.img || item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
+                                            <img src={item.img || item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                                         ) : (
                                             <div className="text-slate-400 text-[10px]">No image</div>
                                         )}
@@ -116,26 +115,26 @@ const Success = () => {
                     <div className="px-6 py-5 flex items-start justify-between">
                         <div className="flex flex-col gap-2">
                             <h3 className="text-[14px] font-medium text-[#212121]">{name}</h3>
-                            
+
                             <div className="text-[14px] text-[#212121] leading-relaxed max-w-[400px]">
                                 <p>{street}</p>
                                 <p>{locality}</p>
                                 <p>{city}</p>
                                 <p>{state} - {pincode}</p>
                             </div>
-                            
+
                             <p className="text-[14px] text-[#212121] mt-2 font-medium text-slate-700">Phone number: {mobile}</p>
-                            
-                            <button 
-                                onClick={() => navigate('/orders')} 
+
+                            <button
+                                onClick={() => navigate('/orders')}
                                 className="text-[#2874f0] text-[14px] font-medium mt-4 hover:underline self-start cursor-pointer transition-colors"
                             >
                                 Change or Add number
                             </button>
                         </div>
-                        
-                        <button 
-                            onClick={() => navigate('/profile')} 
+
+                        <button
+                            onClick={() => navigate('/profile')}
                             className="px-5 py-2 border border-[#e0e0e0] rounded-[2px] bg-white text-[#2874f0] text-[14px] font-medium hover:shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] hover:bg-slate-50 transition-all cursor-pointer"
                         >
                             Change
@@ -145,18 +144,18 @@ const Success = () => {
 
                 {/* Action Buttons Container */}
                 <div className="flex items-center justify-between mt-4 mb-32 relative z-[100]">
-                    <button 
-                       onClick={() => navigate('/')} 
-                       className="px-8 py-3.5 bg-white text-[#212121] text-[14px] font-medium rounded-sm shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] hover:bg-slate-50 transition-colors border border-[#d3d3d3] drop-shadow-sm cursor-pointer active:scale-[0.98]"
+                    <button
+                        onClick={() => navigate('/')}
+                        className="px-8 py-3.5 bg-white text-[#212121] text-[14px] font-medium rounded-sm shadow-[0_1px_2px_0_rgba(0,0,0,0.1)] hover:bg-slate-50 transition-colors border border-[#d3d3d3] drop-shadow-sm cursor-pointer active:scale-[0.98]"
                     >
                         CONTINUE SHOPPING
                     </button>
-                    
-                     <button 
-                       onClick={() => navigate('/orders')} 
-                       className="flex items-center gap-2 px-6 py-3.5 bg-white text-[#212121] text-[14px] font-medium rounded-sm hover:text-[#2874f0] transition-colors cursor-pointer active:scale-[0.98]"
+
+                    <button
+                        onClick={() => navigate('/orders')}
+                        className="flex items-center gap-2 px-6 py-3.5 bg-white text-[#212121] text-[14px] font-medium rounded-sm hover:text-[#2874f0] transition-colors cursor-pointer active:scale-[0.98]"
                     >
-                        Send Order Details 
+                        Send Order Details
                         <ChevronRight size={16} />
                     </button>
                 </div>

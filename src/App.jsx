@@ -22,6 +22,7 @@ import OrdersPage from "./pages/profile/OrdersPage";
 import ProductDetail from "./pages/ProductDetail";
 import Success from "./pages/Success";
 
+
 // Context Providers
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
@@ -39,13 +40,10 @@ import AdminSettings from "./pages/admin/AdminSettings";
 // Protect Admin Routes
 const AdminProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
   if (loading) return <Loader />;
-  
   if (!user || user.role !== 'admin') {
-     return <FoundationHome />; // Redirect unauthorized to home
+    return <FoundationHome />;
   }
-  
   return children;
 };
 
@@ -96,8 +94,6 @@ function AppContent() {
 
       {/* Global Footer */}
       {!isAdminRoute && <Footer />}
-
-      {/* Floating Cart Button */}
       {!isAdminRoute && <FloatingCartButton />}
     </div>
   );
@@ -110,5 +106,4 @@ function App() {
     </Router>
   );
 }
-
 export default App;

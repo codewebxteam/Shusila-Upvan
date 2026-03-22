@@ -9,7 +9,7 @@ const Home = () => {
       <Hero />
       
       {/* Product Showcase Section */}
-      <div className="relative z-10 -mt-6 sm:-mt-8 lg:-mt-10">
+      <div className="relative z-10 mt-6 sm:mt-8 lg:mt-10">
         <ProductList />
       </div>
 

@@ -6,7 +6,7 @@ import heroFungi from '../../assets/mushroom/herofungi.webp';
 
 const Hero = () => {
   return (
-    <section className="relative w-full bg-white pt-6 sm:pt-12 pb-2 sm:pb-4 lg:pt-24 lg:pb-10 overflow-hidden">
+    <section className="relative w-full bg-white pt-20 sm:pt-12 pb-2 sm:pb-4 lg:pt-24 lg:pb-10 overflow-hidden">
       {/* Organic Soft Glow */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/60 blur-[100px] -z-10"></div>
 

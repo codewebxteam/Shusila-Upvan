@@ -5,7 +5,7 @@ import milkVideo from '../../assets/dairy/milkanimation.mp4';
 
 const Hero = () => {
   return (
-    <section className="relative w-full bg-white pt-4 sm:pt-8 pb-4 sm:pb-6 lg:pt-24 lg:pb-12 overflow-hidden">
+    <section className="relative w-full bg-white pt-20 sm:pt-8 pb-4 sm:pb-6 lg:pt-24 lg:pb-12 overflow-hidden">
       {/* Decorative Blur - Branding Color */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-b from-blue-50/50 to-transparent -z-10"></div>
 

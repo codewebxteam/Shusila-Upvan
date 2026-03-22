@@ -14,8 +14,6 @@ const CartPage = () => {
         removeFromCart, updateQuantity, clearCart
     } = useCart();
     const [showCheckout, setShowCheckout] = useState(false);
-
-    // Confirmation dialog state
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false, title: '', message: '', onConfirm: null,
     });
@@ -89,7 +87,7 @@ const CartPage = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
-            className="flex flex-col sm:flex-row items-center gap-5 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-100/50 transition-all group"
+            className="flex flex-col sm:flex-row items-center gap-5 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-100/50 transition-all group relative"
         >
             {/* Product Image */}
             <div className="w-24 h-24 bg-slate-50 rounded-[1.8rem] overflow-hidden shrink-0 flex items-center justify-center border border-slate-100 group-hover:scale-105 transition-transform">
@@ -114,7 +112,7 @@ const CartPage = () => {
             </div>
 
             {/* Quantity & Price */}
-            <div className="flex items-center gap-8 shrink-0">
+            <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-8 w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100/60 flex-row">
                 <div className="flex items-center gap-3 bg-[#111827] rounded-full px-2 py-1.5 shadow-sm">
                     <button
                         onClick={() => updateQuantity(item.id, item.category, item.quantity - 1)}
@@ -140,7 +138,7 @@ const CartPage = () => {
 
                 <button
                     onClick={() => handleRemoveItem(item.id, item.category, item.name)}
-                    className="w-10 h-10 flex items-center justify-center rounded-2xl bg-[#fff2f2] text-[#ff6b6b] hover:bg-[#ff6b6b] hover:text-white transition-all shadow-sm shrink-0"
+                    className="absolute top-6 right-6 sm:relative sm:top-0 sm:right-0 w-10 h-10 flex items-center justify-center rounded-2xl bg-[#fff2f2] text-[#ff6b6b] hover:bg-[#ff6b6b] hover:text-white transition-all shadow-sm shrink-0"
                 >
                     <Trash2 size={16} strokeWidth={2.5} />
                 </button>
@@ -252,7 +250,7 @@ const CartPage = () => {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="bg-[#111827] text-white rounded-[3.5rem] p-10 lg:p-12 sticky top-28 shadow-2xl shadow-slate-200"
+                                className="bg-[#111827] text-white rounded-[2.5rem] sm:rounded-[3.5rem] p-6 sm:p-10 lg:p-12 sticky top-28 shadow-2xl shadow-slate-200"
                             >
                                 <div className="flex items-center gap-4 mb-10">
                                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] border border-white/5 flex items-center justify-center">
@@ -303,7 +301,7 @@ const CartPage = () => {
                                     whileHover={{ scale: 1.02, y: -2 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => setShowCheckout(true)}
-                                    className="w-full mt-10 py-5 bg-[#00e676] text-[#111827] rounded-full text-[16px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(0,230,118,0.2)] hover:bg-white transition-all group"
+                                    className="w-full mt-10 py-4 sm:py-5 bg-[#00e676] text-[#111827] rounded-full text-sm sm:text-[16px] font-black uppercase tracking-wider sm:tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 shadow-[0_20px_40px_rgba(0,230,118,0.2)] hover:bg-white transition-all group"
                                 >
                                     Confirm Order <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                                 </motion.button>

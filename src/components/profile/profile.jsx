@@ -1,24 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useOrders } from '../../context/OrderContext';
 import ConfirmDialog from '../common/ConfirmDialog';
+import { ref, get, update } from 'firebase/database';
+import { realtimeDb } from '../../firebase';
 
 const ProfileSettings = () => {
   const { user } = useAuth();
   const { orders } = useOrders();
 
-  // Get latest address from orders if available
-  const latestAddress = orders.length > 0
-    ? `${orders[0].address.street}, ${orders[0].address.locality}, ${orders[0].address.city}, ${orders[0].address.state} - ${orders[0].address.pincode}`
-    : '';
+  const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchAddress = async () => {
+      try {
+        const userRef = ref(realtimeDb, `users/${user.id}`);
+        const snapshot = await get(userRef);
+        const data = snapshot.val();
+        if (data && data.address) {
+          setAddress(data.address);
+        } else if (orders.length > 0 && orders[0].address) {
+          const latest = `${orders[0].address.street}, ${orders[0].address.locality}, ${orders[0].address.city}, ${orders[0].address.state} - ${orders[0].address.pincode}`;
+          setAddress(latest);
+        }
+      } catch (error) {
+        console.error("Error fetching address:", error);
+      }
+    };
+    fetchAddress();
+  }, [user, orders]);
 
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSaveClick = () => setShowConfirm(true);
-  const handleConfirmSave = () => {
-    // Actual save logic can be added here
-    setShowConfirm(false);
+  const handleConfirmSave = async () => {
+    if (!user) return;
+    try {
+      const userRef = ref(realtimeDb, `users/${user.id}`);
+      await update(userRef, { address: address });
+      setShowConfirm(false);
+    } catch (error) {
+      console.error("Error updating address:", error);
+    }
   };
 
   return (
@@ -53,7 +78,8 @@ const ProfileSettings = () => {
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Delivery Address</label>
             <textarea
               rows="3"
-              defaultValue={latestAddress}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               placeholder="No address saved yet. Place an order to save your address."
               className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none"
             ></textarea>

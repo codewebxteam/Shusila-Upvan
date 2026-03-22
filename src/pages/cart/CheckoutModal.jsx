@@ -34,6 +34,14 @@ const CheckoutModal = ({ onClose }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
 
+    React.useEffect(() => {
+        // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
     const banks = [
         { id: 'sbi', name: 'State Bank of India', icon: 'https://cdn.iconscout.com/icon/free/png-256/free-sbi-3629051-3030232.png' },
         { id: 'hdfc', name: 'HDFC Bank', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/HDFC_Bank_Logo.svg/2560px-HDFC_Bank_Logo.svg.png' },
@@ -81,6 +89,22 @@ const CheckoutModal = ({ onClose }) => {
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
+        if (error) setError(null);
+    };
+
+    const handleNextStep = () => {
+        if (step === 1) {
+            if (!formData.fullName || !formData.fullName.trim() || !formData.mobile || !formData.mobile.trim()) {
+                setError("Personal details are mandatory to fill.");
+                return;
+            }
+            if (formData.mobile.trim().length !== 10) {
+                setError("Please enter a valid 10-digit mobile number.");
+                return;
+            }
+        }
+        setError(null);
+        setStep(step + 1);
     };
 
     const handlePlaceOrder = async () => {
@@ -199,7 +223,7 @@ const CheckoutModal = ({ onClose }) => {
                             <ShoppingBag size={24} className="text-[#a4a87a]" />
                         </div>
                         <div>
-                            <h2 className="text-[32px] font-serif text-[#3a3f30] tracking-tight leading-none mb-1">Complete Your Order</h2>
+                            <h2 className="text-[24px] sm:text-[32px] font-bold text-[#3a3f30] tracking-tight leading-none mb-1">Complete Your Order</h2>
                             <p className="text-[12px] font-medium text-slate-400 capitalize">Complete Cart Checkout</p>
                         </div>
                     </div>
@@ -216,7 +240,7 @@ const CheckoutModal = ({ onClose }) => {
 
                         {/* Order Summary Sidebar Block */}
                         <div className="mb-10">
-                            <h4 className="text-[24px] font-serif text-[#3a3f30] mb-6 flex items-center gap-3">
+                            <h4 className="text-xl sm:text-[24px] font-bold text-[#3a3f30] mb-6 flex items-center gap-3">
                                 <Box size={20} className="text-[#a4a87a]" /> Order Summary
                             </h4>
 
@@ -281,7 +305,7 @@ const CheckoutModal = ({ onClose }) => {
                         {step === 1 && (
                             <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl">
                                 <div className="mb-10">
-                                    <h3 className="text-[32px] font-serif text-[#3a3f30] tracking-tight mb-2 leading-none">Personal Information.</h3>
+                                    <h3 className="text-[24px] sm:text-[32px] font-bold text-[#3a3f30] tracking-tight mb-2 leading-none">Personal Information.</h3>
                                     <p className="text-[12px] text-[#878787] uppercase font-bold tracking-widest">Provide your reachability details</p>
                                 </div>
 
@@ -321,7 +345,7 @@ const CheckoutModal = ({ onClose }) => {
                         {step === 2 && (
                             <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="max-w-3xl w-full">
                                 <div className="mb-8">
-                                    <h3 className="text-[32px] font-serif text-[#3a3f30] tracking-tight mb-2 leading-none">Delivery Address</h3>
+                                    <h3 className="text-[24px] sm:text-[32px] font-bold text-[#3a3f30] tracking-tight mb-2 leading-none">Delivery Address</h3>
                                     <p className="text-[12px] text-[#878787] uppercase font-bold tracking-widest">Select where you want your fresh produce delivered</p>
                                 </div>
 
@@ -341,19 +365,23 @@ const CheckoutModal = ({ onClose }) => {
                                                     {formData.selectedAddressId === addr.id && <div className="w-2.5 h-2.5 bg-[#2874f0] rounded-full" />}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <div className="flex items-center gap-3 mb-2">
+                                                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                                                         <span className="text-sm font-black text-slate-900">{addr.name}</span>
                                                         <span className="px-2 py-0.5 rounded bg-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-500">{addr.type}</span>
                                                         <span className="text-sm font-bold text-slate-900">{addr.mobile}</span>
                                                     </div>
-                                                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                                    <p className="text-xs text-slate-600 leading-relaxed font-medium break-words">
                                                         {addr.street}, {addr.locality}, {addr.city}, {addr.state} - <span className="font-black text-slate-900">{addr.pincode}</span>
                                                     </p>
                                                     {formData.selectedAddressId === addr.id && (
                                                         <motion.button
                                                             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                                                             className="mt-5 px-10 py-3 bg-[#fb641b] text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all"
-                                                            onClick={(e) => { e.stopPropagation(); setStep(3); }}
+                                                            onClick={(e) => { 
+                                                                e.stopPropagation(); 
+                                                                setFormData(prev => ({ ...prev, selectedAddressId: addr.id, ...addr })); 
+                                                                setStep(3); 
+                                                            }}
                                                         >
                                                             Deliver Here
                                                         </motion.button>
@@ -509,16 +537,16 @@ const CheckoutModal = ({ onClose }) => {
                                                 </div>
                                             </div>
 
-                                            <div className="md:col-span-2 pt-6 flex gap-4">
+                                            <div className="md:col-span-2 pt-6 grid grid-cols-2 gap-4">
                                                 <button
                                                     onClick={() => { setIsAddingNew(false); setStep(3); }}
-                                                    className="flex-1 py-4 bg-[#2874f0] text-white text-[16px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"
+                                                    className="w-full py-4 bg-[#2874f0] text-white text-[13px] sm:text-[16px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center text-center"
                                                 >
-                                                    Save and Deliver Here
+                                                    Save & Deliver
                                                 </button>
                                                 <button
                                                     onClick={() => setIsAddingNew(false)}
-                                                    className="px-10 py-4 text-slate-400 text-[11px] font-black uppercase tracking-widest rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all"
+                                                    className="w-full py-4 text-slate-400 text-[13px] font-black uppercase tracking-widest rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all flex items-center justify-center text-center"
                                                 >
                                                     Cancel
                                                 </button>
@@ -534,10 +562,10 @@ const CheckoutModal = ({ onClose }) => {
                             <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col h-full">
                                 <div className="mb-8">
                                     <div className="flex items-center justify-between mb-2">
-                                        <h4 className="text-[32px] font-serif text-[#3a3f30] flex items-center gap-3">
+                                        <h4 className="text-[24px] sm:text-[32px] font-bold text-[#3a3f30] flex items-center gap-3">
                                             <CreditCard size={28} className="text-[#a4a87a]" /> Payment Method
                                         </h4>
-                                        <div className="px-4 py-1.5 bg-[#f8f9f4] text-[#a4a87a] rounded-full flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest border border-[#e8ead4]">
+                                        <div className="hidden sm:flex px-4 py-1.5 bg-[#f8f9f4] text-[#a4a87a] rounded-full flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest border border-[#e8ead4]">
                                             <div className="relative w-4 h-4">
                                                 <div className="absolute inset-0 bg-red-500/20 rounded-full animate-ping" />
                                                 <div className="absolute inset-x-1.5 inset-y-1.5 bg-red-500 rounded-full" />
@@ -782,25 +810,45 @@ const CheckoutModal = ({ onClose }) => {
                 </div>
 
                 {/* Modal Footer Controls */}
-                <div className="p-8 pb-10 flex items-center justify-between border-t border-slate-50 bg-white">
+                <div className="p-4 sm:p-8 pb-6 sm:pb-10 flex items-center justify-between border-t border-slate-50 bg-white">
                     <div className="flex items-center gap-4">
-                        {step > 1 && (
+                        <button
+                            onClick={() => {
+                                if (step === 1) {
+                                    onClose();
+                                } else {
+                                    setStep(step - 1);
+                                }
+                            }}
+                            className="flex items-center gap-1 sm:gap-2 px-4 sm:px-8 py-2.5 sm:py-4 bg-slate-50 text-slate-900 rounded-xl sm:rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all border border-slate-100"
+                        >
+                            <ChevronLeft size={14} /> Back
+                        </button>
+                        {step < 3 ? (
                             <button
-                                onClick={() => setStep(step - 1)}
-                                className="flex items-center gap-2 px-8 py-4 bg-slate-50 text-slate-900 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all border border-slate-100"
+                                onClick={handleNextStep}
+                                className="px-5 py-2.5 bg-[#111827] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all sm:hidden flex items-center gap-1 shadow-sm"
                             >
-                                <ChevronLeft size={16} /> Back
+                                Continue <ChevronRight size={12} />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handlePlaceOrder}
+                                disabled={isProcessing}
+                                className="px-5 py-2.5 bg-[#111827] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all sm:hidden flex items-center gap-1 shadow-sm"
+                            >
+                                {isProcessing ? 'Processing...' : 'Place Order'}
                             </button>
                         )}
                         <button
                             onClick={onClose}
-                            className="px-6 py-4 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 transition-colors"
+                            className="hidden sm:block px-6 py-4 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 transition-colors"
                         >
                             Cancel
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="hidden sm:flex items-center gap-6">
                         <div className="hidden sm:flex flex-col items-end leading-none">
                             <p className="text-[8px] font-black uppercase tracking-widest text-slate-300 mb-1 flex items-center gap-2">
                                 <ShieldCheck size={10} /> Secure encrypted payment. We don't share your details.
@@ -811,8 +859,8 @@ const CheckoutModal = ({ onClose }) => {
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => setStep(step + 1)}
-                                className="flex items-center gap-3 px-12 py-4 bg-[#111827] text-white rounded-full text-[16px] font-bold uppercase tracking-wider shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all"
+                                onClick={handleNextStep}
+                                className="flex items-center gap-2 px-5 sm:px-12 py-2.5 sm:py-4 bg-[#111827] text-white rounded-full text-xs sm:text-[16px] font-bold uppercase tracking-wider shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all"
                             >
                                 CONTINUE <ChevronRight size={18} />
                             </motion.button>
@@ -822,7 +870,7 @@ const CheckoutModal = ({ onClose }) => {
                                 whileTap={!isProcessing ? { scale: 0.98 } : {}}
                                 onClick={handlePlaceOrder}
                                 disabled={isProcessing}
-                                className={`flex items-center gap-3 px-16 py-4 rounded-full text-[16px] font-bold uppercase tracking-wider transition-all shadow-sm ${isProcessing
+                                className={`flex items-center gap-2 px-5 sm:px-16 py-2.5 sm:py-4 rounded-full text-xs sm:text-[16px] font-bold uppercase tracking-wider transition-all shadow-sm ${isProcessing
                                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                                     : 'bg-[#00e676] text-[#111827] shadow-emerald-200/50 hover:bg-white active:scale-95'
                                     }`}

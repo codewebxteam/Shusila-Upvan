@@ -4,7 +4,7 @@ import { Home, Sprout, Milk, User, CircleUser, ShoppingCart, Menu, X, Search } f
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import throttle from 'lodash/throttle';
 import AccountSidebar from './common/sidebar';
-import AuthModal from './common/AuthModal';
+import AuthModal from '../pages/auth/AuthModal';
 import ownerImg from '../assets/owner/swapnil.webp';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -19,7 +19,6 @@ const Header = () => {
 
   const [hidden, setHidden] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -185,27 +184,42 @@ const Header = () => {
             {/* Auth/Profile Section */}
             <div className="flex items-center gap-2 sm:gap-3">
               {!user ? (
-                <div className="hidden min-[426px]:flex items-center gap-2 sm:gap-3">
-                  {/* Login Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => openAuthModal('login')}
-                    className="px-3 sm:px-4 py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-600 hover:text-emerald-600 transition-colors"
-                  >
-                    Login
-                  </motion.button>
+                <>
+                  {/* Desktop Auth */}
+                  <div className="hidden min-[426px]:flex items-center gap-2 sm:gap-3">
+                    {/* Login Button */}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => openAuthModal('login')}
+                      className="px-3 sm:px-4 py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-600 hover:text-emerald-600 transition-colors"
+                    >
+                      Login
+                    </motion.button>
 
-                  {/* Signup Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => openAuthModal('signup')}
-                    className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-amber-500 text-white rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20"
-                  >
-                    Sign Up
-                  </motion.button>
-                </div>
+                    {/* Signup Button */}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => openAuthModal('signup')}
+                      className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-amber-500 text-white rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20"
+                    >
+                      Sign Up
+                    </motion.button>
+                  </div>
+
+                  {/* Mobile Auth (Signup only) */}
+                  <div className="flex min-[426px]:hidden items-center">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => openAuthModal('signup')}
+                      className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20"
+                    >
+                      Sign Up
+                    </motion.button>
+                  </div>
+                </>
               ) : (
                 /* Circular Profile Avatar - Visible only after login */
                 <motion.button
@@ -224,71 +238,12 @@ const Header = () => {
               )}
             </div>
 
-            {/* Mobile Menu Button - Visible on 425px and below */}
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition-colors min-[426px]:hidden"
-            >
-              {isMenuOpen ? <X size={20} className="text-slate-600" /> : <Menu size={20} className="text-slate-600" />}
-            </motion.button>
+
 
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="mt-4 mx-auto container pointer-events-auto min-[426px]:hidden"
-            >
-              <div className="bg-white/95 backdrop-blur-2xl border border-slate-200/60 p-4 rounded-3xl shadow-2xl flex flex-col gap-2">
-                {navItems.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => {
-                      navigate(item.path);
-                      setIsMenuOpen(false);
-                    }}
-                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${location.pathname === item.path
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                      }`}
-                  >
-                    {item.icon}
-                    <span className="font-black uppercase tracking-widest text-[11px]">{item.name}</span>
-                  </button>
-                ))}
 
-                {!user && (
-                  <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100">
-                    <button
-                      onClick={() => {
-                        openAuthModal('login');
-                        setIsMenuOpen(false);
-                      }}
-                      className="p-4 rounded-2xl bg-slate-50 text-slate-600 font-black uppercase tracking-widest text-[11px] hover:bg-slate-100"
-                    >
-                      Login
-                    </button>
-                    <button
-                      onClick={() => {
-                        openAuthModal('signup');
-                        setIsMenuOpen(false);
-                      }}
-                      className="p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-amber-500 text-white font-black uppercase tracking-widest text-[11px]"
-                    >
-                      Sign Up
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.header>
 
       {/* Modals */}
@@ -337,8 +292,6 @@ const Header = () => {
           })}
         </div>
       </motion.nav>
-
-      <div className="h-28 md:h-0" />
     </>
   );
 };

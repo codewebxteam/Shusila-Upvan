@@ -5,13 +5,13 @@ import ownerImg from '../assets/owner/swapnil.webp';
 
 const About = () => {
   return (
-    <main className="min-h-screen bg-white pt-32 pb-20 overflow-hidden relative">
+    <main className="min-h-screen bg-white pt-20 lg:pt-32 pb-20 overflow-hidden relative">
       {/* Background Decorative Glows - Mushroom Style */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-50/40 blur-[120px] -z-10 rounded-full" />
       <div className="absolute bottom-1/4 -left-20 w-[400px] h-[400px] bg-slate-50 blur-[100px] -z-10 rounded-full" />
 
       {/* 1. BRAND HEADLINE - Compact & Punchy */}
-      <section className="container mx-auto px-6 pt-12 mb-24 relative">
+      <section className="container mx-auto px-6 pt-12 mb-8 lg:mb-24 relative">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -31,7 +31,7 @@ const About = () => {
 
       {/* 2. LEADERSHIP: THE OWNER (High Visibility) */}
       <section className="container mx-auto px-6 mb-32">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+        <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-24">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}

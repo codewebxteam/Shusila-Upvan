@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
-import { Package, ChevronRight, Box, Truck, CheckCircle2, Clock, Home, X, MoreVertical } from 'lucide-react';
+import { Package, ChevronRight, Box, Truck, CheckCircle2, Clock, Home, X, MoreVertical, ArrowLeft } from 'lucide-react';
 import { useOrders } from '../../context/OrderContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const OrderHistory = () => {
   const { orders } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  React.useEffect(() => {
+    if (selectedOrder) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedOrder]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -17,12 +28,24 @@ const OrderHistory = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+  const formatDate = (dateString, includeTime = false) => {
+    const date = new Date(dateString);
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const day = date.getDate();
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const year = date.getFullYear().toString().substr(-2);
+    
+    let suffix = 'th';
+    if (day === 1 || day === 21 || day === 31) suffix = 'st';
+    else if (day === 2 || day === 22) suffix = 'nd';
+    else if (day === 3 || day === 23) suffix = 'rd';
+
+    let formatted = `${dayName}, ${day}${suffix} ${month} '${year}`;
+    if (includeTime) {
+      const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+      formatted = `${dayName}, ${day}${suffix} ${month} '${year} - ${time}`;
+    }
+    return formatted;
   };
 
   if (orders.length === 0) {
@@ -55,8 +78,11 @@ const OrderHistory = () => {
                     <Box size={24} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Order ID: {order.id}</p>
-                    <p className="text-xs font-bold text-slate-900">Placed on {formatDate(order.date)}</p>
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">
+                      {order.address?.fullName || order.fullName || order.customer || 'Customer'}
+                    </p>
+                    <p className="text-sm font-bold text-slate-900 mb-0.5 leading-none">Order ID: {order.id}</p>
+                    <p className="text-[10px] font-bold text-slate-400">Placed on {formatDate(order.date)}</p>
                   </div>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(order.status)}`}>
@@ -72,7 +98,7 @@ const OrderHistory = () => {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between pt-8 border-t border-slate-50">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-8 border-t border-slate-50 gap-4">
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Amount</p>
                   <p className="text-xl font-bold font-serif text-[#313628]">₹{(order.grandTotal || order.amount || 0).toLocaleString('en-IN')}</p>
@@ -100,76 +126,76 @@ const OrderHistory = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-0 bg-slate-900/60 backdrop-blur-md"
             onClick={() => setSelectedOrder(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              className="bg-white rounded-[3rem] w-full max-w-xl overflow-hidden shadow-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-white w-full h-full flex flex-col overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm">
-                    <Truck size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-serif text-[#3a3f30] leading-none mb-1">Tracking Order</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order ID: {selectedOrder.id}</p>
-                  </div>
-                </div>
+              {/* Header: Simple Back Arrow to mimic single-page dedicated page */}
+              <div className="p-5 border-b border-slate-100 flex items-center gap-4 bg-white sticky top-0 z-10">
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="p-2 text-slate-400 hover:text-slate-900 transition-colors"
+                  className="p-1.5 hover:bg-slate-100 rounded-full text-slate-700 transition-colors"
                 >
-                  <X size={20} />
+                  <ArrowLeft size={22} strokeWidth={1.8} />
                 </button>
               </div>
 
-              <div className="p-10">
-                <div className="relative space-y-12">
-                  <div className="absolute left-6 top-2 bottom-2 w-0.5 bg-slate-100" />
+              {/* Center Timeline Area */}
+              <div className="p-6 md:p-8 flex-1 overflow-y-auto scrollbar-hide bg-white">
+                <div className="relative space-y-6">
                   {selectedOrder.timeline.map((step, idx) => {
                     const isCompleted = step.completed || idx === 0;
+                    const hasNext = idx < selectedOrder.timeline.length - 1;
+                    const isNextCompleted = selectedOrder.timeline[idx + 1]?.completed;
+
                     return (
-                      <div key={idx} className="relative flex items-start gap-8">
-                        <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-4 border-white shadow-md ${isCompleted ? 'bg-emerald-600 text-white shadow-emerald-200' : 'bg-white text-slate-300'
-                          }`}>
-                          {idx === 0 && <CheckCircle2 size={24} />}
-                          {idx === 1 && <Clock size={24} />}
-                          {idx === 2 && <Truck size={24} />}
-                          {idx === 3 && <Home size={24} />}
+                      <div key={idx} className="relative flex items-start gap-5 pb-7">
+                        {/* Left Column: Dot & Connecting Line */}
+                        <div className="flex flex-col items-center w-3 shrink-0 relative mt-1 h-full">
+                          {hasNext && (
+                            <div className={`w-[2px] h-[calc(100%+16px)] absolute top-3 left-[5px] ${isNextCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
+                          )}
+                          <div className={`relative z-10 w-2.5 h-2.5 rounded-full shrink-0 border-2 border-white ${isCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
                         </div>
-                        <div className="flex-1 pt-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className={`text-sm font-black uppercase tracking-wider ${isCompleted ? 'text-slate-900' : 'text-slate-300'}`}>
+
+                        {/* Content */}
+                        <div className="flex-1 -mt-0.5">
+                          {/* Header: Status and Date */}
+                          <div className="flex flex-wrap items-baseline gap-2 mb-1">
+                            <h4 className={`text-[15px] font-semibold ${isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
                               {step.status}
                             </h4>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">
-                              {formatDate(step.date)}
-                            </span>
+                            {step.date && (
+                              <span className="text-[12px] text-slate-400 font-medium">
+                                {formatDate(step.date)}
+                              </span>
+                            )}
                           </div>
-                          <p className={`text-xs leading-relaxed ${isCompleted ? 'text-slate-500' : 'text-slate-300'}`}>
-                            {step.desc}
-                          </p>
+
+                          {/* Description with Time below */}
+                          <div className="space-y-1">
+                            <p className={`text-[13.5px] leading-relaxed ${isCompleted ? 'text-slate-700' : 'text-slate-300'}`}>
+                              {step.desc}
+                            </p>
+                            {step.date && isCompleted && (
+                              <p className="text-[11.5px] text-slate-400 font-medium mt-1">
+                                {formatDate(step.date, true)}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    );
+                    )
                   })}
                 </div>
               </div>
-
-              <div className="p-8 bg-slate-50 text-center">
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedOrder(null)}
-                  className="w-full py-4 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors"
-                >
-                  Close Details
-                </motion.button>
-              </div>
+              <div className="h-4 bg-white shrink-0" />
             </motion.div>
           </motion.div>
         )}
@@ -177,5 +203,4 @@ const OrderHistory = () => {
     </div>
   );
 };
-
 export default OrderHistory;

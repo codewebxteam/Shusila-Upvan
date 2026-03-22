@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import heroImg from '../../../assets/foundation/storefront.webp';
 import SearchBar from '../../../components/common/SearchBar';
 
 const Hero = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  useEffect(() => {
+    const checkStatus = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      
+      const currentMinutes = hours * 60 + minutes;
+      const openTime = 6 * 60;   // 6:00 AM
+      const closeTime = 23 * 60; // 11:00 PM
+      
+      setIsOpen(currentMinutes >= openTime && currentMinutes <= closeTime);
+    };
+
+    checkStatus();
+    const interval = setInterval(checkStatus, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="relative w-full bg-white pt-28 pb-12 lg:pt-36 lg:pb-24 overflow-hidden">
 
@@ -77,8 +97,8 @@ const Hero = () => {
               {/* Stylish Bottom Info */}
               <div className="mt-6 flex items-end justify-between px-2">
                 <div className="text-right">
-                  <p className="text-[9px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">
-                    Live Status: Open
+                  <p className={`text-[9px] font-black ${isOpen ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-3 py-1 rounded-full uppercase tracking-widest`}>
+                    Live Status: {isOpen ? 'Open' : 'Closed'}
                   </p>
                 </div>
               </div>
