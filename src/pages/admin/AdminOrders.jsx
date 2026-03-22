@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import * as XLSX from 'xlsx';
+import { isToday, isThisWeek, isThisMonth, isThisYear, parseISO, isValid } from 'date-fns';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, remove } from 'firebase/database';
 import { Download, Eye, Trash2, X } from 'lucide-react';
@@ -11,6 +13,8 @@ const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [dateFilter, setDateFilter] = useState('All Time');
 
     // Sync with Firebase
     useEffect(() => {
@@ -95,6 +99,39 @@ const AdminOrders = () => {
         cancelled: orders.filter(o => o.status === 'Cancelled').length
     };
 
+    const filteredOrders = useMemo(() => {
+        return orders.filter(order => {
+            const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
+            
+            let matchesDate = true;
+            if (dateFilter !== 'All Time' && order.date) {
+                const orderDate = parseISO(order.date);
+                if (isValid(orderDate)) {
+                    if (dateFilter === 'Today') matchesDate = isToday(orderDate);
+                    else if (dateFilter === 'This Week') matchesDate = isThisWeek(orderDate);
+                    else if (dateFilter === 'This Month') matchesDate = isThisMonth(orderDate);
+                    else if (dateFilter === 'This Year') matchesDate = isThisYear(orderDate);
+                }
+            }
+            return matchesStatus && matchesDate;
+        });
+    }, [orders, statusFilter, dateFilter]);
+
+    const handleExportExcel = () => {
+        const dataToExport = filteredOrders.map(order => ({
+            'Order ID': order.orderId,
+            'Customer': order.customer || 'Anonymous',
+            'Amount': order.grandTotal || order.amount || 0,
+            'Payment': order.payment || 'N/A',
+            'Status': order.status,
+            'Date': order.date || 'N/A'
+        }));
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+        XLSX.writeFile(wb, `Orders_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -156,18 +193,40 @@ const AdminOrders = () => {
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap">
                     <h2 className="text-lg font-bold text-slate-800">All Orders</h2>
 
-                    <div className="flex items-center gap-3">
-                        <select className="bg-white border border-slate-200 text-sm font-bold text-slate-700 py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:10px_10px] bg-[right_12px_center]">
-                            <option>All Status</option>
-                            <option>Delivered</option>
-                            <option>Pending</option>
-                            <option>Processing</option>
-                            <option>Shipped</option>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        {/* Status Filter */}
+                        <select 
+                            value={statusFilter} 
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-white border border-slate-200 text-sm font-bold text-slate-700 py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:10px_10px] bg-[right_12px_center]"
+                        >
+                            <option value="All">All Status</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Cancelled">Cancelled</option>
                         </select>
 
-                        <button className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 py-2 px-4 rounded-xl font-bold text-sm transition-colors shadow-sm">
-                            <Download size={16} strokeWidth={2.5} className="text-slate-400" />
-                            Export
+                        {/* Date Filter */}
+                        <select 
+                            value={dateFilter} 
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="bg-white border border-slate-200 text-sm font-bold text-slate-700 py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm appearance-none cursor-pointer pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:10px_10px] bg-[right_12px_center]"
+                        >
+                            <option value="All Time">All Time</option>
+                            <option value="Today">Today</option>
+                            <option value="This Week">This Week</option>
+                            <option value="This Month">This Month</option>
+                            <option value="This Year">This Year</option>
+                        </select>
+
+                        <button 
+                            onClick={handleExportExcel}
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-xl font-bold text-sm transition-colors shadow-sm shadow-indigo-100"
+                        >
+                            <Download size={16} strokeWidth={2.5} />
+                            Export Excel
                         </button>
                     </div>
                 </div>
@@ -186,7 +245,7 @@ const AdminOrders = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {orders.map((item, index) => (
+                            {filteredOrders.map((item, index) => (
                                 <tr key={item.firebaseId || item.id || index} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="py-4 px-6">
                                         <span className="font-bold text-slate-600 text-sm">{item.orderId}</span>

@@ -54,7 +54,7 @@ const AdminPayments = () => {
     const stats = useMemo(() => {
         const now = new Date();
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0,0,0,0);
+        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0, 0, 0, 0);
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
         let totalRevenue = 0;
@@ -97,7 +97,7 @@ const AdminPayments = () => {
         // Search
         if (searchQuery) {
             const lowerQ = searchQuery.toLowerCase();
-            result = result.filter(o => 
+            result = result.filter(o =>
                 (o.firebaseId && o.firebaseId.toLowerCase().includes(lowerQ)) ||
                 (o.shippingAddress?.fullName && o.shippingAddress.fullName.toLowerCase().includes(lowerQ))
             );
@@ -123,8 +123,8 @@ const AdminPayments = () => {
             const getStart = () => {
                 const d = new Date();
                 switch (filterDate) {
-                    case 'Today': return new Date(d.setHours(0,0,0,0)).getTime();
-                    case 'This Week': return new Date(d.setDate(d.getDate() - d.getDay())).setHours(0,0,0,0);
+                    case 'Today': return new Date(d.setHours(0, 0, 0, 0)).getTime();
+                    case 'This Week': return new Date(d.setDate(d.getDate() - d.getDay())).setHours(0, 0, 0, 0);
                     case 'This Month': return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
                     case 'This Year': return new Date(d.getFullYear(), 0, 1).getTime();
                     default: return 0;
@@ -160,18 +160,18 @@ const AdminPayments = () => {
 
     const handleExportPDF = () => {
         const doc = new jsPDF();
-        
+
         // Report Header
         doc.setFontSize(22);
         doc.setTextColor(30, 41, 59); // Slate-800
         doc.text('Payments Report', 14, 22);
-        
+
         // Report Metadata
         doc.setFontSize(10);
         doc.setTextColor(100, 116, 139); // Slate-500
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 32);
         doc.text(`Total Records: ${filteredAndSortedOrders.length}`, 14, 38);
-        
+
         // Calculate filtered revenue
         const filteredRev = filteredAndSortedOrders.reduce((sum, o) => {
             if (o.status !== 'Failed' && o.status !== 'Refunded') {
@@ -209,7 +209,7 @@ const AdminPayments = () => {
         });
 
         // Save
-        const filename = `payments_report_${new Date().toISOString().slice(0,10)}.pdf`;
+        const filename = `payments_report_${new Date().toISOString().slice(0, 10)}.pdf`;
         doc.save(filename);
     };
 
@@ -284,12 +284,12 @@ const AdminPayments = () => {
                 <div className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 flex flex-col justify-center relative border-b-4 border-b-blue-500">
                     <div className="flex justify-between items-start mb-1">
                         <h3 className="text-[2rem] font-black text-slate-800 tracking-tight">
-                            ₹{revenuePeriod === 'Today' ? stats.todayRevenue.toLocaleString() : 
-                              revenuePeriod === 'Week' ? stats.weekRevenue.toLocaleString() : 
-                              stats.monthRevenue.toLocaleString()}
+                            ₹{revenuePeriod === 'Today' ? stats.todayRevenue.toLocaleString() :
+                                revenuePeriod === 'Week' ? stats.weekRevenue.toLocaleString() :
+                                    stats.monthRevenue.toLocaleString()}
                         </h3>
                         <div className="relative">
-                            <button 
+                            <button
                                 onClick={(e) => { e.stopPropagation(); setShowRevenueDropdown(!showRevenueDropdown); }}
                                 className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors"
                             >
@@ -298,8 +298,8 @@ const AdminPayments = () => {
                             {showRevenueDropdown && (
                                 <div className="absolute right-0 mt-1 w-28 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-30">
                                     {['Today', 'Week', 'Month'].map(opt => (
-                                        <button 
-                                            key={opt} 
+                                        <button
+                                            key={opt}
                                             onClick={() => { setRevenuePeriod(opt); setShowRevenueDropdown(false); }}
                                             className={`w-full text-left px-3 py-1.5 text-xs font-bold ${revenuePeriod === opt ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
                                         >
@@ -332,7 +332,7 @@ const AdminPayments = () => {
 
                 {/* Dropdowns Container */}
                 <div className="flex flex-wrap items-center gap-2 filter-dropdown-container">
-                    
+
                     {/* Method Filter */}
                     <div className="relative">
                         <button onClick={() => toggleDropdown('method')} className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 py-2 px-3 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-colors">
@@ -408,19 +408,6 @@ const AdminPayments = () => {
 
             {/* Payment History Table */}
             <div className="bg-white rounded-[1.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap">
-                    <h2 className="text-lg font-bold text-slate-800">Payment History</h2>
-
-                    <button 
-                        onClick={handleExportPDF}
-                        disabled={filteredAndSortedOrders.length === 0}
-                        className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-colors shadow-sm ${filteredAndSortedOrders.length === 0 ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'}`}
-                    >
-                        <Download size={16} strokeWidth={2.5} className={filteredAndSortedOrders.length === 0 ? "text-slate-300" : "text-slate-400"} />
-                        Export PDF Report
-                    </button>
-                </div>
-
                 <div className="w-full overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
