@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Users, ArrowRight, PlayCircle, Plus, Sparkles, Globe } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowRight, PlayCircle, Plus, Sparkles, Globe, X, CheckCircle2 } from 'lucide-react';
+import { realtimeDb as db } from '../../../firebase';
+import { ref, push, serverTimestamp } from 'firebase/database';
 
 // Import Legacy Images
 import legacy1 from '../../../assets/foundation/legacy/foundation_day_2025.png';
@@ -9,6 +11,37 @@ import legacy4 from '../../../assets/foundation/legacy/farm_landscape.png';
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', contact: '' });
+  const [messageSent, setMessageSent] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleJoin = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const messagesRef = ref(db, 'messages');
+      await push(messagesRef, {
+        name: formData.name,
+        email: formData.email,
+        message: `Join Foundation Request. Contact: ${formData.contact}`,
+        type: 'foundation_join',
+        timestamp: serverTimestamp() || new Date().toISOString(),
+        status: 'Unread'
+      });
+      setMessageSent(true);
+      setFormData({ name: '', email: '', contact: '' });
+      setTimeout(() => { setIsModalOpen(false); setMessageSent(false); }, 2000);
+    } catch (err) {
+      console.error("Join submission error:", err);
+      alert("Something went wrong. Please try again.");
+    }
+    setIsSubmitting(false);
+  };
 
   const legacyStories = [
     { title: "Foundation Day 2025", category: "Big Celebration", img: legacy1 },
@@ -141,13 +174,83 @@ const Events = () => {
                 Kya aap hamare farm tours ya sustainability drives ka hissa banna chahte hain? Humse judiye.
               </p>
             </div>
-            <button className="px-12 py-6 bg-white text-slate-900 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all shadow-2xl flex items-center gap-4">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="px-12 py-6 bg-white text-slate-900 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all shadow-2xl flex items-center gap-4"
+            >
               Join Foundation <ArrowRight size={18} />
             </button>
           </div>
           {/* Abstract Grid BG */}
           <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]"></div>
         </div>
+
+        {/* Join Modal Overlay */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4">
+            <div className="bg-white rounded-[2rem] w-full max-w-md p-8 relative shadow-2xl border border-slate-100">
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all"
+              >
+                <X size={18} />
+              </button>
+
+              {messageSent ? (
+                <div className="text-center py-6 flex flex-col items-center">
+                  <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-4 animate-bounce">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <h4 className="text-xl font-black text-slate-900 mb-2">Request Sent!</h4>
+                  <p className="text-xs text-slate-500 font-semibold">We will connect with you shorty. Shukriya!</p>
+                </div>
+              ) : (
+                <>
+                  <h4 className="text-2xl font-black text-slate-900 tracking-tight mb-2 flex items-center gap-2">
+                    <Sparkles size={20} className="text-amber-500" /> Join Foundation
+                  </h4>
+                  <p className="text-xs text-slate-400 font-semibold mb-6">Typing your details below to become a part of our ecosystem</p>
+
+                  <form onSubmit={handleJoin} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                      <input 
+                        name="name" value={formData.name} onChange={handleChange} required
+                        placeholder="Aditya Kumar"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all shadow-sm"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Email Address</label>
+                      <input 
+                        type="email" name="email" value={formData.email} onChange={handleChange} required
+                        placeholder="email@example.com"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all shadow-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Contact Number</label>
+                      <input 
+                        name="contact" value={formData.contact} onChange={handleChange} required
+                        placeholder="+91 9999999999"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all shadow-sm"
+                      />
+                    </div>
+
+                    <button 
+                      type="submit" disabled={isSubmitting}
+                      className="w-full py-4 mt-6 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-green-600 transition-all shadow-lg flex items-center justify-center gap-2"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Join Now'} <ArrowRight size={14} />
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </section>

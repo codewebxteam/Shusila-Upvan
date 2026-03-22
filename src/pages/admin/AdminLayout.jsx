@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { realtimeDb as db } from '../../firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, update } from 'firebase/database';
 import {
     LayoutDashboard,
     Package,
@@ -17,7 +17,8 @@ import {
     Bell,
     Mail,
     Menu,
-    X
+    X,
+    MailOpen
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,6 +31,7 @@ const AdminLayout = () => {
     const [showNotifications, setShowNotifications] = useState(false);
     const [showMessages, setShowMessages] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedMessage, setSelectedMessage] = useState(null);
 
     useEffect(() => {
         const ordersRef = ref(db, 'orders');
@@ -60,6 +62,35 @@ const AdminLayout = () => {
             unsubMessages();
         };
     }, []);
+
+    const handleOpenMessage = async (msg) => {
+        setSelectedMessage(msg);
+        if (!msg.status || msg.status === 'Unread') {
+            try {
+                await update(ref(db, `messages/${msg.id}`), { status: 'Read' });
+            } catch (err) {
+                console.error("Error marking read:", err);
+            }
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            const updates = {};
+            messages.forEach(msg => {
+                if (!msg.status || msg.status === 'Unread') {
+                    updates[`messages/${msg.id}/status`] = 'Read';
+                }
+            });
+            if (Object.keys(updates).length > 0) {
+                await update(ref(db), updates);
+            }
+        } catch (err) {
+            console.error("Error mark all read:", err);
+        }
+    };
+
+    const unreadMessages = messages.filter(m => !m.status || m.status === 'Unread');
 
     useEffect(() => {
         setIsSidebarOpen(false);
@@ -238,10 +269,10 @@ const AdminLayout = () => {
                                     }}
                                     className={`relative p-2 rounded-full transition-colors ${showMessages ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
                                 >
-                                    <Mail size={20} />
-                                    {messages.length > 0 && (
+                                    {unreadMessages.length > 0 ? <Mail size={20} /> : <MailOpen size={20} />}
+                                    {unreadMessages.length > 0 && (
                                         <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold border-2 border-white rounded-full flex items-center justify-center">
-                                            {messages.length > 99 ? '99+' : messages.length}
+                                            {unreadMessages.length > 99 ? '99+' : unreadMessages.length}
                                         </span>
                                     )}
                                 </button>
@@ -250,20 +281,25 @@ const AdminLayout = () => {
                                     <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                                         <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
                                             <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Messages</h3>
-                                            <span className="text-[10px] font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">{messages.length} Total</span>
+                                            <div className="flex items-center gap-2">
+                                                {unreadMessages.length > 0 && (
+                                                    <button onClick={handleMarkAllAsRead} className="text-[10px] font-bold text-indigo-600 hover:underline mr-1">Mark All Read</button>
+                                                )}
+                                                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">{unreadMessages.length} New</span>
+                                            </div>
                                         </div>
                                         <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
                                             {messages.length > 0 ? (
                                                 <div className="divide-y divide-slate-50">
                                                     {messages.map((msg) => (
-                                                        <div key={msg.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group">
+                                                        <div key={msg.id} onClick={() => handleOpenMessage(msg)} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group">
                                                             <div className="flex items-start gap-3">
-                                                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                                                                    <Mail size={14} />
+                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${(msg.status === 'Read' || msg.type === 'foundation_join') ? 'bg-slate-100 text-slate-400' : 'bg-indigo-100 text-indigo-600'}`}>
+                                                                    {(msg.status === 'Read' || msg.type === 'foundation_join') ? <MailOpen size={14} /> : <Mail size={14} />}
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-[12px] font-bold text-slate-800 leading-tight">{msg.name || 'Anonymous'}</p>
-                                                                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{msg.message || 'No content...'}</p>
+                                                                    <p className={`text-[12px] font-bold leading-tight ${(msg.status === 'Read' || msg.type === 'foundation_join') ? 'text-slate-500' : 'text-slate-900'}`}>{msg.name || 'Anonymous'}</p>
+                                                                    <p className={`text-[10px] mt-0.5 line-clamp-1 ${(msg.status === 'Read' || msg.type === 'foundation_join') ? 'text-slate-400 font-medium' : 'text-slate-700 font-bold'}`}>{msg.message || 'No content...'}</p>
                                                                     <p className="text-[9px] font-bold text-slate-400 mt-1">{msg.timestamp || 'Recent'}</p>
                                                                 </div>
                                                             </div>
@@ -305,6 +341,38 @@ const AdminLayout = () => {
                 <main className="flex-1 overflow-auto p-4 md:p-8 custom-scrollbar relative">
                     <Outlet />
                 </main>
+
+                {/* Message Detail Expand Modal */}
+                {selectedMessage && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+                         <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl border border-white/50 animate-in zoom-in-95 duration-200">
+                              <button onClick={() => setSelectedMessage(null)} className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all">
+                                   <X size={20} />
+                              </button>
+                              
+                              <div className="flex items-center gap-4 mb-6 pt-2">
+                                   <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
+                                        <Mail size={24} />
+                                   </div>
+                                   <div>
+                                        <h4 className="text-xl font-black text-slate-900">{selectedMessage.name || 'Anonymous'}</h4>
+                                        <p className="text-xs text-slate-400 font-semibold">{selectedMessage.email || 'No email left'}</p>
+                                   </div>
+                              </div>
+
+                              <div className="bg-slate-50 p-6 rounded-2xl mb-6 border border-slate-100/80">
+                                   <p className="text-[15px] font-bold text-slate-800 leading-relaxed break-words">
+                                        {selectedMessage.message}
+                                   </p>
+                              </div>
+
+                              <div className="flex items-center justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                                   <span className="flex items-center gap-1.5">Type: <span className="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg text-[9px] font-black">{selectedMessage.type || 'General'}</span></span>
+                                   <span className="font-semibold text-slate-400">{selectedMessage.timestamp || 'Just now'}</span>
+                              </div>
+                         </div>
+                    </div>
+                )}
             </div>
 
             {/* Global scrollbar style for admin area */}
