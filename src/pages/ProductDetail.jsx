@@ -160,7 +160,7 @@ const ProductDetail = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50 pt-24 pb-12 lg:pt-32">
+        <div className="min-h-screen bg-slate-50/50 pt-24 pb-12 lg:pt-32 overflow-x-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Navigation / Breadcrumbs */}
@@ -261,7 +261,7 @@ const ProductDetail = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 }}
-                                className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6 italic"
+                                className="text-4xl sm:text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6 italic break-words"
                             >
                                 {product.name.toLowerCase()}.
                             </motion.h1>
