@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, ChevronRight, Verified, Droplets } from 'lucide-react';
 import milkVideo from '../../assets/dairy/milkanimation.mp4';
 
-const Hero = () => {
+const Hero = ({ onShopNow, onPriceList }) => {
   return (
     <section className="relative w-full bg-white pt-20 sm:pt-8 pb-4 sm:pb-6 lg:pt-24 lg:pb-12 overflow-hidden">
       {/* Decorative Blur - Branding Color */}
@@ -45,15 +45,22 @@ const Hero = () => {
             </p>
 
             {/* Premium CTA Row */}
-            <div className="flex items-center gap-3">
-              <button className="flex-1 lg:flex-none px-8 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-blue-200 flex items-center justify-center gap-2 group transition-all active:scale-95">
-                Get Milk <ShoppingBag size={14} className="group-hover:rotate-12 transition-transform" />
+            <div className="flex flex-row items-center gap-2 justify-center lg:justify-start">
+              <button 
+                onClick={onShopNow} 
+                className="flex-1 sm:flex-none px-8 py-3.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-100 active:scale-95 transition-all text-center"
+              >
+                Shop Now
               </button>
-              <button className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
-                <ChevronRight size={20} />
+              <button 
+                onClick={onPriceList} 
+                className="flex-1 sm:flex-none px-8 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-center"
+              >
+                Price List
               </button>
             </div>
           </div>
+
 
           {/* 2. Enhanced Video Visuals */}
           <motion.div

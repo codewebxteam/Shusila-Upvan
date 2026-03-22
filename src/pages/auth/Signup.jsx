@@ -54,9 +54,9 @@ const Signup = () => {
 
     const handleGoogleLogin = async () => {
         setIsLoading(true);
-        const success = await loginWithGoogle();
-        if (success) navigate('/');
-        else setError('Google Login failed');
+        const result = await loginWithGoogle();
+        if (result.success) navigate('/');
+        else setError(result.message || 'Google Login failed');
         setIsLoading(false);
     };
 

@@ -112,10 +112,20 @@ export const AuthProvider = ({ children }) => {
     const loginWithGoogle = useCallback(async () => {
         try {
             await signInWithPopup(auth, googleProvider);
-            return true;
+            return { success: true };
         } catch (error) {
-            console.error("Google Login Error:", error.message);
-            return false;
+            console.error("Google Login Error:", error.code, error.message);
+            let errorMessage = 'Google Login failed';
+            
+            if (error.code === 'auth/popup-blocked') {
+                errorMessage = 'Popup blocked by browser. Please allow popups for this site.';
+            } else if (error.code === 'auth/unauthorized-domain') {
+                errorMessage = 'This domain is not authorized for Google Login. Please add your domain to Firebase console.';
+            } else if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = 'Login canceled by user.';
+            }
+            
+            return { success: false, message: `${errorMessage} (${error.code})`, code: error.code };
         }
     }, []);
 

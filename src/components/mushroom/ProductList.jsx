@@ -9,7 +9,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 
-const ProductList = () => {
+const ProductList = ({ priceRange, sortOrder }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { user, openAuthModal } = useAuth();
@@ -51,20 +51,32 @@ const ProductList = () => {
   // Get unique tags
   const allTags = ['All', ...new Set(mushroomProducts.map(p => p.tag).filter(Boolean))];
 
-  // Filter products by tag and search
+  // Filter products by tag, search, and price
   const filteredProducts = mushroomProducts.filter(p => {
     const matchesTag = selectedTag === 'All' || p.tag === selectedTag;
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.tag?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTag && matchesSearch;
+
+    // Price Filter
+    const price = p.price || 0;
+    const matchesPrice = price >= (priceRange?.[0] || 0) && price <= (priceRange?.[1] || Infinity);
+
+    return matchesTag && matchesSearch && matchesPrice;
+  });
+
+  // Apply Sorting
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortOrder === 'asc') return a.price - b.price;
+    if (sortOrder === 'desc') return b.price - a.price;
+    return 0;
   });
 
   // Pagination logic
   const itemsPerPage = 8;
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const paginatedProducts = filteredProducts.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+  const paginatedProducts = sortedProducts.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const updateQty = (id, delta) => {
     setQuantities((prev) => ({
@@ -175,11 +187,10 @@ const ProductList = () => {
                 setSelectedTag(tag);
                 setPage(1);
               }}
-              className={`px-6 py-2 rounded-full text-sm font-black uppercase transition-all ${
-                selectedTag === tag
+              className={`px-6 py-2 rounded-full text-sm font-black uppercase transition-all ${selectedTag === tag
                   ? 'bg-emerald-600 text-white shadow-lg'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+                }`}
             >
               {tag}
             </motion.button>
@@ -187,9 +198,10 @@ const ProductList = () => {
         </div>
 
         {/* Results Count */}
-        {searchQuery && (
+        {(searchQuery || (priceRange && (priceRange[0] > 0 || priceRange[1] < Infinity))) && (
           <p className="text-sm text-slate-500 mb-6">
-            Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} matching "{searchQuery}"
+            Found {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''}
+            {priceRange && (priceRange[0] > 0 || priceRange[1] < Infinity) ? ' matching filters' : ` matching "${searchQuery}"`}
           </p>
         )}
 

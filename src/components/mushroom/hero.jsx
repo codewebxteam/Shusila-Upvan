@@ -4,7 +4,7 @@ import { Sprout, ShieldCheck, Star } from 'lucide-react';
 // Asset Import
 import heroFungi from '../../assets/mushroom/herofungi.webp';
 
-const Hero = () => {
+const Hero = ({ onShopNow, onPriceList }) => {
   return (
     <section className="relative w-full bg-white pt-20 sm:pt-12 pb-2 sm:pb-4 lg:pt-24 lg:pb-10 overflow-hidden">
       {/* Organic Soft Glow */}
@@ -36,14 +36,21 @@ const Hero = () => {
             </p>
 
             <div className="flex flex-row items-center gap-2 justify-center lg:justify-start">
-              <button className="flex-1 sm:flex-none px-8 py-3.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 active:scale-95 transition-all">
+              <button 
+                onClick={onShopNow}
+                className="flex-1 sm:flex-none px-8 py-3.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 active:scale-95 transition-all"
+              >
                 Shop Now
               </button>
-              <button className="flex-1 sm:flex-none px-8 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest">
+              <button 
+                onClick={onPriceList}
+                className="flex-1 sm:flex-none px-8 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest"
+              >
                 Price List
               </button>
             </div>
           </div>
+
 
           {/* 2. Visual Section with herofungi.webp */}
           <motion.div
