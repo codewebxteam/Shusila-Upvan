@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Save, Store, MapPin, CreditCard, Bell,
-    Mail, Smartphone, ShieldCheck, Clock, CheckCircle2
+    Mail, Smartphone, ShieldCheck, Clock, CheckCircle2,
+    Landmark, Wallet
 } from 'lucide-react';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, set } from 'firebase/database';
@@ -32,6 +33,8 @@ const AdminSettings = () => {
         enableCOD: true,
         enableUPI: true,
         enableCards: true,
+        enableBank: true,
+        enableWallet: true,
 
         // Notification Settings
         orderEmails: true,
@@ -326,6 +329,38 @@ const AdminSettings = () => {
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer">
                                                         <input type="checkbox" name="enableCards" checked={formData.enableCards} onChange={handleChange} className="sr-only peer" />
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                    </label>
+                                                </div>
+
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-emerald-200 transition-colors">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
+                                                            <Landmark size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-800">Net Banking</h4>
+                                                            <p className="text-xs text-slate-500 mt-0.5">Accept payments via major Indian banks.</p>
+                                                        </div>
+                                                    </div>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="enableBank" checked={formData.enableBank} onChange={handleChange} className="sr-only peer" />
+                                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                    </label>
+                                                </div>
+
+                                                <div className="p-5 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-emerald-200 transition-colors">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
+                                                            <Wallet size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-800">Digital Wallets</h4>
+                                                            <p className="text-xs text-slate-500 mt-0.5">Pay via Paytm, PhonePe, Mobikwik etc.</p>
+                                                        </div>
+                                                    </div>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="enableWallet" checked={formData.enableWallet} onChange={handleChange} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                                     </label>
                                                 </div>

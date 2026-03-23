@@ -136,7 +136,7 @@ const ProductDetail = () => {
             return;
         }
         addToCart(product, quantity);
-        navigate('/profile', { state: { activeTab: 'cart' } });
+        navigate('/cart');
     };
 
     const handleWishlistToggle = () => {

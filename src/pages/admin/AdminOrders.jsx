@@ -81,6 +81,13 @@ const AdminOrders = () => {
         }
     };
 
+    const handleDeleteOrder = (firebaseId) => {
+        if (window.confirm('Are you sure you want to PERMANENTLY DELETE this order? This action cannot be undone.')) {
+            const orderRef = ref(db, `orders/${firebaseId}`);
+            remove(orderRef).catch(error => console.error("Error deleting order:", error));
+        }
+    };
+
     // Auto-update order status based on creation date
     useEffect(() => {
         if (orders.length > 0) {
@@ -108,13 +115,6 @@ const AdminOrders = () => {
             });
         }
     }, [orders]);
-
-    const handleClearOrders = () => {
-        if (window.confirm('Are you sure you want to clear all order history? This cannot be undone.')) {
-            const ordersRef = ref(db, 'orders');
-            remove(ordersRef);
-        }
-    };
 
     // Calculate stats
     const stats = {
@@ -176,14 +176,6 @@ const AdminOrders = () => {
                         <span className="text-indigo-600">Orders</span>
                     </div>
                 </div>
-
-                <button
-                    onClick={handleClearOrders}
-                    className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-2xl font-bold text-sm hover:bg-red-100 transition-all border border-red-100 shadow-sm shadow-red-50"
-                >
-                    <Trash2 size={18} />
-                    Clear History
-                </button>
             </div>
 
             {/* Summary Cards */}
@@ -311,11 +303,11 @@ const AdminOrders = () => {
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
                                             <button
-                                                onClick={() => setSelectedOrder(item)}
-                                                className="text-slate-400 hover:text-indigo-600 transition-colors"
-                                                title="View Details"
+                                                onClick={() => handleDeleteOrder(item.firebaseId)}
+                                                className="text-slate-400 hover:text-red-600 transition-colors"
+                                                title="Delete Order"
                                             >
-                                                <Eye size={18} strokeWidth={2.5} />
+                                                <Trash2 size={18} strokeWidth={2.5} />
                                             </button>
                                             {item.status !== 'Cancelled' && item.status !== 'Delivered' && (
                                                 <button

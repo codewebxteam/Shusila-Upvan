@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, User, MapPin, CreditCard, ChevronRight, ChevronLeft, Plus,
@@ -9,12 +9,15 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useOrders } from '../../context/OrderContext';
+import { realtimeDb as db } from '../../firebase';
+import { ref, onValue } from 'firebase/database';
 
 const CheckoutModal = ({ onClose }) => {
-    const { cartItems, subtotal, tax, grandTotal, cartCount, clearCart } = useCart();
+    const { cartItems, subtotal, tax, gstPercentage, grandTotal, cartCount, clearCart, shippingFee } = useCart();
     const { placeOrder } = useOrders();
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
+    const [settings, setSettings] = useState({});
     const [formData, setFormData] = useState({
         fullName: '', mobile: '', email: '',
         pincode: '', locality: '', street: '', city: '', state: '', landmark: '', alternatePhone: '',
@@ -34,7 +37,26 @@ const CheckoutModal = ({ onClose }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
+        const settingsRef = ref(db, 'settings');
+        const unsubscribe = onValue(settingsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                setSettings(data);
+                
+                // Auto-select first available payment method if COD is disabled
+                if (data.enableCOD === false) {
+                    if (data.enableUPI !== false) setFormData(prev => ({ ...prev, paymentMethod: 'upi' }));
+                    else if (data.enableCards !== false) setFormData(prev => ({ ...prev, paymentMethod: 'debit' }));
+                    else if (data.enableBank !== false) setFormData(prev => ({ ...prev, paymentMethod: 'bank' }));
+                    else if (data.enableWallet !== false) setFormData(prev => ({ ...prev, paymentMethod: 'wallet' }));
+                }
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
         // Prevent background scrolling
         document.body.style.overflow = 'hidden';
         return () => {
@@ -153,12 +175,12 @@ const CheckoutModal = ({ onClose }) => {
     ];
 
     const paymentMethods = [
-        { id: 'cod', label: 'Cash on Delivery', icon: <Banknote size={20} />, activeBorder: 'border-emerald-500', activeBg: 'bg-emerald-50', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', dot: true },
-        { id: 'upi', label: 'UPI / QR Code', icon: <Smartphone size={20} />, activeBorder: 'border-indigo-500', activeBg: 'bg-indigo-50', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600' },
-        { id: 'debit', label: 'Debit Card', icon: <CreditCard size={20} />, activeBorder: 'border-blue-500', activeBg: 'bg-blue-50', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
-        { id: 'credit', label: 'Credit Card', icon: <CreditCard size={20} />, activeBorder: 'border-rose-500', activeBg: 'bg-rose-50', iconBg: 'bg-rose-100', iconColor: 'text-rose-600' },
-        { id: 'bank', label: 'Net Banking', icon: <Landmark size={20} />, activeBorder: 'border-red-500', activeBg: 'bg-red-50', iconBg: 'bg-red-100', iconColor: 'text-red-600' },
-        { id: 'wallet', label: 'Digital Wallet', icon: <Wallet size={20} />, activeBorder: 'border-amber-500', activeBg: 'bg-amber-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-600' },
+        { id: 'cod', label: 'Cash on Delivery', icon: <Banknote size={20} />, activeBorder: 'border-emerald-500', activeBg: 'bg-emerald-50', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', dot: true, isDisabled: settings.enableCOD === false },
+        { id: 'upi', label: 'UPI / QR Code', icon: <Smartphone size={20} />, activeBorder: 'border-indigo-500', activeBg: 'bg-indigo-50', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', isDisabled: settings.enableUPI === false },
+        { id: 'debit', label: 'Debit Card', icon: <CreditCard size={20} />, activeBorder: 'border-blue-500', activeBg: 'bg-blue-50', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', isDisabled: settings.enableCards === false },
+        { id: 'credit', label: 'Credit Card', icon: <CreditCard size={20} />, activeBorder: 'border-rose-500', activeBg: 'bg-rose-50', iconBg: 'bg-rose-100', iconColor: 'text-rose-600', isDisabled: settings.enableCards === false },
+        { id: 'bank', label: 'Net Banking', icon: <Landmark size={20} />, activeBorder: 'border-red-500', activeBg: 'bg-red-50', iconBg: 'bg-red-100', iconColor: 'text-red-600', isDisabled: settings.enableBank === false },
+        { id: 'wallet', label: 'Digital Wallet', icon: <Wallet size={20} />, activeBorder: 'border-amber-500', activeBg: 'bg-amber-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', isDisabled: settings.enableWallet === false },
     ];
 
     const getPaymentDetails = () => {
@@ -281,10 +303,12 @@ const CheckoutModal = ({ onClose }) => {
                                     </div>
                                     <div className="flex justify-between text-xs font-medium text-slate-500">
                                         <span>Delivery</span>
-                                        <span className="text-emerald-600 font-bold uppercase tracking-widest text-[10px]">FREE</span>
+                                        <span className={shippingFee > 0 ? "text-[#3a3f30]" : "text-emerald-600 font-bold uppercase tracking-widest text-[10px]"}>
+                                            {shippingFee > 0 ? `₹${shippingFee.toLocaleString('en-IN')}` : 'FREE'}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between text-xs font-medium text-slate-500">
-                                        <span>Tax (18%)</span>
+                                        <span>Tax ({gstPercentage}%)</span>
                                         <span className="text-[#3a3f30]">₹{tax.toLocaleString('en-IN')}</span>
                                     </div>
                                     <div className="flex justify-between pt-4 mt-2 border-t border-[#f1efe1]">
@@ -594,27 +618,46 @@ const CheckoutModal = ({ onClose }) => {
                                     {paymentMethods.map((method) => (
                                         <button
                                             key={method.id}
-                                            onClick={() => setFormData(prev => ({ ...prev, paymentMethod: method.id }))}
-                                            className={`relative flex items-center gap-4 p-4 rounded-[1.8rem] border-2 transition-all group ${formData.paymentMethod === method.id
-                                                ? `${method.activeBorder} ${method.activeBg} shadow-sm z-10`
-                                                : `border-slate-100 bg-white hover:border-slate-200 hover:shadow-xs`
-                                                }`}
+                                            disabled={method.isDisabled}
+                                            onClick={() => !method.isDisabled && setFormData(prev => ({ ...prev, paymentMethod: method.id }))}
+                                            className={`relative flex items-center gap-4 p-4 rounded-[1.8rem] border-2 transition-all group ${
+                                                method.isDisabled 
+                                                    ? 'opacity-60 cursor-not-allowed border-slate-100 bg-slate-50' 
+                                                    : formData.paymentMethod === method.id
+                                                        ? `${method.activeBorder} ${method.activeBg} shadow-sm z-10`
+                                                        : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-xs'
+                                            }`}
                                         >
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${formData.paymentMethod === method.id
-                                                ? `${method.iconBg} ${method.iconColor}`
-                                                : 'bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white'
-                                                }`}>
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                                                method.isDisabled
+                                                    ? 'bg-slate-100 text-slate-300'
+                                                    : formData.paymentMethod === method.id
+                                                        ? `${method.iconBg} ${method.iconColor}`
+                                                        : 'bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white'
+                                            }`}>
                                                 {method.icon}
                                             </div>
                                             <div className="flex-1 text-left">
-                                                <p className={`text-[12px] font-bold ${formData.paymentMethod === method.id ? 'text-slate-900' : 'text-slate-600'}`}>
+                                                <p className={`text-[12px] font-bold ${
+                                                    method.isDisabled
+                                                        ? 'text-slate-400'
+                                                        : formData.paymentMethod === method.id 
+                                                            ? 'text-slate-900' 
+                                                            : 'text-slate-600'
+                                                }`}>
                                                     {method.label}
                                                 </p>
                                             </div>
 
-                                            {formData.paymentMethod === method.id && (
+                                            {formData.paymentMethod === method.id && !method.isDisabled && (
                                                 <div className="w-5 h-5 rounded-full border-2 border-emerald-500 flex items-center justify-center">
                                                     <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                                                </div>
+                                            )}
+
+                                            {method.isDisabled && (
+                                                <div className="absolute right-2 top-2">
+                                                    <span className="text-[8px] font-black uppercase tracking-wider text-white bg-rose-500 px-2 py-0.5 rounded-full shadow-sm">Temporarily Unavailable</span>
                                                 </div>
                                             )}
                                         </button>
@@ -807,7 +850,7 @@ const CheckoutModal = ({ onClose }) => {
                                             <span className="text-[#3a3f30]">₹{subtotal.toLocaleString('en-IN')}</span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm font-medium text-slate-500">
-                                            <span>Tax (18%)</span>
+                                            <span>Tax ({gstPercentage}%)</span>
                                             <span className="text-[#3a3f30]">₹{tax.toLocaleString('en-IN')}</span>
                                         </div>
                                         <div className="h-px bg-slate-100 my-4"></div>

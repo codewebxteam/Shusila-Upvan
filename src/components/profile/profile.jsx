@@ -4,13 +4,19 @@ import { useAuth } from '../../context/AuthContext';
 import { useOrders } from '../../context/OrderContext';
 import ConfirmDialog from '../common/ConfirmDialog';
 import { ref, get, update } from 'firebase/database';
-import { realtimeDb } from '../../firebase';
+import { realtimeDb, auth } from '../../firebase';
+import { updatePassword } from 'firebase/auth';
 
 const ProfileSettings = () => {
   const { user } = useAuth();
   const { orders } = useOrders();
 
   const [address, setAddress] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -34,15 +40,55 @@ const ProfileSettings = () => {
 
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleSaveClick = () => setShowConfirm(true);
+  const handleSaveClick = () => {
+    setError('');
+    setSuccess('');
+    
+    if (newPassword) {
+      if (newPassword !== confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+      if (newPassword.length < 6) {
+        setError("Password must be at least 6 characters.");
+        return;
+      }
+    }
+    setShowConfirm(true);
+  };
+
   const handleConfirmSave = async () => {
     if (!user) return;
+    setIsUpdating(true);
+    setError('');
+    setSuccess('');
     try {
       const userRef = ref(realtimeDb, `users/${user.id}`);
       await update(userRef, { address: address });
+
+      if (newPassword) {
+        if (!auth.currentUser) {
+          setError("User session not found.");
+          setIsUpdating(false);
+          return;
+        }
+        await updatePassword(auth.currentUser, newPassword);
+        setSuccess("Profile and password updated successfully.");
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setSuccess("Address updated successfully.");
+      }
       setShowConfirm(false);
-    } catch (error) {
-      console.error("Error updating address:", error);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      if (err.code === 'auth/requires-recent-login') {
+        setError("Please log out and log back in to change password for security reasons.");
+      } else {
+        setError(err.message || "Failed to update profile.");
+      }
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -90,13 +136,31 @@ const ProfileSettings = () => {
               <Lock size={16} /> Security Update
             </h4>
             <div className="space-y-4">
-              <input type="password" placeholder="New Password" className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold outline-none" />
+              {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold">{error}</div>}
+              {success && <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl text-xs font-bold">{success}</div>}
+              <input
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold outline-none"
+              />
+              {newPassword && (
+                <input
+                  type="password"
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold outline-none"
+                />
+              )}
               <button
                 type="button"
                 onClick={handleSaveClick}
-                className="px-8 py-4 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all"
+                disabled={isUpdating}
+                className={`px-8 py-4 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                Save Changes
+                {isUpdating ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>

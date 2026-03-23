@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Verified, Sparkles, Check, Heart, Search, X } from 'lucide-react';
+import BulkOrderModal from '../common/BulkOrderModal';
 import { products, categories } from '../../data/products';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
@@ -15,6 +16,7 @@ const ProductList = ({ priceRange, sortOrder }) => {
   const { user, openAuthModal } = useAuth();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantities, setQuantities] = useState({});
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [addedItems, setAddedItems] = useState({});
   const [firebaseProducts, setFirebaseProducts] = useState([]);
 
@@ -323,13 +325,21 @@ const ProductList = ({ priceRange, sortOrder }) => {
           </div>
         )}
 
-        {/* Bulk Order */}
         <div className="mt-16 flex justify-center">
-          <button className="flex items-center gap-3 px-8 py-3 bg-blue-50 rounded-full text-blue-700 hover:bg-blue-600 hover:text-white transition-all font-semibold">
+          <button 
+            onClick={() => setIsBulkModalOpen(true)}
+            className="flex items-center gap-3 px-8 py-3 bg-blue-50 rounded-full text-blue-700 hover:bg-blue-600 hover:text-white transition-all font-semibold"
+          >
             <Sparkles size={16} />
             Bulk Orders for Events?
           </button>
         </div>
+
+        <BulkOrderModal 
+          isOpen={isBulkModalOpen} 
+          onClose={() => setIsBulkModalOpen(false)} 
+          category="Dairy" 
+        />
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { DollarSign, ShoppingBag, Users, AlertCircle } from 'lucide-react';
+import { DollarSign, ShoppingBag, Users, AlertCircle, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, push, set } from 'firebase/database';
@@ -24,6 +24,9 @@ const AdminDashboard = () => {
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [messages, setMessages] = useState([]);
+    const [isBulkListOpen, setIsBulkListOpen] = useState(false);
+    const [viewAllBulk, setViewAllBulk] = useState(false);
 
     // Excel Export State
     const [exportSource, setExportSource] = useState('AdminOrder');
@@ -56,6 +59,7 @@ const AdminDashboard = () => {
         const ordersRef = ref(db, 'orders');
         const productsRef = ref(db, 'products');
         const usersRef = ref(db, 'users');
+        const messagesRef = ref(db, 'messages');
 
         const unsubOrders = onValue(ordersRef, (snap) => {
             const data = snap.val();
@@ -79,10 +83,20 @@ const AdminDashboard = () => {
         const unsubProducts = onValue(productsRef, (snap) => setProducts(Object.values(snap.val() || {})));
         const unsubUsers = onValue(usersRef, (snap) => setUsers(Object.values(snap.val() || {})));
 
+        const unsubMessages = onValue(messagesRef, (snap) => {
+            const data = snap.val();
+            if (data) {
+                setMessages(Object.keys(data).map(key => ({ ...data[key], id: key })));
+            } else {
+                setMessages([]);
+            }
+        });
+
         return () => {
             unsubOrders();
             unsubProducts();
             unsubUsers();
+            unsubMessages();
         };
     }, []);
 
@@ -231,6 +245,21 @@ const AdminDashboard = () => {
             { name: 'Dairy', value: dairyCount }
         ].filter(c => c.value > 0);
     }, [products]);
+
+    const bulkOrders = useMemo(() => {
+        return messages.filter(m => m.type === 'bulk_order');
+    }, [messages]);
+
+    const bulkOrdersChartData = useMemo(() => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        return months.map(month => ({
+            name: month,
+            orders: bulkOrders.filter(m => {
+                const date = m.timestamp ? new Date(m.timestamp) : new Date();
+                return date.toLocaleString('default', { month: 'short' }) === month;
+            }).length
+        }));
+    }, [bulkOrders]);
 
     const COLORS = ['#10b981', '#f59e0b'];
     return (
@@ -501,7 +530,86 @@ const AdminDashboard = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
+
+                {/* Bulk Orders Overview Chart */}
+                <div 
+                    onClick={() => setIsBulkListOpen(true)}
+                    className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 cursor-pointer group hover:border-indigo-200 transition-all"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-800">Bulk Orders</h2>
+                            <p className="text-xs text-slate-400 font-semibold">Click to view details</p>
+                        </div>
+                        <span className="text-[10px] font-black text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full uppercase tracking-widest">Enquiries</span>
+                    </div>
+                    <div className="h-[300px] w-full min-h-[300px] relative">
+                        <ResponsiveContainer width="99%" height={300}>
+                            <BarChart data={bulkOrdersChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={32}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
+                                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                <Bar dataKey="orders" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
             </div>
+
+            {/* Bulk Orders List Modal */}
+            {isBulkListOpen && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-2xl p-8 relative shadow-2xl border border-white/50 animate-fade-in max-h-[85vh] flex flex-col">
+                        <button 
+                            onClick={() => { setIsBulkListOpen(false); setViewAllBulk(false); }} 
+                            className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h4 className="text-xl font-black text-slate-900">Bulk Order Enquiries</h4>
+                                <p className="text-xs text-slate-400 font-semibold">Total: {bulkOrders.length}</p>
+                            </div>
+                            {bulkOrders.length > 5 && !viewAllBulk && (
+                                <button 
+                                    onClick={() => setViewAllBulk(true)}
+                                    className="text-xs font-black text-indigo-600 hover:underline"
+                                >
+                                    View All
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="overflow-y-auto custom-scrollbar flex-1">
+                            {bulkOrders.length === 0 ? (
+                                <p className="text-center text-slate-400 text-sm font-medium py-10">No enquiries found.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {(viewAllBulk ? bulkOrders : bulkOrders.slice(0, 5)).map((msg) => (
+                                        <div key={msg.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <h5 className="text-sm font-black text-slate-800">{msg.name || 'Anonymous'}</h5>
+                                                    <p className="text-[11px] text-slate-500 font-medium">{msg.email || 'No Email'}</p>
+                                                </div>
+                                                <span className="text-[9px] font-bold text-slate-400">
+                                                    {msg.timestamp ? new Date(msg.timestamp).toLocaleDateString() : 'N/A'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-700 font-semibold leading-relaxed bg-white p-3 rounded-xl border border-slate-100">
+                                                {msg.message}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style dangerouslySetInnerHTML={{ __html: `
                  @keyframes fadeIn {

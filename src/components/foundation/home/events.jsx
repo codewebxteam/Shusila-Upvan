@@ -16,6 +16,13 @@ const Events = () => {
   const [formData, setFormData] = useState({ name: '', email: '', contact: '' });
   const [messageSent, setMessageSent] = useState(false);
 
+  // Register Interest States
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
+  const [registerFormData, setRegisterFormData] = useState({ name: '', email: '', contact: '' });
+  const [registerMessageSent, setRegisterMessageSent] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -41,6 +48,33 @@ const Events = () => {
       alert("Something went wrong. Please try again.");
     }
     setIsSubmitting(false);
+  };
+
+  const handleRegisterChange = (e) => {
+    setRegisterFormData({ ...registerFormData, [e.target.name]: e.target.value });
+  };
+
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setIsRegisterSubmitting(true);
+    try {
+      const messagesRef = ref(db, 'messages');
+      await push(messagesRef, {
+        name: registerFormData.name,
+        email: registerFormData.email,
+        message: `Register Interest for Upcoming Chapter: "${selectedEvent?.title || 'Unknown Event'}". Contact: ${registerFormData.contact}`,
+        type: 'event_registration',
+        timestamp: serverTimestamp() || new Date().toISOString(),
+        status: 'Unread'
+      });
+      setRegisterMessageSent(true);
+      setRegisterFormData({ name: '', email: '', contact: '' });
+      setTimeout(() => { setIsRegisterModalOpen(false); setRegisterMessageSent(false); }, 2000);
+    } catch (err) {
+      console.error("Registration error:", err);
+      alert("Something went wrong. Please try again.");
+    }
+    setIsRegisterSubmitting(false);
   };
 
   const legacyStories = [
@@ -135,7 +169,10 @@ const Events = () => {
                     <p className="text-slate-500 text-xs font-medium mb-8 max-w-xs">
                       Join the core team to understand our vision for 2026 and how we are scaling purity.
                     </p>
-                    <button className="w-full lg:w-fit px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-green-600 transition-colors active:scale-95">
+                    <button 
+                      onClick={() => { setSelectedEvent(event); setIsRegisterModalOpen(true); }}
+                      className="w-full lg:w-fit px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-green-600 transition-colors active:scale-95"
+                    >
                       Register Interest <Plus size={16} />
                     </button>
                   </div>
@@ -244,6 +281,83 @@ const Events = () => {
                       className="w-full py-4 mt-6 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-green-600 transition-all shadow-lg flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? 'Submitting...' : 'Join Now'} <ArrowRight size={14} />
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Register Modal Overlay */}
+        {isRegisterModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4">
+            <div className="bg-white rounded-[3rem] w-full max-w-md p-8 relative shadow-2xl border border-slate-100 overflow-hidden">
+              {/* Top Gradient Bar */}
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-green-500"></div>
+              
+              <button 
+                onClick={() => setIsRegisterModalOpen(false)} 
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all z-10"
+              >
+                <X size={18} />
+              </button>
+
+              {registerMessageSent ? (
+                <div className="text-center py-10 flex flex-col items-center">
+                  <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center text-green-600 mb-6 animate-pulse scale-110 shadow-lg shadow-green-100">
+                    <CheckCircle2 size={32} />
+                  </div>
+                  <h4 className="text-2xl font-black text-slate-900 mb-2">Registration Done!</h4>
+                  <p className="text-xs text-slate-500 font-semibold tracking-wide">Aapka spot reserved hai. Shukriya!</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-6">
+                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1 mb-1">
+                      <Sparkles size={12} className="text-amber-500" /> Confirm Seat
+                    </span>
+                    <h4 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                      {selectedEvent?.title || 'Register Interest'}
+                    </h4>
+                    <p className="text-[11px] text-slate-400 font-bold mt-1 flex items-center gap-1">
+                      <Users size={12} /> {selectedEvent?.spots}
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                      <input 
+                        name="name" value={registerFormData.name} onChange={handleRegisterChange} required
+                        placeholder="Aditya Kumar"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all shadow-sm"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Email Address</label>
+                      <input 
+                        type="email" name="email" value={registerFormData.email} onChange={handleRegisterChange} required
+                        placeholder="email@example.com"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all shadow-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Contact Number</label>
+                      <input 
+                        name="contact" value={registerFormData.contact} onChange={handleRegisterChange} required
+                        placeholder="+91 9999999999"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all shadow-sm"
+                      />
+                    </div>
+
+                    <button 
+                      type="submit" disabled={isRegisterSubmitting}
+                      className="w-full py-4 mt-6 bg-emerald-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg flex items-center justify-center gap-2"
+                    >
+                      {isRegisterSubmitting ? 'Registering...' : 'Register Now'} <ArrowRight size={14} />
                     </button>
                   </form>
                 </>

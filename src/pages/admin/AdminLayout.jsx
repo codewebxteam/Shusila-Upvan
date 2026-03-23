@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update } from 'firebase/database';
@@ -32,6 +32,8 @@ const AdminLayout = () => {
     const [showMessages, setShowMessages] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState(null);
+    const notificationsRef = useRef(null);
+    const messagesRef = useRef(null);
 
     useEffect(() => {
         const ordersRef = ref(db, 'orders');
@@ -99,7 +101,10 @@ const AdminLayout = () => {
     // Close dropdowns on outside click
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (!e.target.closest('.relative')) {
+            if (
+                (!notificationsRef.current || !notificationsRef.current.contains(e.target)) &&
+                (!messagesRef.current || !messagesRef.current.contains(e.target))
+            ) {
                 setShowNotifications(false);
                 setShowMessages(false);
             }
@@ -204,7 +209,7 @@ const AdminLayout = () => {
                         {/* Notifications */}
                         <div className="flex items-center gap-4 relative">
                             {/* Bell Dropdown */}
-                            <div className="relative">
+                            <div className="relative" ref={notificationsRef}>
                                 <button
                                     onClick={() => {
                                         setShowNotifications(!showNotifications);
@@ -261,7 +266,7 @@ const AdminLayout = () => {
                             </div>
 
                             {/* Mail Dropdown */}
-                            <div className="relative">
+                            <div className="relative" ref={messagesRef}>
                                 <button
                                     onClick={() => {
                                         setShowMessages(!showMessages);
@@ -344,8 +349,8 @@ const AdminLayout = () => {
 
                 {/* Message Detail Expand Modal */}
                 {selectedMessage && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
-                         <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl border border-white/50 animate-in zoom-in-95 duration-200">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4" onClick={() => setSelectedMessage(null)}>
+                         <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl border border-white/50 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                               <button onClick={() => setSelectedMessage(null)} className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all">
                                    <X size={20} />
                               </button>

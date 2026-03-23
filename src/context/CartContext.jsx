@@ -8,6 +8,8 @@ import React, {
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
+import { realtimeDb as db } from '../firebase';
+import { ref, onValue } from 'firebase/database';
 const CartContext = createContext();
 const cartReducer = (state, action) => {
   switch (action.type) {
@@ -61,6 +63,23 @@ const cartReducer = (state, action) => {
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [cartItems, dispatch] = useReducer(cartReducer, []);
+  const [gstPercentage, setGstPercentage] = React.useState(18);
+  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = React.useState(500);
+  const [flatDeliveryFee, setFlatDeliveryFee] = React.useState(50);
+
+  useEffect(() => {
+    const settingsRef = ref(db, 'settings');
+    const unsubscribe = onValue(settingsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const gstValue = parseFloat(data.gstPercentage);
+        setGstPercentage(isNaN(gstValue) ? 18 : gstValue);
+        setFreeDeliveryThreshold(parseFloat(data.freeDeliveryThreshold) || 500);
+        setFlatDeliveryFee(parseFloat(data.flatDeliveryFee) || 50);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Track whether the cart has been loaded for the current user.
   // We must NOT save to localStorage until after the initial load,
@@ -143,13 +162,18 @@ export const CartProvider = ({ children }) => {
   );
 
   const tax = useMemo(
-    () => Math.round(subtotal * 0.18 * 100) / 100,
-    [subtotal]
+    () => Math.round(subtotal * (gstPercentage / 100) * 100) / 100,
+    [subtotal, gstPercentage]
+  );
+
+  const shippingFee = useMemo(
+    () => (subtotal >= freeDeliveryThreshold ? 0 : flatDeliveryFee),
+    [subtotal, freeDeliveryThreshold, flatDeliveryFee]
   );
 
   const grandTotal = useMemo(
-    () => subtotal + tax,
-    [subtotal, tax]
+    () => subtotal + tax + shippingFee,
+    [subtotal, tax, shippingFee]
   );
 
   const value = {
@@ -161,6 +185,10 @@ export const CartProvider = ({ children }) => {
     dairyTotal,
     subtotal,
     tax,
+    gstPercentage,
+    shippingFee,
+    freeDeliveryThreshold,
+    flatDeliveryFee,
     grandTotal,
     addToCart,
     removeFromCart,

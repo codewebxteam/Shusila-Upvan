@@ -10,8 +10,8 @@ const CartPage = () => {
     const navigate = useNavigate();
     const {
         cartItems, cartCount, mushroomItems, dairyItems,
-        mushroomTotal, dairyTotal, subtotal, tax, grandTotal,
-        removeFromCart, updateQuantity, clearCart
+        mushroomTotal, dairyTotal, subtotal, tax, gstPercentage, grandTotal,
+        removeFromCart, updateQuantity, clearCart, shippingFee
     } = useCart();
     const [showCheckout, setShowCheckout] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState({
@@ -280,13 +280,15 @@ const CartPage = () => {
                                     )}
 
                                     <div className="flex justify-between items-center opacity-60">
-                                        <span className="text-[14px] font-black uppercase tracking-widest font-mono">Tax / GST (18%)</span>
+                                        <span className="text-[14px] font-black uppercase tracking-widest font-mono">Tax / GST ({gstPercentage}%)</span>
                                         <span className="text-[16px] font-black">₹{tax.toLocaleString('en-IN')}</span>
                                     </div>
 
                                     <div className="flex justify-between items-center mt-6">
                                         <span className="text-[14px] font-black uppercase tracking-widest font-mono text-[#00e676]">Delivery</span>
-                                        <span className="text-[12px] font-black text-white bg-[#00e676] px-3 py-1 rounded-full uppercase">Free</span>
+                                        <span className={`text-[12px] font-black text-white px-3 py-1 rounded-full uppercase ${shippingFee > 0 ? 'bg-slate-700' : 'bg-[#00e676]'}`}>
+                                            {shippingFee > 0 ? `₹${shippingFee.toLocaleString('en-IN')}` : 'Free'}
+                                        </span>
                                     </div>
 
                                     <div className="pt-8 border-t border-white/10">

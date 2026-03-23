@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Leaf, Sparkles, Check, Heart, Search, X } from 'lucide-react';
+import BulkOrderModal from '../common/BulkOrderModal';
 import { products, categories } from '../../data/products';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
@@ -15,6 +16,7 @@ const ProductList = ({ priceRange, sortOrder }) => {
   const { user, openAuthModal } = useAuth();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantities, setQuantities] = useState({});
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [addedItems, setAddedItems] = useState({});
   const [firebaseProducts, setFirebaseProducts] = useState([]);
 
@@ -188,8 +190,8 @@ const ProductList = ({ priceRange, sortOrder }) => {
                 setPage(1);
               }}
               className={`px-6 py-2 rounded-full text-sm font-black uppercase transition-all ${selectedTag === tag
-                  ? 'bg-emerald-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-emerald-600 text-white shadow-lg'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
             >
               {tag}
@@ -335,13 +337,21 @@ const ProductList = ({ priceRange, sortOrder }) => {
           </div>
         )}
 
-        {/* Bulk Orders */}
         <div className="mt-16 flex justify-center">
-          <button className="flex items-center gap-3 px-8 py-3 bg-emerald-50 rounded-full text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all font-semibold">
+          <button 
+            onClick={() => setIsBulkModalOpen(true)}
+            className="flex items-center gap-3 px-8 py-3 bg-emerald-50 rounded-full text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all font-semibold"
+          >
             <Sparkles size={16} />
-            Bulk Orders for Hotels & Restaurants?
+            Bulk Orders for Events?
           </button>
         </div>
+
+        <BulkOrderModal 
+          isOpen={isBulkModalOpen} 
+          onClose={() => setIsBulkModalOpen(false)} 
+          category="Mushroom" 
+        />
 
       </div>
     </section>
