@@ -47,7 +47,7 @@ const About = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-60" />
               <div className="absolute bottom-8 left-8">
-                <p className="text-white text-3xl font-black tracking-tighter italic">Swapnil Singh</p>
+                <p className="text-white text-3xl font-black tracking-tighter italic">Pratyush Singh</p>
                 <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em]">Founder & CEO</p>
               </div>
             </div>
@@ -75,7 +75,7 @@ const About = () => {
               <button className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200">
                 Connect <Instagram size={16} />
               </button>
-              <a 
+              <a
                 href="tel:+919123456789"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-100"
               >
