@@ -4,7 +4,7 @@ import {
     X, User, MapPin, CreditCard, ChevronRight, ChevronLeft, Plus,
     CheckCircle2, ShoppingBag, Calendar, Clock, FileText,
     ShieldCheck, Smartphone, Landmark, Wallet, Banknote,
-    AlertCircle, Info, Sparkles, MousePointer2, Box
+    AlertCircle, Info, Sparkles, MousePointer2, Box, MessageCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
@@ -43,7 +43,7 @@ const CheckoutModal = ({ onClose }) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 setSettings(data);
-                
+
                 // Auto-select first available payment method if COD is disabled
                 if (data.enableCOD === false) {
                     if (data.enableUPI !== false) setFormData(prev => ({ ...prev, paymentMethod: 'upi' }));
@@ -93,7 +93,7 @@ const CheckoutModal = ({ onClose }) => {
     ];
 
     const savedAddresses = [];
-                         
+
     const [isAddingNew, setIsAddingNew] = useState(savedAddresses.length === 0);
     const [orderPlaced, setOrderPlaced] = useState(false);
 
@@ -152,9 +152,35 @@ const CheckoutModal = ({ onClose }) => {
                 subtotal,
                 tax,
                 grandTotal,
-                ...formData
+                ...formData,
+                status: formData.paymentMethod === 'whatsapp' ? 'Pending' : 'Placed'
             };
             const newOrder = await placeOrder(orderData);
+
+            if (formData.paymentMethod === 'whatsapp') {
+                const message = `*New Order via WhatsApp payment*
+--------------------------------
+*Customer Details:*
+Name: ${formData.fullName}
+Mobile: ${formData.mobile}
+
+*Order ID:* ${newOrder?.id || 'N/A'}
+
+*Order Items:*
+${itemsToPass.map(item => `- ${item.name} x ${item.quantity} - ₹${(item.price * item.quantity).toLocaleString('en-IN')}`).join('\n')}
+
+*Price Details:*
+Subtotal: ₹${subtotal.toLocaleString('en-IN')}
+Delivery: ${shippingFee > 0 ? `₹${shippingFee.toLocaleString('en-IN')}` : 'FREE'}
+Tax: ₹${tax.toLocaleString('en-IN')}
+*Total Payable: ₹${grandTotal.toLocaleString('en-IN')}*
+
+Please send the QR code for payment.`;
+
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/919569603163?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
 
             setOrderPlaced(true);
             setIsProcessing(false);
@@ -176,6 +202,7 @@ const CheckoutModal = ({ onClose }) => {
 
     const paymentMethods = [
         { id: 'cod', label: 'Cash on Delivery', icon: <Banknote size={20} />, activeBorder: 'border-emerald-500', activeBg: 'bg-emerald-50', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', dot: true, isDisabled: settings.enableCOD === false },
+        { id: 'whatsapp', label: 'WhatsApp via Payment', icon: <MessageCircle size={20} />, activeBorder: 'border-green-500', activeBg: 'bg-green-50', iconBg: 'bg-green-100', iconColor: 'text-green-600' },
         { id: 'upi', label: 'UPI / QR Code', icon: <Smartphone size={20} />, activeBorder: 'border-indigo-500', activeBg: 'bg-indigo-50', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', isDisabled: settings.enableUPI === false },
         { id: 'debit', label: 'Debit Card', icon: <CreditCard size={20} />, activeBorder: 'border-blue-500', activeBg: 'bg-blue-50', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', isDisabled: settings.enableCards === false },
         { id: 'credit', label: 'Credit Card', icon: <CreditCard size={20} />, activeBorder: 'border-rose-500', activeBg: 'bg-rose-50', iconBg: 'bg-rose-100', iconColor: 'text-rose-600', isDisabled: settings.enableCards === false },
@@ -187,6 +214,7 @@ const CheckoutModal = ({ onClose }) => {
         const method = paymentMethods.find(m => m.id === formData.paymentMethod);
         switch (formData.paymentMethod) {
             case 'cod': return `Pay ₹${grandTotal.toLocaleString('en-IN')} in cash when the product arrives.`;
+            case 'whatsapp': return `You will be redirected to WhatsApp to complete payment of ₹${grandTotal.toLocaleString('en-IN')}.`;
             case 'upi': return formData.upiId ? `Paying via ${formData.upiId}` : "Enter your UPI ID to proceed.";
             case 'debit':
             case 'credit': return formData.cardDetails.number ? `Card ending in ${formData.cardDetails.number.slice(-4)}` : "Enter your card details safely.";
@@ -215,8 +243,14 @@ const CheckoutModal = ({ onClose }) => {
                     >
                         <CheckCircle2 size={48} className="text-emerald-600" />
                     </motion.div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-3 italic">Order Placed!</h2>
-                    <p className="text-sm text-slate-400 leading-relaxed mb-8">Congratulations, Your order has been placed successfully. We'll contact you for delivery details shortly.</p>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-3 italic">
+                        {formData.paymentMethod === 'whatsapp' ? 'Waiting for Confirmation!' : 'Order Placed!'}
+                    </h2>
+                    <p className="text-sm text-slate-400 leading-relaxed mb-8">
+                        {formData.paymentMethod === 'whatsapp' 
+                            ? "Waiting for confirmation of your order from admin." 
+                            : "Congratulations, Your order has been placed successfully. We'll contact you for delivery details shortly."}
+                    </p>
                     <div className="flex flex-col gap-3">
                         <button
                             onClick={() => {
@@ -414,10 +448,10 @@ const CheckoutModal = ({ onClose }) => {
                                                         <motion.button
                                                             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                                                             className="mt-5 px-10 py-3 bg-[#fb641b] text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all"
-                                                            onClick={(e) => { 
-                                                                e.stopPropagation(); 
-                                                                setFormData(prev => ({ ...prev, selectedAddressId: addr.id, ...addr })); 
-                                                                setStep(3); 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setFormData(prev => ({ ...prev, selectedAddressId: addr.id, ...addr }));
+                                                                setStep(3);
                                                             }}
                                                         >
                                                             Deliver Here
@@ -620,31 +654,28 @@ const CheckoutModal = ({ onClose }) => {
                                             key={method.id}
                                             disabled={method.isDisabled}
                                             onClick={() => !method.isDisabled && setFormData(prev => ({ ...prev, paymentMethod: method.id }))}
-                                            className={`relative flex items-center gap-4 p-4 rounded-[1.8rem] border-2 transition-all group ${
-                                                method.isDisabled 
-                                                    ? 'opacity-60 cursor-not-allowed border-slate-100 bg-slate-50' 
+                                            className={`relative flex items-center gap-4 p-4 rounded-[1.8rem] border-2 transition-all group ${method.isDisabled
+                                                    ? 'opacity-60 cursor-not-allowed border-slate-100 bg-slate-50'
                                                     : formData.paymentMethod === method.id
                                                         ? `${method.activeBorder} ${method.activeBg} shadow-sm z-10`
                                                         : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-xs'
-                                            }`}
+                                                }`}
                                         >
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-                                                method.isDisabled
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${method.isDisabled
                                                     ? 'bg-slate-100 text-slate-300'
                                                     : formData.paymentMethod === method.id
                                                         ? `${method.iconBg} ${method.iconColor}`
                                                         : 'bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white'
-                                            }`}>
+                                                }`}>
                                                 {method.icon}
                                             </div>
                                             <div className="flex-1 text-left">
-                                                <p className={`text-[12px] font-bold ${
-                                                    method.isDisabled
+                                                <p className={`text-[12px] font-bold ${method.isDisabled
                                                         ? 'text-slate-400'
-                                                        : formData.paymentMethod === method.id 
-                                                            ? 'text-slate-900' 
+                                                        : formData.paymentMethod === method.id
+                                                            ? 'text-slate-900'
                                                             : 'text-slate-600'
-                                                }`}>
+                                                    }`}>
                                                     {method.label}
                                                 </p>
                                             </div>

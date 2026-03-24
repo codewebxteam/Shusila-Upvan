@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { isToday, isThisWeek, isThisMonth, isThisYear, parseISO, isValid, differenceInDays, format } from 'date-fns';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, remove } from 'firebase/database';
-import { Download, Eye, Trash2, X } from 'lucide-react';
+import { Download, Eye, Trash2, X, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OrderTrackingModal from './OrderTrackingModal';
 
@@ -74,9 +74,21 @@ const AdminOrders = () => {
     const handleCancelOrder = (firebaseId) => {
         if (window.confirm('Are you sure you want to Cancel this order on ground of Out of Stock?')) {
             const orderRef = ref(db, `orders/${firebaseId}`);
+            const order = orders.find(o => o.firebaseId === firebaseId);
+            
+            let updatedTimeline = order && order.timeline ? [...order.timeline] : [];
+            updatedTimeline = updatedTimeline.filter(s => s.status === 'Pending' || s.status === 'Placed');
+            updatedTimeline.push({
+                status: 'Cancelled',
+                date: new Date().toISOString(),
+                completed: true,
+                desc: 'Order Cancelled (Out of Stock)'
+            });
+
             update(orderRef, {
                 status: 'Cancelled',
-                cancelReason: 'Current out of stock'
+                cancelReason: 'Current out of stock',
+                timeline: updatedTimeline
             });
         }
     };
@@ -92,7 +104,7 @@ const AdminOrders = () => {
     useEffect(() => {
         if (orders.length > 0) {
             orders.forEach(order => {
-                if (order.status === 'Cancelled' || order.status === 'Delivered') return;
+                if (order.status === 'Cancelled' || order.status === 'Delivered' || order.status === 'Pending') return;
                 if (!order.date) return;
 
                 const orderDate = parseISO(order.date);
@@ -285,9 +297,11 @@ const AdminOrders = () => {
                                                     item.status === 'Confirmed' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                                         item.status === 'Placed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                                             item.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
-                                                                'bg-slate-50 text-slate-700 border-slate-200'
+                                                                item.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                                    'bg-slate-50 text-slate-700 border-slate-200'
                                                 }`}
                                         >
+                                            <option value="Pending">Pending</option>
                                             <option value="Placed">Order Placed</option>
                                             <option value="Confirmed">Order Confirmed</option>
                                             <option value="Shipped">Shipped</option>
@@ -302,13 +316,15 @@ const AdminOrders = () => {
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
-                                            <button
-                                                onClick={() => handleDeleteOrder(item.firebaseId)}
-                                                className="text-slate-400 hover:text-red-600 transition-colors"
-                                                title="Delete Order"
-                                            >
-                                                <Trash2 size={18} strokeWidth={2.5} />
-                                            </button>
+                                             {(item.status === 'Pending' || item.status === 'Placed') && (
+                                                 <button
+                                                     onClick={() => handleStatusChange(item, 'Confirmed')}
+                                                     className="text-emerald-500 hover:text-emerald-600 transition-colors"
+                                                     title="Confirm Order"
+                                                 >
+                                                     <Check size={20} strokeWidth={2.5} />
+                                                 </button>
+                                             )}
                                             {item.status !== 'Cancelled' && item.status !== 'Delivered' && (
                                                 <button
                                                     onClick={() => handleCancelOrder(item.firebaseId)}

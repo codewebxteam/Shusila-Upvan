@@ -110,8 +110,8 @@ const Footer = () => {
               <a href="tel:+919569603163" className="hover:text-emerald-500 transition-colors">
                 +91 95696 03163
               </a>
-              <p className="leading-relaxed opacity-60">
-                Village- Badua, Post- Marhatha, Tehsil- Campairganj, Distruct- Gorakhpur. Pin- 273158 - UP, India
+              <p className="leading-relaxed opacity-60  hover:text-emerald-500 transition-colors">
+                Village- Badua, Post- Marhatha, Tehsil- Campairganj, District- Gorakhpur. Pin- 273158 - UP, India
               </p>
             </div>
           </div>

@@ -42,7 +42,7 @@ const AdminLayout = () => {
         const unsubOrders = onValue(ordersRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const list = Object.keys(data).map(key => ({ ...data[key], id: key })).filter(o => o.status === 'Placed');
+                const list = Object.keys(data).map(key => ({ ...data[key], id: key })).filter(o => o.status === 'Placed' || o.status === 'Pending');
                 setPendingOrders(list.reverse());
             } else {
                 setPendingOrders([]);

@@ -11,16 +11,19 @@ import { useNavigate } from 'react-router-dom';
 const OrdersPage = () => {
     const { orders } = useOrders();
     const navigate = useNavigate();
-    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const selectedOrder = orders.find(o => o.id === selectedOrderId);
     const [isEditingPhone, setIsEditingPhone] = useState(false);
     const [newPhone, setNewPhone] = useState('');
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Placed': return 'bg-amber-100 text-amber-600';
-            case 'Confirmed': return 'bg-blue-100 text-blue-600';
+            case 'Pending': return 'bg-amber-100 text-amber-600';
+            case 'Placed': return 'bg-blue-100 text-blue-600';
+            case 'Confirmed': return 'bg-purple-100 text-purple-600';
             case 'Shipped': return 'bg-indigo-100 text-indigo-600';
             case 'Delivered': return 'bg-emerald-100 text-emerald-600';
+            case 'Cancelled': return 'bg-red-100 text-red-600';
             default: return 'bg-slate-100 text-slate-600';
         }
     };
@@ -127,7 +130,7 @@ const OrdersPage = () => {
                                             <motion.button
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                onClick={() => setSelectedOrder(order)}
+                                                onClick={() => setSelectedOrderId(order.id)}
                                                 className="px-6 py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200/50 flex items-center gap-2"
                                             >
                                                 Track Order <ChevronRight size={14} />
@@ -149,7 +152,7 @@ const OrdersPage = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[200] flex items-center justify-center p-0 bg-slate-900/60 backdrop-blur-md"
-                        onClick={() => setSelectedOrder(null)}
+                        onClick={() => setSelectedOrderId(null)}
                     >
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -161,7 +164,7 @@ const OrdersPage = () => {
                             {/* Header: Simple Back Arrow to mimic single-page dedicated page */}
                             <div className="p-5 border-b border-slate-100 flex items-center gap-4 bg-white sticky top-0 z-10">
                                 <button
-                                    onClick={() => setSelectedOrder(null)}
+                                    onClick={() => setSelectedOrderId(null)}
                                     className="p-1.5 hover:bg-slate-100 rounded-full text-slate-700 transition-colors"
                                 >
                                     <ArrowLeft size={22} strokeWidth={1.8} />
@@ -181,9 +184,9 @@ const OrdersPage = () => {
                                                 {/* Left Column: Dot & Connecting Line */}
                                                 <div className="flex flex-col items-center w-3 shrink-0 relative mt-1 h-full">
                                                     {hasNext && (
-                                                        <div className={`w-[2px] h-[calc(100%+16px)] absolute top-3 left-[5px] ${isNextCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
+                                                        <div className={`w-[2px] h-[calc(100%+16px)] absolute top-3 left-[5px] ${step.status === 'Pending' ? 'bg-orange-500' : step.status === 'Cancelled' ? 'bg-red-500' : isNextCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
                                                     )}
-                                                    <div className={`relative z-10 w-2.5 h-2.5 rounded-full shrink-0 border-2 border-white ${isCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
+                                                    <div className={`relative z-10 w-2.5 h-2.5 rounded-full shrink-0 border-2 border-white ${step.status === 'Pending' ? 'bg-orange-500' : step.status === 'Cancelled' ? 'bg-red-500' : isCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
                                                 </div>
 
                                                 {/* Content */}
