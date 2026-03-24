@@ -41,9 +41,9 @@ const Footer = () => {
             </p>
             <div className="flex gap-4 mt-4">
               {[
-                { icon: <Instagram size={18} />, href: "https://instagram.com", hoverBg: "hover:bg-[#E4405F]", hoverText: "hover:text-white" },
+                { icon: <Instagram size={18} />, href: "https://www.instagram.com/susheela_upvan/", hoverBg: "hover:bg-[#E4405F]", hoverText: "hover:text-white" },
                 { icon: <Facebook size={18} fill="currentColor" />, href: "https://facebook.com", hoverBg: "hover:bg-[#1877F2]", hoverText: "hover:text-white" },
-                { icon: <WhatsappIcon size={18} />, href: "https://wa.me/919876543210", hoverBg: "hover:bg-[#25D366]", hoverText: "hover:text-white" },
+                { icon: <WhatsappIcon size={18} />, href: "https://wa.me/919569603163", hoverBg: "hover:bg-[#25D366]", hoverText: "hover:text-white" },
                 { icon: <YoutubeIcon size={20} />, href: "https://youtube.com", hoverBg: "hover:bg-[#FF0000]", hoverText: "hover:text-white" }
               ].map((social, idx) => (
                 <a
@@ -107,8 +107,8 @@ const Footer = () => {
               <a href="mailto:support@susheelaupvan.com" className="hover:text-emerald-500 transition-colors">
                 support@upvan.com
               </a>
-              <a href="tel:+919876543210" className="hover:text-emerald-500 transition-colors">
-                +91 98765 43210
+              <a href="tel:+919569603163" className="hover:text-emerald-500 transition-colors">
+                +91 95696 03163
               </a>
               <p className="leading-relaxed opacity-60">
                 Village- Badua, Post- Marhatha, Tehsil- Campairganj, Distruct- Gorakhpur. Pin- 273158 - UP, India
