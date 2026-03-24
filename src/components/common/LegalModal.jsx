@@ -1,9 +1,9 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, Shield, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LegalModal = ({ isOpen, onClose, type }) => {
-  if (!isOpen) return null;
 
   const contentMap = {
     'privacy': {
@@ -115,9 +115,10 @@ const LegalModal = ({ isOpen, onClose, type }) => {
 
   const content = contentMap[type] || contentMap['terms-of-use'] || contentMap['terms'];
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12 font-sans">
+      {isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 md:p-12 font-sans">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -195,8 +196,10 @@ const LegalModal = ({ isOpen, onClose, type }) => {
              </button>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
   );
 };
 

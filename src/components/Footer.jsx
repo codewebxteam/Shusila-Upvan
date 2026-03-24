@@ -26,7 +26,7 @@ const Footer = () => {
   );
 
   return (
-    <footer className="relative overflow-hidden bg-slate-100/80 backdrop-blur-3xl text-slate-900 pt-[70px] pb-[40px] px-8 font-sans border-t-2 border-slate-200 flex justify-center w-full">
+    <footer className="relative bg-slate-100/80 backdrop-blur-3xl text-slate-900 pt-[70px] pb-[40px] px-8 font-sans border-t-2 border-slate-200 flex justify-center w-full">
       <div className="w-full max-w-6xl relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-[60px] mb-12 w-full">
           <div className="col-span-1 md:col-span-1 flex flex-col gap-6">
