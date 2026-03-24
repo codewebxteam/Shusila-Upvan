@@ -111,7 +111,7 @@ const Footer = () => {
                 +91 98765 43210
               </a>
               <p className="leading-relaxed opacity-60">
-                Khalilabad, SKN<br />UP, India
+                Village- Badua, Post- Marhatha, Tehsil- Campairganj, Distruct- Gorakhpur. Pin- 273158 - UP, India
               </p>
             </div>
           </div>
