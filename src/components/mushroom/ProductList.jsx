@@ -19,6 +19,27 @@ const ProductList = ({ priceRange, sortOrder }) => {
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [addedItems, setAddedItems] = useState({});
   const [firebaseProducts, setFirebaseProducts] = useState([]);
+  const [selectedSize, setSelectedSize] = useState({});
+
+  const mushroomWeightOptions = {
+    'Kg': [
+      { label: "50g", ratio: 0.05 },
+      { label: "100g", ratio: 0.1 },
+      { label: "150g", ratio: 0.15 },
+      { label: "200g", ratio: 0.2 },
+      { label: "250g", ratio: 0.25 },
+      { label: "500g", ratio: 0.5 },
+      { label: "1Kg", ratio: 1 }
+    ]
+  };
+
+  const getActiveSize = (item) => {
+    const options = mushroomWeightOptions[item.unit];
+    if (options && selectedSize[item.id]) {
+      return selectedSize[item.id];
+    }
+    return options ? options[options.length - 1] : { label: item.unit, ratio: 1 };
+  };
 
   useEffect(() => {
     const productsRef = ref(db, 'products');
@@ -96,7 +117,19 @@ const ProductList = ({ priceRange, sortOrder }) => {
     }
 
     const qty = quantities[item.id] || 1;
-    addToCart(item, qty);
+    const activeSize = getActiveSize(item);
+
+    // Create variation item
+    const cartItem = {
+      ...item,
+      id: activeSize.ratio !== 1 ? `${item.id}-${activeSize.label}` : item.id,
+      name: activeSize.ratio !== 1 ? `${item.name} (${activeSize.label})` : item.name,
+      price: Math.round(item.price * activeSize.ratio),
+      unit: activeSize.label,
+      originalId: item.id
+    };
+
+    addToCart(cartItem, qty);
 
     setAddedItems((prev) => ({ ...prev, [item.id]: true }));
     setTimeout(() => {
@@ -264,12 +297,34 @@ const ProductList = ({ priceRange, sortOrder }) => {
                 {/* Price */}
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-black text-emerald-600">
-                    ₹{item.price * (quantities[item.id] || 1)}
+                    ₹{Math.round(item.price * getActiveSize(item).ratio) * (quantities[item.id] || 1)}
                   </span>
                   <span className="text-xs text-slate-400">
-                    ({quantities[item.id] || 1} {item.unit})
+                    ( / {getActiveSize(item).label} )
                   </span>
                 </div>
+
+                {/* Size Selector */}
+                {mushroomWeightOptions[item.unit] && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {mushroomWeightOptions[item.unit].map((sizeObj) => {
+                      const isActive = getActiveSize(item).label === sizeObj.label;
+                      return (
+                        <button
+                          key={sizeObj.label}
+                          onClick={(e) => { e.stopPropagation(); setSelectedSize(prev => ({...prev, [item.id]: sizeObj})); }}
+                          className={`flex-1 min-w-[30%] px-1 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all border ${
+                            isActive 
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' 
+                              : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          {sizeObj.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Quantity */}
                 <div

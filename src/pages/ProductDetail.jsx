@@ -25,6 +25,44 @@ const ProductDetail = () => {
     const [activeTab, setActiveTab] = useState('description');
     const [isAdded, setIsAdded] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [selectedSize, setSelectedSize] = useState(null);
+
+    const sizeOptions = {
+        'Litre': [
+            { label: "50ml", ratio: 0.05 },
+            { label: "100ml", ratio: 0.1 },
+            { label: "150ml", ratio: 0.15 },
+            { label: "200ml", ratio: 0.2 },
+            { label: "250ml", ratio: 0.25 },
+            { label: "500ml", ratio: 0.5 },
+            { label: "1L", ratio: 1 }
+        ],
+        'Kg': [
+            { label: "50g", ratio: 0.05 },
+            { label: "100g", ratio: 0.1 },
+            { label: "150g", ratio: 0.15 },
+            { label: "200g", ratio: 0.2 },
+            { label: "250g", ratio: 0.25 },
+            { label: "500g", ratio: 0.5 },
+            { label: "1Kg", ratio: 1 }
+        ],
+        'Bottle': [
+            { label: "Small", ratio: 0.5 },
+            { label: "Regular", ratio: 1 }
+        ]
+    };
+
+    const getActiveSize = () => {
+        if (!product) return { label: '', ratio: 1 };
+        const category = product.category?.toLowerCase() || '';
+        const isSelectable = category.includes('dairy') || category.includes('mushroom');
+        
+        const options = isSelectable ? sizeOptions[product.unit] : null;
+        if (options && selectedSize) {
+            return selectedSize;
+        }
+        return options ? options[options.length - 1] : { label: product.unit, ratio: 1 };
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -120,12 +158,24 @@ const ProductDetail = () => {
         );
     }
 
+    const getCartItem = () => {
+        const activeSize = getActiveSize();
+        return {
+            ...product,
+            id: activeSize.ratio !== 1 ? `${product.id}-${activeSize.label}` : product.id,
+            name: activeSize.ratio !== 1 ? `${product.name} (${activeSize.label})` : product.name,
+            price: Math.round(product.price * activeSize.ratio),
+            unit: activeSize.label,
+            originalId: product.id
+        };
+    };
+
     const handleAddToCart = () => {
         if (!user) {
             openAuthModal('login');
             return;
         }
-        addToCart(product, quantity);
+        addToCart(getCartItem(), quantity);
         setIsAdded(true);
         setTimeout(() => setIsAdded(false), 2000);
     };
@@ -135,7 +185,7 @@ const ProductDetail = () => {
             openAuthModal('login');
             return;
         }
-        addToCart(product, quantity);
+        addToCart(getCartItem(), quantity);
         navigate('/cart');
     };
 
@@ -272,9 +322,10 @@ const ProductDetail = () => {
                                 transition={{ delay: 0.2 }}
                                 className="flex items-baseline gap-4 mb-8"
                             >
-                                <span className="text-5xl font-black text-emerald-600 tracking-tighter">₹{product.price * quantity}</span>
-                                <span className="text-lg font-bold text-slate-300 line-through">₹{Math.round(product.price * 1.5) * quantity}</span>
+                                <span className="text-5xl font-black text-emerald-600 tracking-tighter">₹{Math.round(product.price * getActiveSize().ratio) * quantity}</span>
+                                <span className="text-lg font-bold text-slate-300 line-through">₹{Math.round(product.price * 1.5 * getActiveSize().ratio) * quantity}</span>
                                 <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest">35% OFF</span>
+                                <span className="text-xs text-slate-400 font-bold ml-2">( / {getActiveSize().label} )</span>
                             </motion.div>
 
                             <motion.p
@@ -289,10 +340,34 @@ const ProductDetail = () => {
 
                         {/* Controls Section */}
                         <div className="space-y-6 max-w-md">
+                            {(product.category?.toLowerCase().includes('dairy') || product.category?.toLowerCase().includes('mushroom')) && sizeOptions[product.unit] && (
+                                <div className="bg-white rounded-2xl p-4 border border-slate-100">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Select Quantity / Volume</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {sizeOptions[product.unit].map((sizeObj) => {
+                                            const isActive = getActiveSize().label === sizeObj.label;
+                                            return (
+                                                <button
+                                                    key={sizeObj.label}
+                                                    onClick={() => setSelectedSize(sizeObj)}
+                                                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all border-2 ${
+                                                        isActive 
+                                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-500/30' 
+                                                            : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50'
+                                                    }`}
+                                                >
+                                                    {sizeObj.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {/* Quantity Selector */}
                                 <div className="flex items-center justify-between bg-white rounded-2xl p-4 border border-slate-100">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Qty ({product.unit})</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Qty</span>
                                     <div className="flex items-center gap-1 bg-slate-900 rounded-xl p-1">
                                         <button
                                             onClick={() => setQuantity(q => Math.max(1, q - 1))}
