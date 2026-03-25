@@ -81,7 +81,7 @@ export const OrderProvider = ({ children }) => {
         const newOrder = {
             id: `ORD${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
             date: now.toISOString(),
-            status: orderData.status || 'Placed',
+            status: 'Pending',
             customer: user?.displayName || user?.name || orderData.fullName,
             email: user?.email || orderData.email,
             mobile: orderData.mobile,
@@ -111,15 +111,9 @@ export const OrderProvider = ({ children }) => {
                 pincode: orderData.pincode,
                 phone: orderData.mobile
             },
-            timeline: orderData.status === 'Pending'
-                ? [
+            timeline: [
                     { status: 'Pending', date: now.toISOString(), completed: true, desc: 'Waiting for confirmation from admin.' },
-                    { status: 'Confirmed', date: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), completed: false, desc: 'We are confirming your order.' },
-                    { status: 'Shipped', date: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(), completed: false, desc: 'Your order is on the way.' },
-                    { status: 'Delivered', date: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(), completed: false, desc: 'Order delivered.' }
-                ]
-                : [
-                    { status: 'Placed', date: now.toISOString(), completed: true, desc: 'Your order has been placed successfully.' },
+                    { status: 'Placed', date: new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString(), completed: false, desc: 'Order will be placed after confirmation.' },
                     { status: 'Confirmed', date: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), completed: false, desc: 'We are confirming your order.' },
                     { status: 'Shipped', date: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(), completed: false, desc: 'Your order is on the way.' },
                     { status: 'Delivered', date: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(), completed: false, desc: 'Order delivered.' }

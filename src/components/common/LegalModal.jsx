@@ -115,6 +115,17 @@ const LegalModal = ({ isOpen, onClose, type }) => {
 
   const content = contentMap[type] || contentMap['terms-of-use'] || contentMap['terms'];
 
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -183,14 +194,14 @@ const LegalModal = ({ isOpen, onClose, type }) => {
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between shrink-0">
+          <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 shrink-0">
              <div className="flex items-center gap-2">
                 <Shield size={16} className="text-emerald-500" />
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest text-emerald-600/70">Purity Guaranteed</span>
              </div>
              <button
                onClick={onClose}
-               className="px-8 py-3 bg-emerald-600 text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-200 transition-all active:scale-95"
+               className="w-full sm:w-auto px-8 py-3 bg-emerald-600 text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-200 transition-all active:scale-95"
              >
                I Understand
              </button>

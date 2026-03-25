@@ -16,6 +16,17 @@ const OrdersPage = () => {
     const [isEditingPhone, setIsEditingPhone] = useState(false);
     const [newPhone, setNewPhone] = useState('');
 
+    React.useEffect(() => {
+        if (selectedOrder) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [selectedOrder]);
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'Pending': return 'bg-amber-100 text-amber-600';
@@ -47,6 +58,8 @@ const OrdersPage = () => {
         }
         return formatted;
     };
+
+    const statusHierarchy = { 'Pending': 0, 'Placed': 1, 'Confirmed': 2, 'Shipped': 3, 'Delivered': 4 };
 
     return (
         <div className="min-h-screen bg-[#fdfdfd] pb-24">
@@ -169,47 +182,50 @@ const OrdersPage = () => {
                                 >
                                     <ArrowLeft size={22} strokeWidth={1.8} />
                                 </button>
+                                <span className="text-sm font-bold text-slate-400">Track Order</span>
                             </div>
 
                             {/* Center Timeline Area */}
                             <div className="p-6 md:p-8 flex-1 overflow-y-auto scrollbar-hide bg-white">
                                 <div className="relative space-y-6">
                                     {selectedOrder.timeline.map((step, idx) => {
-                                        const isCompleted = step.completed || idx === 0;
+                                        const currentStepIndex = statusHierarchy[selectedOrder.status] ?? 0;
+                                        const isCompleted = idx <= currentStepIndex;
                                         const hasNext = idx < selectedOrder.timeline.length - 1;
-                                        const isNextCompleted = selectedOrder.timeline[idx + 1]?.completed;
+                                        const isNextCompleted = (idx + 1) <= currentStepIndex;
 
                                         return (
-                                            <div key={idx} className="relative flex items-start gap-5 pb-7">
+                                            <div key={idx} className="relative flex gap-5 pb-8 last:pb-0">
                                                 {/* Left Column: Dot & Connecting Line */}
-                                                <div className="flex flex-col items-center w-3 shrink-0 relative mt-1 h-full">
+                                                <div className="flex flex-col items-center w-5 shrink-0 relative">
                                                     {hasNext && (
-                                                        <div className={`w-[2px] h-[calc(100%+16px)] absolute top-3 left-[5px] ${step.status === 'Pending' ? 'bg-orange-500' : step.status === 'Cancelled' ? 'bg-red-500' : isNextCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
+                                                        <div className={`w-[2.5px] absolute top-6 bottom-[-34px] left-[9px] ${isNextCompleted ? 'bg-green-600 shadow-[0_0_8px_rgba(22,163,74,0.3)]' : 'bg-slate-100'}`} />
                                                     )}
-                                                    <div className={`relative z-10 w-2.5 h-2.5 rounded-full shrink-0 border-2 border-white ${step.status === 'Pending' ? 'bg-orange-500' : step.status === 'Cancelled' ? 'bg-red-500' : isCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
+                                                    <div className={`relative z-10 w-4 h-4 mt-1 rounded-full shrink-0 border-[3px] border-white ring-1 ring-slate-100 ${isCompleted ? 'bg-green-600 shadow-[0_0_10px_rgba(22,163,74,0.4)]' : 'bg-slate-300'}`} />
                                                 </div>
 
                                                 {/* Content */}
                                                 <div className="flex-1 -mt-0.5">
                                                     {/* Header: Status and Date */}
-                                                    <div className="flex flex-wrap items-baseline gap-2 mb-1">
-                                                        <h4 className={`text-[15px] font-semibold ${isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
+                                                    <div className="flex flex-wrap items-baseline gap-2 mb-1.5">
+                                                        <h4 className={`text-[15px] font-bold ${isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
                                                             {step.status}
                                                         </h4>
-                                                        {step.date && (
-                                                            <span className="text-[12px] text-gray-400 font-medium">
+                                                        {(step.date && isCompleted) && (
+                                                            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
                                                                 {formatDate(step.date)}
                                                             </span>
                                                         )}
                                                     </div>
 
-                                                    {/* Description with Time below */}
-                                                    <div className="space-y-1">
-                                                        <p className={`text-[13.5px] leading-relaxed ${isCompleted ? 'text-slate-700' : 'text-slate-300'}`}>
+                                                    {/* Description */}
+                                                    <div className="space-y-1.5">
+                                                        <p className={`text-sm leading-relaxed ${isCompleted ? 'text-slate-700' : 'text-slate-300'}`}>
                                                             {step.desc}
                                                         </p>
                                                         {step.date && isCompleted && (
-                                                            <p className="text-[11.5px] text-slate-400 font-medium mt-1">
+                                                            <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+                                                                <span className="w-1 h-1 rounded-full bg-emerald-600" />
                                                                 {formatDate(step.date, true)}
                                                             </p>
                                                         )}

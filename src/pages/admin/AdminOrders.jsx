@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { isToday, isThisWeek, isThisMonth, isThisYear, parseISO, isValid, differenceInDays, format } from 'date-fns';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, remove } from 'firebase/database';
-import { Download, Eye, Trash2, X, Check } from 'lucide-react';
+import { Download, Eye, X, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OrderTrackingModal from './OrderTrackingModal';
 
@@ -15,6 +15,17 @@ const AdminOrders = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [statusFilter, setStatusFilter] = useState('All');
     const [dateFilter, setDateFilter] = useState('All Time');
+
+    useEffect(() => {
+        if (selectedOrder) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [selectedOrder]);
 
     // Sync with Firebase
     useEffect(() => {
@@ -93,12 +104,6 @@ const AdminOrders = () => {
         }
     };
 
-    const handleDeleteOrder = (firebaseId) => {
-        if (window.confirm('Are you sure you want to PERMANENTLY DELETE this order? This action cannot be undone.')) {
-            const orderRef = ref(db, `orders/${firebaseId}`);
-            remove(orderRef).catch(error => console.error("Error deleting order:", error));
-        }
-    };
 
     // Auto-update order status based on creation date
     useEffect(() => {
@@ -117,7 +122,7 @@ const AdminOrders = () => {
                 else if (daysPassed >= 2) calculatedStatus = 'Shipped';
                 else if (daysPassed >= 1) calculatedStatus = 'Confirmed';
 
-                const statusHierarchy = { 'Placed': 0, 'Confirmed': 1, 'Shipped': 2, 'Delivered': 3 };
+                const statusHierarchy = { 'Pending': -1, 'Placed': 0, 'Confirmed': 1, 'Shipped': 2, 'Delivered': 3 };
                 const currentRank = statusHierarchy[order.status] || 0;
                 const targetRank = statusHierarchy[calculatedStatus] || 0;
 
@@ -318,9 +323,9 @@ const AdminOrders = () => {
                                         <div className="flex items-center gap-3">
                                              {(item.status === 'Pending' || item.status === 'Placed') && (
                                                  <button
-                                                     onClick={() => handleStatusChange(item, 'Confirmed')}
+                                                     onClick={() => handleStatusChange(item, item.status === 'Pending' ? 'Placed' : 'Confirmed')}
                                                      className="text-emerald-500 hover:text-emerald-600 transition-colors"
-                                                     title="Confirm Order"
+                                                     title={item.status === 'Pending' ? "Confirm Order" : "Mark as Confirmed"}
                                                  >
                                                      <Check size={20} strokeWidth={2.5} />
                                                  </button>

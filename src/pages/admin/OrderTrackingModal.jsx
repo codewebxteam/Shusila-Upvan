@@ -1,32 +1,34 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 const OrderTrackingModal = ({ order, onClose }) => {
+    useEffect(() => {
+        if (order) {
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = '';
+            };
+        }
+    }, [order]);
+
     if (!order) return null;
 
-    // Determine current step index
-    let currentStepIndex = 0;
+    const statusHierarchy = { 'Pending': 0, 'Placed': 1, 'Confirmed': 2, 'Shipped': 3, 'Delivered': 4 };
+    const currentStepIndex = statusHierarchy[order.status] ?? 0;
     const isCancelled = order.status === 'Cancelled';
-
-    switch (order.status) {
-        case 'Placed': currentStepIndex = 0; break;
-        case 'Confirmed': currentStepIndex = 1; break;
-        case 'Shipped': currentStepIndex = 2; break;
-        case 'Delivered': currentStepIndex = 3; break;
-        default: currentStepIndex = 0; break;
-    }
 
     const baseDate = order.date ? new Date(order.date) : new Date();
 
     const normalSteps = [
-        { status: 'Placed', date: order.date, completed: currentStepIndex >= 0, desc: 'Your order has been placed successfully.' },
-        { status: 'Confirmed', completed: currentStepIndex >= 1, desc: currentStepIndex >= 1 ? 'Verified and preparing' : 'Pending' },
-        { status: 'Shipped', completed: currentStepIndex >= 2, desc: currentStepIndex >= 2 ? 'On the way' : 'Pending' },
-        { status: 'Delivered', completed: currentStepIndex >= 3, desc: currentStepIndex >= 3 ? 'Delivered successfully' : 'Pending' }
+        { status: 'Pending', date: order.date, desc: 'Waiting for confirmation from admin.' },
+        { status: 'Placed', desc: currentStepIndex >= 1 ? 'Order placed successfully' : 'Pending' },
+        { status: 'Confirmed', desc: currentStepIndex >= 2 ? 'Verified and preparing' : 'Pending' },
+        { status: 'Shipped', desc: currentStepIndex >= 3 ? 'On the way' : 'Pending' },
+        { status: 'Delivered', desc: currentStepIndex >= 4 ? 'Delivered successfully' : 'Pending' }
     ];
 
     const cancelledSteps = [
-        { status: 'Placed', date: order.date, completed: true, desc: 'Order placed' },
+        { status: 'Pending', date: order.date, completed: true, desc: 'Order enquiry' },
         { status: 'Cancelled', completed: true, desc: order.cancelReason || 'Your order has been cancelled' }
     ];
 
@@ -74,41 +76,42 @@ const OrderTrackingModal = ({ order, onClose }) => {
                 <div className="p-6 md:p-8 flex-1 overflow-y-auto scrollbar-hide bg-white">
                     <div className="relative space-y-6">
                         {timelineToRender.map((step, idx) => {
-                            const isCompleted = step.completed || idx === 0;
+                            const isCompleted = isCancelled ? step.completed : (idx <= currentStepIndex);
                             const hasNext = idx < timelineToRender.length - 1;
-                            const isNextCompleted = timelineToRender[idx + 1]?.completed;
+                            const isNextCompleted = isCancelled ? (timelineToRender[idx+1]?.completed) : ((idx + 1) <= currentStepIndex);
 
                             return (
-                                <div key={idx} className="relative flex items-start gap-5 pb-7">
+                                <div key={idx} className="relative flex gap-5 pb-8 last:pb-0">
                                     {/* Left Column: Dot & Connecting Line */}
-                                    <div className="flex flex-col items-center w-3 shrink-0 relative mt-1 h-full">
+                                    <div className="flex flex-col items-center w-5 shrink-0 relative">
                                         {hasNext && (
-                                            <div className={`w-[2px] h-[calc(100%+16px)] absolute top-3 left-[5px] ${isNextCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
+                                            <div className={`w-[2.5px] absolute top-6 bottom-[-34px] left-[9px] ${isNextCompleted ? 'bg-green-600 shadow-[0_0_8px_rgba(22,163,74,0.3)]' : 'bg-slate-100'}`} />
                                         )}
-                                        <div className={`relative z-10 w-2.5 h-2.5 rounded-full shrink-0 border-2 border-white ${isCompleted ? 'bg-green-600' : 'bg-slate-200'}`} />
+                                        <div className={`relative z-10 w-4 h-4 mt-1 rounded-full shrink-0 border-[3px] border-white ring-1 ring-slate-100 ${isCompleted ? 'bg-green-600 shadow-[0_0_10px_rgba(22,163,74,0.4)]' : 'bg-slate-300'}`} />
                                     </div>
 
                                     {/* Content */}
                                     <div className="flex-1 -mt-0.5">
                                         {/* Header: Status and Date */}
-                                        <div className="flex flex-wrap items-baseline gap-2 mb-1">
-                                            <h4 className={`text-[15px] font-semibold ${isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
+                                        <div className="flex flex-wrap items-baseline gap-2 mb-1.5">
+                                            <h4 className={`text-[15px] font-bold ${isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
                                                 {step.status}
                                             </h4>
-                                            {step.date && (
-                                                <span className="text-[12px] text-gray-400 font-medium">
+                                            {(step.date && isCompleted) && (
+                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
                                                     {formatDate(step.date)}
                                                 </span>
                                             )}
                                         </div>
 
-                                        {/* Description with Time below */}
-                                        <div className="space-y-1">
-                                            <p className={`text-[13.5px] leading-relaxed ${isCompleted ? 'text-slate-700' : 'text-slate-300'}`}>
+                                        {/* Description */}
+                                        <div className="space-y-1.5">
+                                            <p className={`text-sm leading-relaxed ${isCompleted ? 'text-slate-600' : 'text-slate-300'}`}>
                                                 {step.desc || step.description}
                                             </p>
                                             {step.date && isCompleted && (
-                                                <p className="text-[11.5px] text-slate-400 font-medium mt-1">
+                                                <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+                                                    <span className="w-1 h-1 rounded-full bg-emerald-600" />
                                                     {formatDate(step.date, true)}
                                                 </p>
                                             )}

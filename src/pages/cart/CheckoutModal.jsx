@@ -153,7 +153,7 @@ const CheckoutModal = ({ onClose }) => {
                 tax,
                 grandTotal,
                 ...formData,
-                status: formData.paymentMethod === 'whatsapp' ? 'Pending' : 'Placed'
+                status: 'Pending'
             };
             const newOrder = await placeOrder(orderData);
 
@@ -244,12 +244,10 @@ Please send the QR code for payment.`;
                         <CheckCircle2 size={48} className="text-emerald-600" />
                     </motion.div>
                     <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-3 italic">
-                        {formData.paymentMethod === 'whatsapp' ? 'Waiting for Confirmation!' : 'Order Placed!'}
+                        Waiting for Confirmation!
                     </h2>
                     <p className="text-sm text-slate-400 leading-relaxed mb-8">
-                        {formData.paymentMethod === 'whatsapp' 
-                            ? "Waiting for confirmation of your order from admin." 
-                            : "Congratulations, Your order has been placed successfully. We'll contact you for delivery details shortly."}
+                        Waiting for confirmation of your order from admin. We'll notify you once it's placed.
                     </p>
                     <div className="flex flex-col gap-3">
                         <button

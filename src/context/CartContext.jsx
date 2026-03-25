@@ -63,9 +63,9 @@ const cartReducer = (state, action) => {
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [cartItems, dispatch] = useReducer(cartReducer, []);
-  const [gstPercentage, setGstPercentage] = React.useState(18);
+  const [gstPercentage, setGstPercentage] = React.useState(0);
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = React.useState(500);
-  const [flatDeliveryFee, setFlatDeliveryFee] = React.useState(50);
+  const [flatDeliveryFee, setFlatDeliveryFee] = React.useState(0);
 
   useEffect(() => {
     const settingsRef = ref(db, 'settings');
@@ -73,43 +73,34 @@ export const CartProvider = ({ children }) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         const gstValue = parseFloat(data.gstPercentage);
-        setGstPercentage(isNaN(gstValue) ? 18 : gstValue);
+        setGstPercentage(isNaN(gstValue) ? 0 : gstValue);
         setFreeDeliveryThreshold(parseFloat(data.freeDeliveryThreshold) || 500);
-        setFlatDeliveryFee(parseFloat(data.flatDeliveryFee) || 50);
+        setFlatDeliveryFee(parseFloat(data.flatDeliveryFee) || 0);
       }
     });
     return () => unsubscribe();
   }, []);
 
-  // Track whether the cart has been loaded for the current user.
-  // We must NOT save to localStorage until after the initial load,
-  // otherwise we'd overwrite the saved cart with [] on login.
   const isLoadedRef = useRef(false);
 
-  // When user changes (login / logout), load their saved cart
   useEffect(() => {
-    isLoadedRef.current = false; // Reset before loading
+    isLoadedRef.current = false;
 
     if (user) {
       const key = `susheela_cart_${user.id}`;
       const saved = localStorage.getItem(key);
       dispatch({ type: 'SET_CART', payload: saved ? JSON.parse(saved) : [] });
     } else {
-      // Logged out – clear from view but don't touch localStorage
       dispatch({ type: 'SET_CART', payload: [] });
     }
 
-    // Mark as loaded after dispatching
-    // Use a microtask so the reducer has processed SET_CART first
     Promise.resolve().then(() => {
       isLoadedRef.current = true;
     });
   }, [user]);
-
-  // Persist cart to localStorage whenever it changes — but ONLY after load
   useEffect(() => {
-    if (!isLoadedRef.current) return; // Skip the initial empty state
-    if (!user) return;               // Don't save when logged out
+    if (!isLoadedRef.current) return;
+    if (!user) return;
 
     const key = `susheela_cart_${user.id}`;
     localStorage.setItem(key, JSON.stringify(cartItems));
@@ -167,8 +158,8 @@ export const CartProvider = ({ children }) => {
   );
 
   const shippingFee = useMemo(
-    () => (subtotal >= freeDeliveryThreshold ? 0 : flatDeliveryFee),
-    [subtotal, freeDeliveryThreshold, flatDeliveryFee]
+    () => 0, // Delivery is now free for all orders as per user request
+    []
   );
 
   const grandTotal = useMemo(

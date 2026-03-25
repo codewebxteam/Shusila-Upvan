@@ -20,12 +20,12 @@ const AdminSettings = () => {
         storeName: 'Susheela Upvan',
         supportEmail: 'care@susheelaupvan.com',
         supportPhone: '+91 9876543210',
-        gstPercentage: '18',
+        gstPercentage: '0',
         maintenanceMode: false,
 
-        // Shipping Settings
-        freeDeliveryThreshold: '500',
-        flatDeliveryFee: '50',
+        // Shipping Settings (Delivery is now permanently FREE)
+        freeDeliveryThreshold: '0',
+        flatDeliveryFee: '0',
         timeSlots: '6 AM - 9 AM, 4 PM - 7 PM',
         serviceablePincodes: '272175, 272001',
 
@@ -233,18 +233,18 @@ const AdminSettings = () => {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Free Delivery Threshold (₹)</label>
-                                                    <input
-                                                        type="number" name="freeDeliveryThreshold" value={formData.freeDeliveryThreshold} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all relative"
-                                                    />
-                                                    <p className="text-[10px] text-slate-400 font-semibold px-2">Orders above this amount get free farm-fresh delivery.</p>
+                                                    <div className="w-full px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm font-bold text-emerald-700 flex items-center justify-between">
+                                                        <span>0</span>
+                                                        <span className="text-[10px] uppercase tracking-widest text-emerald-600 bg-white px-2 py-0.5 rounded-md border border-emerald-200">Permanently Free</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-slate-400 font-semibold px-2">Global Free Delivery is enabled. Threshold is ignored.</p>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Flat Delivery Fee (₹)</label>
-                                                    <input
-                                                        type="number" name="flatDeliveryFee" value={formData.flatDeliveryFee} onChange={handleChange}
-                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                                                    />
+                                                    <div className="w-full px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm font-bold text-emerald-700 flex items-center justify-between">
+                                                        <span>0</span>
+                                                        <span className="text-[10px] uppercase tracking-widest text-emerald-600 bg-white px-2 py-0.5 rounded-md border border-emerald-200">Permanently Free</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
