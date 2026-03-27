@@ -131,7 +131,7 @@ const AdminLayout = () => {
         <div className="flex h-screen bg-slate-50 overflow-hidden font-sans relative">
             {/* Backdrop for mobile */}
             {isSidebarOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />
@@ -149,7 +149,7 @@ const AdminLayout = () => {
                         </span>
                     </div>
                     {/* Close button for mobile */}
-                    <button 
+                    <button
                         onClick={() => setIsSidebarOpen(false)}
                         className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg md:hidden"
                     >
@@ -187,7 +187,7 @@ const AdminLayout = () => {
                 {/* Top Header */}
                 <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] z-[40] shrink-0 gap-3">
                     {/* Hamburger Toggle */}
-                    <button 
+                    <button
                         onClick={() => setIsSidebarOpen(true)}
                         className="p-1.5 -ml-1 text-slate-500 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 md:hidden flex items-center justify-center shrink-0"
                     >
@@ -335,7 +335,7 @@ const AdminLayout = () => {
                                     {user ? user.name : 'Admin User'}
                                 </span>
                                 <span className="text-[11px] font-semibold text-slate-400">
-                                    Super Admin
+                                    Exit Console
                                 </span>
                             </div>
                         </div>
@@ -350,39 +350,40 @@ const AdminLayout = () => {
                 {/* Message Detail Expand Modal */}
                 {selectedMessage && (
                     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4" onClick={() => setSelectedMessage(null)}>
-                         <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl border border-white/50 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-                              <button onClick={() => setSelectedMessage(null)} className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all">
-                                   <X size={20} />
-                              </button>
-                              
-                              <div className="flex items-center gap-4 mb-6 pt-2">
-                                   <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
-                                        <Mail size={24} />
-                                   </div>
-                                   <div>
-                                        <h4 className="text-xl font-black text-slate-900">{selectedMessage.name || 'Anonymous'}</h4>
-                                        <p className="text-xs text-slate-400 font-semibold">{selectedMessage.email || 'No email left'}</p>
-                                   </div>
-                              </div>
+                        <div className="bg-white rounded-3xl w-full max-w-lg p-8 relative shadow-2xl border border-white/50 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                            <button onClick={() => setSelectedMessage(null)} className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all">
+                                <X size={20} />
+                            </button>
 
-                              <div className="bg-slate-50 p-6 rounded-2xl mb-6 border border-slate-100/80">
-                                   <p className="text-[15px] font-bold text-slate-800 leading-relaxed break-words">
-                                        {selectedMessage.message}
-                                   </p>
-                              </div>
+                            <div className="flex items-center gap-4 mb-6 pt-2">
+                                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
+                                    <Mail size={24} />
+                                </div>
+                                <div>
+                                    <h4 className="text-xl font-black text-slate-900">{selectedMessage.name || 'Anonymous'}</h4>
+                                    <p className="text-xs text-slate-400 font-semibold">{selectedMessage.email || 'No email left'}</p>
+                                </div>
+                            </div>
 
-                              <div className="flex items-center justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                                   <span className="flex items-center gap-1.5">Type: <span className="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg text-[9px] font-black">{selectedMessage.type || 'General'}</span></span>
-                                   <span className="font-semibold text-slate-400">{selectedMessage.timestamp || 'Just now'}</span>
-                              </div>
-                         </div>
+                            <div className="bg-slate-50 p-6 rounded-2xl mb-6 border border-slate-100/80">
+                                <p className="text-[15px] font-bold text-slate-800 leading-relaxed break-words">
+                                    {selectedMessage.message}
+                                </p>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                                <span className="flex items-center gap-1.5">Type: <span className="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg text-[9px] font-black">{selectedMessage.type || 'General'}</span></span>
+                                <span className="font-semibold text-slate-400">{selectedMessage.timestamp || 'Just now'}</span>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* Global scrollbar style for admin area */}
             {/* Global scrollbar style for admin area */}
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
                     height: 6px;
