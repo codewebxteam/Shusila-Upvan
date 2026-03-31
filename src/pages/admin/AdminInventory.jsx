@@ -263,7 +263,7 @@ const AdminInventory = () => {
             const productList = Object.keys(data).map(key => ({
                 ...data[key],
                 firebaseId: key
-            }));
+            })).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
             setProducts(productList);
             setIsLoading(false);
         }, (error) => {
