@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, Check, MessageCircle, Facebook, Twitter, Link as LinkIcon } from 'lucide-react';
+import useScrollLock from '../../hooks/useScrollLock';
 
 const ShareModal = ({ isOpen, onClose, product }) => {
     const [copied, setCopied] = useState(false);
+    useScrollLock(isOpen);
     const shareUrl = window.location.href;
     const shareText = `Check out this ${product?.name} on Susheela Upvan!`;
 

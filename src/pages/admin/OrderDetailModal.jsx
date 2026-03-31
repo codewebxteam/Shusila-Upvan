@@ -1,16 +1,10 @@
 import React, { useEffect } from 'react';
 import { ArrowLeft, User, MapPin, Package, CreditCard, Clock, Phone, Mail, Navigation } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useScrollLock from '../../hooks/useScrollLock';
 
 const OrderDetailModal = ({ order, onClose }) => {
-    useEffect(() => {
-        if (order) {
-            document.body.style.overflow = 'hidden';
-            return () => {
-                document.body.style.overflow = '';
-            };
-        }
-    }, [order]);
+    useScrollLock(!!order);
 
     if (!order) return null;
 

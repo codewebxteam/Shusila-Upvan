@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useOrders } from '../../context/OrderContext';
 import { useNavigate } from 'react-router-dom';
+import useScrollLock from '../../hooks/useScrollLock';
 
 const OrdersPage = () => {
     const { orders } = useOrders();
@@ -16,16 +17,7 @@ const OrdersPage = () => {
     const [isEditingPhone, setIsEditingPhone] = useState(false);
     const [newPhone, setNewPhone] = useState('');
 
-    React.useEffect(() => {
-        if (selectedOrder) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [selectedOrder]);
+    useScrollLock(!!selectedOrder);
 
     const getStatusColor = (status) => {
         switch (status) {

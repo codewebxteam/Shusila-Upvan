@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, ShoppingBag, ShoppingCart, X, ChevronRight, LogOut, Settings, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useScrollLock from '../../hooks/useScrollLock';
 import ownerImg from '../../assets/owner/swapnil.webp';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,16 +10,7 @@ const AccountSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   const menuItems = [
     { id: 'profile', label: 'My Profile', desc: 'Account & Security', icon: <Settings size={20} /> },

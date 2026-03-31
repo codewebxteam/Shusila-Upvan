@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { PackageSearch, AlertTriangle, TrendingDown, BoxSelect, PackageCheck, X, Plus, Upload, Trash2 } from 'lucide-react';
+import useScrollLock from '../../hooks/useScrollLock';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, push, set, remove } from 'firebase/database';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -63,6 +64,8 @@ const AdminInventory = () => {
     const [editProduct, setEditProduct] = useState({
         name: '', price: '', discount: '', description: '', image: null, stock: '', category: 'Dairy Product', specification: '', highlights: ''
     });
+
+    useScrollLock(isUpdateModalOpen || isAddModalOpen || isClearModalOpen || isDeleteModalOpen);
 
     const handleClearEntireList = async () => {
         setIsClearing(true);

@@ -78,7 +78,7 @@ const OrderTrackingModal = ({ order, onClose }) => {
                         {timelineToRender.map((step, idx) => {
                             const isCompleted = isCancelled ? step.completed : (idx <= currentStepIndex);
                             const hasNext = idx < timelineToRender.length - 1;
-                            const isNextCompleted = isCancelled ? (timelineToRender[idx+1]?.completed) : ((idx + 1) <= currentStepIndex);
+                            const isNextCompleted = isCancelled ? (timelineToRender[idx + 1]?.completed) : ((idx + 1) <= currentStepIndex);
 
                             return (
                                 <div key={idx} className="relative flex gap-5 pb-8 last:pb-0">

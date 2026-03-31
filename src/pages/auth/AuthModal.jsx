@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import useScrollLock from '../../hooks/useScrollLock';
 
 const AuthModal = ({ isOpen, onClose, initialView = 'login' }) => {
     const { login, signup, loginWithGoogle } = useAuth();
@@ -19,34 +20,7 @@ const AuthModal = ({ isOpen, onClose, initialView = 'login' }) => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            const scrollY = window.scrollY;
-            document.body.style.position = 'fixed';
-            document.body.style.top = `-${scrollY}px`;
-            document.body.style.width = '100%';
-            document.body.style.overflow = 'hidden';
-        } else {
-            const savedScrollY = document.body.style.top;
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.width = '';
-            document.body.style.overflow = '';
-            if (savedScrollY) {
-                window.scrollTo(0, parseInt(savedScrollY || '0') * -1);
-            }
-        }
-        return () => {
-            const savedScrollY = document.body.style.top;
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.width = '';
-            document.body.style.overflow = '';
-            if (savedScrollY) {
-                window.scrollTo(0, parseInt(savedScrollY || '0') * -1);
-            }
-        };
-    }, [isOpen]);
+    useScrollLock(isOpen);
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

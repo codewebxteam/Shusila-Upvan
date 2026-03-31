@@ -6,6 +6,7 @@ import { ref, onValue, update, remove } from 'firebase/database';
 import { Download, Eye, X, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailModal from './OrderDetailModal';
+import useScrollLock from '../../hooks/useScrollLock';
 
 
 
@@ -17,16 +18,7 @@ const AdminOrders = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [dateFilter, setDateFilter] = useState('All Time');
 
-    useEffect(() => {
-        if (selectedOrder) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [selectedOrder]);
+    useScrollLock(!!selectedOrder);
 
     // Sync with Firebase
     useEffect(() => {

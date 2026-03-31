@@ -2,21 +2,13 @@ import React, { useState } from 'react';
 import { Package, ChevronRight, Box, Truck, CheckCircle2, Clock, Home, X, MoreVertical, ArrowLeft } from 'lucide-react';
 import { useOrders } from '../../context/OrderContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import useScrollLock from '../../hooks/useScrollLock';
 
 const OrderHistory = () => {
   const { orders } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  React.useEffect(() => {
-    if (selectedOrder) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [selectedOrder]);
+  useScrollLock(!!selectedOrder);
 
   const getStatusColor = (status) => {
     switch (status) {

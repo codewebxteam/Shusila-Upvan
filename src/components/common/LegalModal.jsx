@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { X, Shield, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useScrollLock from '../../hooks/useScrollLock';
 
 const LegalModal = ({ isOpen, onClose, type }) => {
 
@@ -115,16 +116,7 @@ const LegalModal = ({ isOpen, onClose, type }) => {
 
   const content = contentMap[type] || contentMap['terms-of-use'] || contentMap['terms'];
 
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   return createPortal(
     <AnimatePresence>

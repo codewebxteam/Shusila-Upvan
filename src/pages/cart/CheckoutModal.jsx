@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useOrders } from '../../context/OrderContext';
 import { realtimeDb as db } from '../../firebase';
+import useScrollLock from '../../hooks/useScrollLock';
 import { ref, onValue } from 'firebase/database';
 
 const CheckoutModal = ({ onClose }) => {
@@ -56,13 +57,7 @@ const CheckoutModal = ({ onClose }) => {
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        // Prevent background scrolling
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, []);
+    useScrollLock(true);
 
     const banks = [
         { id: 'sbi', name: 'State Bank of India', icon: 'https://cdn.iconscout.com/icon/free/png-256/free-sbi-3629051-3030232.png' },
