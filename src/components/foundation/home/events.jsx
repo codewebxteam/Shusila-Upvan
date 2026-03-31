@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, MapPin, Users, ArrowRight, PlayCircle, Plus, Sparkles, Globe, X, CheckCircle2 } from 'lucide-react';
 import { realtimeDb as db } from '../../../firebase';
 import { ref, push, serverTimestamp } from 'firebase/database';
+import useScrollLock from '../../../hooks/useScrollLock';
 
 // Import Legacy Images
 import legacy1 from '../../../assets/foundation/legacy/foundation_day_2025.png';
@@ -22,6 +23,8 @@ const Events = () => {
   const [registerFormData, setRegisterFormData] = useState({ name: '', email: '', contact: '' });
   const [registerMessageSent, setRegisterMessageSent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  
+  useScrollLock(isModalOpen || isRegisterModalOpen);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
