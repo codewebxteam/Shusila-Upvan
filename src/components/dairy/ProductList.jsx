@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Verified, Sparkles, Check, Heart, Search, X } from 'lucide-react';
 import BulkOrderModal from '../common/BulkOrderModal';
-import { products, categories } from '../../data/products';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
 import { useCart } from '../../context/CartContext';
@@ -74,10 +73,7 @@ const ProductList = ({ priceRange, sortOrder }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
 
-  const dairyProducts = [
-    ...[...firebaseProducts].reverse(),
-    ...products.filter((p) => p.category === categories.DAIRY)
-  ];
+  const dairyProducts = [...firebaseProducts].reverse();
 
   // Get unique tags
   const allTags = ['All', ...new Set(dairyProducts.map(p => p.tag).filter(Boolean))];

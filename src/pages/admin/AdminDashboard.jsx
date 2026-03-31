@@ -34,26 +34,6 @@ const AdminDashboard = () => {
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
 
-    const placeTestOrder = async () => {
-        try {
-            const refOrder = ref(db, 'orders');
-            const newRef = push(refOrder);
-            await set(newRef, {
-                orderId: "TEST" + Math.floor(Math.random() * 1000),
-                customer: "Test User",
-                email: "test@example.com",
-                grandTotal: 1500,
-                payment: "COD",
-                status: "Placed",
-                date: new Date().toISOString(),
-                shippingAddress: { fullName: "Test User", street: "Test Road", city: "Test City", state: "TS", pincode: "110001", mobile: "9876543210" }
-            });
-            alert("Test Order placed successfully! If the database is connected they will load immediately.");
-        } catch (err) {
-            console.error("Test order failed:", err);
-            alert("Failed to place test order. Check console logs.");
-        }
-    };
 
     useEffect(() => {
         const ordersRef = ref(db, 'orders');
@@ -345,46 +325,6 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* DEBUG PANEL - Visible only if no orders or manually triggered */}
-            {(!isLoading && orders.length === 0) && (
-                <div className="mb-8 p-6 bg-rose-50 border-2 border-rose-200 rounded-[2rem] shadow-lg shadow-rose-100/50 animate-pulse-slow">
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
-                            <AlertCircle size={24} strokeWidth={2.5} />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-black text-rose-900 tracking-tight">System Connection Status</h3>
-                            <p className="text-sm font-bold text-rose-700/80 mb-4">No data found. This usually happens when the Firebase Database URL is incorrect.</p>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white/60 p-4 rounded-xl border border-rose-100">
-                                    <p className="text-[10px] font-black uppercase text-rose-400 mb-1">Active Database URL:</p>
-                                    <code className="text-xs font-mono text-rose-600 break-all">
-                                        {db?._repoInternal?.repoInfo_?.host || "Connecting..."}
-                                    </code>
-                                </div>
-                                <div className="bg-white/60 p-4 rounded-xl border border-rose-100">
-                                    <p className="text-[10px] font-black uppercase text-rose-400 mb-1">Project ID:</p>
-                                    <code className="text-xs font-mono text-rose-600">{import.meta.env.VITE_FIREBASE_PROJECT_ID}</code>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 p-4 bg-white/40 rounded-xl border border-rose-100">
-                                <p className="text-[11px] font-bold text-rose-800">
-                                    💡 Tip: Open your Firebase Console &gt; Realtime Database &gt; Copy the URL and add it as <span className="font-black">VITE_FIREBASE_DATABASE_URL</span> in your <span className="font-black">.env</span> file.
-                                </p>
-                            </div>
-
-                            <button 
-                                onClick={placeTestOrder}
-                                className="mt-4 flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-md shadow-emerald-500/20"
-                            >
-                                Generate Test Order in Database
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
 {/* Stats Cards */ }
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

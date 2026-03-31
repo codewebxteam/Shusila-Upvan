@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart, Star, ArrowRight } from 'lucide-react';
-import { products } from '../../data/products';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
 import { useCart } from '../../context/CartContext';
@@ -35,10 +34,7 @@ const RecommendedProducts = ({ currentProductId, category }) => {
     const isMushroom = String(category || '').toLowerCase().includes('mushroom');
     const isDairy = String(category || '').toLowerCase().includes('dairy');
 
-    const allProducts = [
-        ...firebaseProducts,
-        ...products
-    ];
+    const allProducts = firebaseProducts;
 
     const recommended = allProducts
         .filter(p => {

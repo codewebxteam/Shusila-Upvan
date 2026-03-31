@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Heart, Minus, Plus, ArrowLeft, Star, ShieldCheck, Truck, RefreshCw, Share2 } from 'lucide-react';
-import { getProductById } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -68,59 +67,52 @@ const ProductDetail = () => {
         let isMounted = true;
         let unsubscribe = () => {};
 
-        const staticProduct = getProductById(id);
-        
-        if (staticProduct) {
-            setProduct(staticProduct);
-            setIsLoading(false);
-        } else {
-            setIsLoading(true);
-            const productRef = ref(db, `products/${id}`);
-            unsubscribe = onValue(productRef, (snapshot) => {
-                if (!isMounted) return;
-                const data = snapshot.val();
-                if (data) {
-                    // Parse highlights
-                    let parsedHighlights = [];
-                    if (typeof data.highlights === 'string') {
-                        parsedHighlights = data.highlights.split(',').map(h => h.trim()).filter(Boolean);
-                    } else if (Array.isArray(data.highlights)) {
-                        parsedHighlights = data.highlights;
-                    }
-
-                    // Parse specifications
-                    let parsedSpecs = [];
-                    const specsText = data.specification || data.specifications;
-                    if (typeof specsText === 'string') {
-                        parsedSpecs = specsText.split('\n').map(line => {
-                            const parts = line.split(':');
-                            if (parts.length >= 2) {
-                                return { label: parts[0].trim(), value: parts.slice(1).join(':').trim() };
-                            }
-                            return null;
-                        }).filter(Boolean);
-                    } else if (Array.isArray(specsText)) {
-                        parsedSpecs = specsText;
-                    }
-
-                    setProduct({
-                        ...data,
-                        id: id,
-                        img: data.img || 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?w=500',
-                        unit: data.unit || 'Kg',
-                        highlights: parsedHighlights,
-                        specifications: parsedSpecs,
-                        longDescription: data.description || ''
-                    });
-                } else {
-                    setProduct(null);
+        setIsLoading(true);
+        const productRef = ref(db, `products/${id}`);
+        unsubscribe = onValue(productRef, (snapshot) => {
+            if (!isMounted) return;
+            const data = snapshot.val();
+            if (data) {
+                // Parse highlights
+                let parsedHighlights = [];
+                if (typeof data.highlights === 'string') {
+                    parsedHighlights = data.highlights.split(',').map(h => h.trim()).filter(Boolean);
+                } else if (Array.isArray(data.highlights)) {
+                    parsedHighlights = data.highlights;
                 }
-                setIsLoading(false);
-            }, (error) => {
-                console.error("Fetch product error:", error);
-                setIsLoading(false);
-            });
-        }
+
+                // Parse specifications
+                let parsedSpecs = [];
+                const specsText = data.specification || data.specifications;
+                if (typeof specsText === 'string') {
+                    parsedSpecs = specsText.split('\n').map(line => {
+                        const parts = line.split(':');
+                        if (parts.length >= 2) {
+                            return { label: parts[0].trim(), value: parts.slice(1).join(':').trim() };
+                        }
+                        return null;
+                    }).filter(Boolean);
+                } else if (Array.isArray(specsText)) {
+                    parsedSpecs = specsText;
+                }
+
+                setProduct({
+                    ...data,
+                    id: id,
+                    img: data.img || 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?w=500',
+                    unit: data.unit || 'Kg',
+                    highlights: parsedHighlights,
+                    specifications: parsedSpecs,
+                    longDescription: data.description || ''
+                });
+            } else {
+                setProduct(null);
+            }
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Fetch product error:", error);
+            setIsLoading(false);
+        });
 
         return () => {
             isMounted = false;

@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { products } from '../../data/products';
+import { realtimeDb as db } from '../../firebase';
+import { ref, onValue } from 'firebase/database';
 import { Link } from 'react-router-dom';
 
 const SearchBar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const [firebaseProducts, setFirebaseProducts] = useState([]);
+
+  // Fetch products for search
+  useEffect(() => {
+    const productsRef = ref(db, 'products');
+    const unsubscribe = onValue(productsRef, (snap) => {
+      const data = snap.val();
+      if (data) {
+        setFirebaseProducts(Object.entries(data).map(([id, val]) => ({
+          ...val,
+          id,
+          img: val.img || val.image || 'https://images.unsplash.com/photo-1550583794-a2b7142647ec?w=500'
+        })));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -16,16 +34,16 @@ const SearchBar = () => {
     }
 
     const query = searchQuery.toLowerCase();
-    const results = products.filter(product =>
+    const results = firebaseProducts.filter(product =>
       product.name.toLowerCase().includes(query) ||
-      product.category.toLowerCase().includes(query) ||
-      product.tag?.toLowerCase().includes(query) ||
-      product.description?.toLowerCase().includes(query)
+      (product.category || '').toLowerCase().includes(query) ||
+      (product.tag || '').toLowerCase().includes(query) ||
+      (product.description || '').toLowerCase().includes(query)
     );
 
     setSearchResults(results.slice(0, 6)); // Limit to 6 results
     setShowResults(true);
-  }, [searchQuery]);
+  }, [searchQuery, firebaseProducts]);
 
   const handleClear = () => {
     setSearchQuery('');

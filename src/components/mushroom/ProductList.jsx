@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Leaf, Sparkles, Check, Heart, Search, X } from 'lucide-react';
 import BulkOrderModal from '../common/BulkOrderModal';
-import { products, categories } from '../../data/products';
 import { realtimeDb as db } from '../../firebase';
 import { ref, onValue } from 'firebase/database';
 import { useCart } from '../../context/CartContext';
@@ -65,11 +64,7 @@ const ProductList = ({ priceRange, sortOrder }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
 
-  const mushroomProducts = [
-    ...[...firebaseProducts].reverse(),
-    ...products.filter((p) => p.category === categories.MUSHROOM)
-  ];
-  console.log("🍄 Mushroom Grid Products:", mushroomProducts.length, "Static:", products.filter((p) => p.category === categories.MUSHROOM).length, "Firebase:", firebaseProducts.length);
+  const mushroomProducts = [...firebaseProducts].reverse();
 
   // Get unique tags
   const allTags = ['All', ...new Set(mushroomProducts.map(p => p.tag).filter(Boolean))];

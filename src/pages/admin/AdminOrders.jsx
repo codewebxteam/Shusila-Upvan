@@ -5,7 +5,8 @@ import { realtimeDb as db } from '../../firebase';
 import { ref, onValue, update, remove } from 'firebase/database';
 import { Download, Eye, X, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import OrderTrackingModal from './OrderTrackingModal';
+import OrderDetailModal from './OrderDetailModal';
+
 
 
 const AdminOrders = () => {
@@ -105,33 +106,8 @@ const AdminOrders = () => {
     };
 
 
-    // Auto-update order status based on creation date
-    useEffect(() => {
-        if (orders.length > 0) {
-            orders.forEach(order => {
-                if (order.status === 'Cancelled' || order.status === 'Delivered' || order.status === 'Pending') return;
-                if (!order.date) return;
+    // Removed auto-update order status logic as per user request to prevent "self-changing" values.
 
-                const orderDate = parseISO(order.date);
-                if (!isValid(orderDate)) return;
-
-                const daysPassed = differenceInDays(new Date(), orderDate);
-                let calculatedStatus = 'Placed';
-
-                if (daysPassed >= 4) calculatedStatus = 'Delivered';
-                else if (daysPassed >= 2) calculatedStatus = 'Shipped';
-                else if (daysPassed >= 1) calculatedStatus = 'Confirmed';
-
-                const statusHierarchy = { 'Pending': -1, 'Placed': 0, 'Confirmed': 1, 'Shipped': 2, 'Delivered': 3 };
-                const currentRank = statusHierarchy[order.status] || 0;
-                const targetRank = statusHierarchy[calculatedStatus] || 0;
-
-                if (targetRank > currentRank) {
-                    handleStatusChange(order, calculatedStatus);
-                }
-            });
-        }
-    }, [orders]);
 
     // Calculate stats
     const stats = {
@@ -321,6 +297,13 @@ const AdminOrders = () => {
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
+                                             <button
+                                                 onClick={() => setSelectedOrder(item)}
+                                                 className="text-slate-400 hover:text-indigo-600 transition-colors"
+                                                 title="View Order Details"
+                                             >
+                                                 <Eye size={18} strokeWidth={2.5} />
+                                             </button>
                                              {(item.status === 'Pending' || item.status === 'Placed') && (
                                                  <button
                                                      onClick={() => handleStatusChange(item, item.status === 'Pending' ? 'Placed' : 'Confirmed')}
@@ -341,6 +324,7 @@ const AdminOrders = () => {
                                             )}
                                         </div>
                                     </td>
+
                                 </tr>
                             ))}
                         </tbody>
@@ -349,11 +333,12 @@ const AdminOrders = () => {
             </div>
 
             {selectedOrder && (
-                <OrderTrackingModal
+                <OrderDetailModal
                     order={selectedOrder}
                     onClose={() => setSelectedOrder(null)}
                 />
             )}
+
 
         </div>
     );

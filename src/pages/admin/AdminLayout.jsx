@@ -34,22 +34,62 @@ const AdminLayout = () => {
     const [selectedMessage, setSelectedMessage] = useState(null);
     const notificationsRef = useRef(null);
     const messagesRef = useRef(null);
+    const searchRef = useRef(null);
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [allOrders, setAllOrders] = useState([]);
+    const [allProducts, setAllProducts] = useState([]);
+    const [allCustomers, setAllCustomers] = useState([]);
+
+    // Fetch data for search & metrics
     useEffect(() => {
         const ordersRef = ref(db, 'orders');
-        const messagesRef = ref(db, 'messages');
+        const productsRef = ref(db, 'products');
+        const usersRef = ref(db, 'users');
+        const msgRef = ref(db, 'messages');
 
         const unsubOrders = onValue(ordersRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const list = Object.keys(data).map(key => ({ ...data[key], id: key })).filter(o => o.status === 'Placed' || o.status === 'Pending');
-                setPendingOrders(list.reverse());
+                const list = Object.keys(data).map(key => ({ 
+                    ...data[key], 
+                    id: key,
+                    firebaseId: key,
+                    orderId: data[key].orderId || data[key].id || key,
+                    type: 'order'
+                }));
+                setPendingOrders(list.filter(o => o.status === 'Placed' || o.status === 'Pending').reverse());
+                setAllOrders(list);
             } else {
+                setAllOrders([]);
                 setPendingOrders([]);
             }
         });
 
-        const unsubMessages = onValue(messagesRef, (snapshot) => {
+        const unsubProducts = onValue(productsRef, (snap) => {
+            const data = snap.val();
+            if (data) {
+                setAllProducts(Object.entries(data).map(([key, val]) => ({
+                    ...val,
+                    id: key,
+                    type: 'product'
+                })));
+            }
+        });
+
+        const unsubUsers = onValue(usersRef, (snap) => {
+            const data = snap.val();
+            if (data) {
+                setAllCustomers(Object.entries(data).map(([key, val]) => ({
+                    ...val,
+                    id: key,
+                    type: 'customer'
+                })));
+            }
+        });
+
+        const unsubMessages = onValue(msgRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 const list = Object.keys(data).map(key => ({ ...data[key], id: key }));
@@ -61,9 +101,52 @@ const AdminLayout = () => {
 
         return () => {
             unsubOrders();
+            unsubProducts();
+            unsubUsers();
             unsubMessages();
         };
     }, []);
+
+    // Search logic
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        const query = searchQuery.toLowerCase();
+        const results = [];
+
+        // Search Orders
+        const matchedOrders = allOrders.filter(o => 
+            o.orderId?.toLowerCase().includes(query) ||
+            (o.customer || '').toLowerCase().includes(query) ||
+            (o.shippingAddress?.fullName || '').toLowerCase().includes(query) ||
+            (o.mobile || '').includes(query) ||
+            (o.shippingAddress?.mobile || '').includes(query) ||
+            (o.email || '').toLowerCase().includes(query)
+        ).slice(0, 5);
+        if (matchedOrders.length > 0) results.push({ title: 'Orders', items: matchedOrders });
+
+        // Search Customers
+        const matchedCustomers = allCustomers.filter(c => 
+            (c.name || '').toLowerCase().includes(query) ||
+            (c.displayName || '').toLowerCase().includes(query) ||
+            (c.email || '').toLowerCase().includes(query) ||
+            (c.mobile || '').includes(query) ||
+            (c.phone || '').includes(query)
+        ).slice(0, 5);
+        if (matchedCustomers.length > 0) results.push({ title: 'Customers', items: matchedCustomers });
+
+        // Search Products
+        const matchedProducts = allProducts.filter(p => 
+            (p.name || '').toLowerCase().includes(query) ||
+            (p.category || '').toLowerCase().includes(query)
+        ).slice(0, 5);
+        if (matchedProducts.length > 0) results.push({ title: 'Products', items: matchedProducts });
+
+        setSearchResults(results);
+    }, [searchQuery, allOrders, allProducts, allCustomers]);
 
     const handleOpenMessage = async (msg) => {
         setSelectedMessage(msg);
@@ -103,10 +186,13 @@ const AdminLayout = () => {
         const handleClickOutside = (e) => {
             if (
                 (!notificationsRef.current || !notificationsRef.current.contains(e.target)) &&
-                (!messagesRef.current || !messagesRef.current.contains(e.target))
+                (!messagesRef.current || !messagesRef.current.contains(e.target)) &&
+                (!searchRef.current || !searchRef.current.contains(e.target))
             ) {
                 setShowNotifications(false);
                 setShowMessages(false);
+                setSearchQuery('');
+                setSearchResults([]);
             }
         };
         window.addEventListener('click', handleClickOutside);
@@ -195,13 +281,78 @@ const AdminLayout = () => {
                     </button>
 
                     {/* Search Bar */}
-                    <div className="flex-1 max-w-xl relative">
+                    <div className="flex-1 max-w-xl relative" ref={searchRef}>
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             placeholder="Search products, orders, customers"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-12 pr-4 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all shadow-inner"
                         />
+
+                        {/* Search Results Dropdown */}
+                        {searchResults.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-[110] animate-in fade-in slide-in-from-top-2 duration-200 p-2">
+                                <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
+                                    {searchResults.map((group) => (
+                                        <div key={group.title} className="mb-2 last:mb-0">
+                                            <h4 className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50 rounded-xl mb-1">{group.title}</h4>
+                                            <div className="space-y-1 px-1">
+                                                {group.items.map((item) => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => {
+                                                            if (item.type === 'order') navigate('/admin/orders');
+                                                            else if (item.type === 'customer') navigate('/admin/customers');
+                                                            else if (item.type === 'product') navigate('/admin/inventory');
+                                                            setSearchQuery('');
+                                                            setSearchResults([]);
+                                                        }}
+                                                        className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-indigo-50/50 group transition-all text-left"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                                                                item.type === 'order' ? 'bg-amber-100 text-amber-600' :
+                                                                item.type === 'customer' ? 'bg-blue-100 text-blue-600' :
+                                                                'bg-emerald-100 text-emerald-600'
+                                                            }`}>
+                                                                {item.type === 'order' ? <ShoppingCart size={16} /> :
+                                                                 item.type === 'customer' ? <Users size={16} /> :
+                                                                 <Package size={16} />}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-slate-800 leading-tight group-hover:text-indigo-700">
+                                                                    {item.orderId || item.name || item.displayName || 'Unnamed Item'}
+                                                                </p>
+                                                                <p className="text-[11px] text-slate-500 font-medium line-clamp-1">
+                                                                    {item.type === 'order' ? `Customer: ${item.customer || item.shippingAddress?.fullName}` :
+                                                                     item.type === 'customer' ? (item.email || 'No email') :
+                                                                     `Category: ${item.category}`}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-end shrink-0">
+                                                            <span className="text-[10px] font-black text-slate-900 group-hover:text-indigo-600">
+                                                                {item.type === 'order' ? `₹${item.grandTotal}` : 
+                                                                 item.type === 'product' ? `₹${item.price}` : ''}
+                                                            </span>
+                                                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 ${
+                                                                item.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
+                                                                item.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                                'bg-slate-100 text-slate-600'
+                                                            }`}>
+                                                                {item.status || item.type.toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Toolbar */}

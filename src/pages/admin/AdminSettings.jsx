@@ -65,6 +65,23 @@ const AdminSettings = () => {
         }));
     };
 
+    // Handle toggle and auto-save (specifically for Switches/Toggles)
+    const handleToggle = async (e) => {
+        const { name, checked } = e.target;
+        const updatedData = { ...formData, [name]: checked };
+        setFormData(updatedData);
+
+        try {
+            await set(ref(db, 'settings'), updatedData);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error("Error auto-saving setting:", error);
+            // Revert state if save fails (optional, but good practice)
+            setFormData(formData);
+        }
+    };
+
     // Save settings to Firebase
     const handleSave = async () => {
         setIsSaving(true);
@@ -214,7 +231,7 @@ const AdminSettings = () => {
                                                     <p className="text-xs text-slate-500 mt-1">Prevent customers from placing new orders while you update the farm store.</p>
                                                 </div>
                                                 <label className="relative inline-flex items-center cursor-pointer">
-                                                    <input type="checkbox" name="maintenanceMode" checked={formData.maintenanceMode} onChange={handleChange} className="sr-only peer" />
+                                                    <input type="checkbox" name="maintenanceMode" checked={formData.maintenanceMode} onChange={handleToggle} className="sr-only peer" />
                                                     <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500 shadow-inner"></div>
                                                 </label>
                                             </div>
@@ -233,19 +250,20 @@ const AdminSettings = () => {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Free Delivery Threshold (₹)</label>
-                                                    <div className="w-full px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm font-bold text-emerald-700 flex items-center justify-between">
-                                                        <span>0</span>
-                                                        <span className="text-[10px] uppercase tracking-widest text-emerald-600 bg-white px-2 py-0.5 rounded-md border border-emerald-200">Permanently Free</span>
-                                                    </div>
-                                                    <p className="text-[10px] text-slate-400 font-semibold px-2">Global Free Delivery is enabled. Threshold is ignored.</p>
+                                                    <input
+                                                        type="number" name="freeDeliveryThreshold" value={formData.freeDeliveryThreshold} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                                    />
+                                                    <p className="text-[10px] text-slate-400 font-semibold px-2">Set to 0 for global free shipping.</p>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Flat Delivery Fee (₹)</label>
-                                                    <div className="w-full px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm font-bold text-emerald-700 flex items-center justify-between">
-                                                        <span>0</span>
-                                                        <span className="text-[10px] uppercase tracking-widest text-emerald-600 bg-white px-2 py-0.5 rounded-md border border-emerald-200">Permanently Free</span>
-                                                    </div>
+                                                    <input
+                                                        type="number" name="flatDeliveryFee" value={formData.flatDeliveryFee} onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                                    />
                                                 </div>
+
                                             </div>
                                         </div>
 
@@ -296,7 +314,7 @@ const AdminSettings = () => {
                                                         </div>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" name="enableCOD" checked={formData.enableCOD} onChange={handleChange} className="sr-only peer" />
+                                                        <input type="checkbox" name="enableCOD" checked={formData.enableCOD} onChange={handleToggle} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                                     </label>
                                                 </div>
@@ -312,7 +330,7 @@ const AdminSettings = () => {
                                                         </div>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" name="enableUPI" checked={formData.enableUPI} onChange={handleChange} className="sr-only peer" />
+                                                        <input type="checkbox" name="enableUPI" checked={formData.enableUPI} onChange={handleToggle} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                                     </label>
                                                 </div>
@@ -328,7 +346,7 @@ const AdminSettings = () => {
                                                         </div>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" name="enableCards" checked={formData.enableCards} onChange={handleChange} className="sr-only peer" />
+                                                        <input type="checkbox" name="enableCards" checked={formData.enableCards} onChange={handleToggle} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                                     </label>
                                                 </div>
@@ -344,7 +362,7 @@ const AdminSettings = () => {
                                                         </div>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" name="enableBank" checked={formData.enableBank} onChange={handleChange} className="sr-only peer" />
+                                                        <input type="checkbox" name="enableBank" checked={formData.enableBank} onChange={handleToggle} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                                     </label>
                                                 </div>
@@ -360,7 +378,7 @@ const AdminSettings = () => {
                                                         </div>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" name="enableWallet" checked={formData.enableWallet} onChange={handleChange} className="sr-only peer" />
+                                                        <input type="checkbox" name="enableWallet" checked={formData.enableWallet} onChange={handleToggle} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                                     </label>
                                                 </div>
@@ -384,7 +402,7 @@ const AdminSettings = () => {
                                                         <p className="text-xs text-slate-500 mt-1 max-w-sm">Automatically send an email receipt to customers when they successfully place a farm order.</p>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer mt-1">
-                                                        <input type="checkbox" name="orderEmails" checked={formData.orderEmails} onChange={handleChange} className="sr-only peer" />
+                                                        <input type="checkbox" name="orderEmails" checked={formData.orderEmails} onChange={handleToggle} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                                     </label>
                                                 </div>
@@ -395,7 +413,7 @@ const AdminSettings = () => {
                                                         <p className="text-xs text-slate-500 mt-1 max-w-sm">Send marketing emails about new farm products and discounts to subscribed users.</p>
                                                     </div>
                                                     <label className="relative inline-flex items-center cursor-pointer mt-1">
-                                                        <input type="checkbox" name="promotionalEmails" checked={formData.promotionalEmails} onChange={handleChange} className="sr-only peer" />
+                                                        <input type="checkbox" name="promotionalEmails" checked={formData.promotionalEmails} onChange={handleToggle} className="sr-only peer" />
                                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                                     </label>
                                                 </div>
