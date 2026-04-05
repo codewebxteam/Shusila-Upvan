@@ -85,16 +85,20 @@ const AdminCustomers = () => {
         // 1. Process from Orders
         ordersList.forEach(order => {
             const uid = order.userId || `guest_${order.firebaseId}`;
-            if (!customerMap[uid]) {
-                const orderName = order.customer || order.address?.name || 'Anonymous';
-                const userName = usersData[uid]?.displayName || usersData[uid]?.name;
-                const orderEmail = order.email || order.address?.email;
-                const userEmail = usersData[uid]?.email;
+            const orderName = order.customer || order.address?.name || 'Anonymous';
+            const userName = usersData[uid]?.displayName || usersData[uid]?.name;
+            const orderEmail = order.email || order.address?.email;
+            const userEmail = usersData[uid]?.email;
+            const orderMobile = order.mobile || order.address?.mobile || '';
+            const userMobile = usersData[uid]?.mobile || usersData[uid]?.phone || '';
+            const contactNumber = orderMobile || userMobile || 'N/A';
 
+            if (!customerMap[uid]) {
                 customerMap[uid] = {
                     id: uid,
                     customer: orderName !== 'Anonymous' ? orderName : (userName || 'Anonymous'),
                     email: orderEmail || userEmail || 'N/A',
+                    contact: contactNumber,
                     orders: 0,
                     spent: 0,
                     joined: usersData[uid]?.joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
@@ -116,6 +120,9 @@ const AdminCustomers = () => {
             if (order.address && customerMap[uid].address === 'No Address') {
                 customerMap[uid].address = `${order.address.street}, ${order.address.locality}, ${order.address.city}`;
             }
+            if (orderMobile && customerMap[uid].contact === 'N/A') {
+                customerMap[uid].contact = orderMobile;
+            }
         });
 
         // 2. Add users from usersData who haven't ordered yet
@@ -125,6 +132,7 @@ const AdminCustomers = () => {
                     id: uid,
                     customer: usersData[uid].displayName || usersData[uid].name || 'Anonymous',
                     email: usersData[uid].email || 'N/A',
+                    contact: usersData[uid]?.mobile || usersData[uid]?.phone || 'N/A',
                     orders: 0,
                     spent: 0,
                     joined: usersData[uid].joinedAt ? new Date(usersData[uid].joinedAt).toLocaleDateString() : 'N/A',
@@ -338,6 +346,7 @@ const AdminCustomers = () => {
                             <tr className="bg-slate-50/50">
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Customer</th>
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Email</th>
+                                <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Contact Number</th>
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Total Orders</th>
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Total Spent</th>
                                 <th className="py-5 px-6 text-[11px] font-black uppercase tracking-widest text-slate-500">Joined</th>
@@ -348,11 +357,11 @@ const AdminCustomers = () => {
                         <tbody className="divide-y divide-slate-100">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="7" className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Loading data...</td>
+                                    <td colSpan="8" className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Loading data...</td>
                                 </tr>
                             ) : processedCustomers.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No customers found</td>
+                                    <td colSpan="8" className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No customers found</td>
                                 </tr>
                             ) : processedCustomers.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
@@ -361,7 +370,9 @@ const AdminCustomers = () => {
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className="text-sm font-medium text-slate-700">{item.email}</span>
-
+                                    </td>
+                                    <td className="py-4 px-6">
+                                        <span className="text-sm text-slate-600 font-semibold">{item.contact}</span>
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className="text-sm font-semibold text-slate-700">{item.orders}</span>
